@@ -6,6 +6,7 @@ import {
   type Webview,
   type WebviewPanel,
 } from 'vscode'
+import type { WebviewMessage } from '../types/message'
 import { getNonce } from '../utilities/getNonce'
 import { getUri } from '../utilities/getUri'
 
@@ -157,15 +158,12 @@ export class HelloWorldPanel {
    */
   private _setWebviewMessageListener(webview: Webview) {
     webview.onDidReceiveMessage(
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-      (message: any) => {
+      (message: WebviewMessage) => {
         const command = message.command
-        const text = message.text
 
         switch (command) {
-          case 'hello':
-            // Code that should run in response to the hello message command
-            window.showInformationMessage(text)
+          case 'testDBConnection':
+            // window.showInformationMessage(text)
             return
           // Add more switch case statements here as more webview message commands
           // are created within the webview context (i.e. inside media/main.js)

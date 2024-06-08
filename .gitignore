@@ -7,3 +7,6 @@ build-ssr
 *.local
 
 /out
+## Panda
+styled-system
+styled-system-studio

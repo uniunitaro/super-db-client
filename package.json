@@ -13,7 +13,24 @@
         "command": "hello-world.showHelloWorld",
         "title": "Hello World (React + Vite): Show"
       }
-    ]
+    ],
+    "views": {
+      "database-explorer": [
+        {
+          "id": "super-db-client-explorer",
+          "name": "Database Explorer"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "database-explorer",
+          "title": "Database Explorer",
+          "icon": "src/resources/icons/database.svg"
+        }
+      ]
+    }
   },
   "scripts": {
     "install:all": "pnpm install && cd webview-ui && pnpm install",
@@ -25,16 +42,16 @@
     "pretest": "pnpm compile && pnpm lint",
     "lint": "eslint src --ext ts"
   },
+  "dependencies": {
+    "kysely": "^0.27.3",
+    "mysql2": "^3.9.7"
+  },
   "devDependencies": {
     "@biomejs/biome": "1.7.3",
     "@types/glob": "^8.1.0",
     "@types/node": "^20.12.12",
     "@types/vscode": "^1.89.0",
-    "@typescript-eslint/eslint-plugin": "^7.9.0",
-    "@typescript-eslint/parser": "^7.9.0",
-    "eslint": "^8.56.0",
     "glob": "^10.3.15",
-    "prettier": "^3.2.5",
     "typescript": "^5.4.5",
     "vscode-test": "^1.6.1"
   }

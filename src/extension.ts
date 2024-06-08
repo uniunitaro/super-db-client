@@ -1,4 +1,5 @@
-import { commands, type ExtensionContext } from 'vscode'
+import { commands, window, type ExtensionContext } from 'vscode'
+import { ExplorerViewProvider } from './panels/ExplorerViewProvider'
 import { HelloWorldPanel } from './panels/HelloWorldPanel'
 
 export function activate(context: ExtensionContext) {
@@ -12,4 +13,9 @@ export function activate(context: ExtensionContext) {
 
   // Add command to the extension context
   context.subscriptions.push(showHelloWorldCommand)
+
+  const explorerViewProvider = new ExplorerViewProvider()
+  window.createTreeView('super-db-client-explorer', {
+    treeDataProvider: explorerViewProvider,
+  })
 }
