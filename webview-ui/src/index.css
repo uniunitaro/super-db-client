@@ -1,1 +1,9 @@
 @layer reset, base, tokens, recipes, utilities;
+
+body {
+  padding: 0 !important;
+}
+
+html {
+  scrollbar-color: unset !important;
+}

@@ -11,6 +11,12 @@ dependencies:
   mysql2:
     specifier: ^3.9.7
     version: 3.9.7
+  vscode-messenger:
+    specifier: ^0.4.5
+    version: 0.4.5
+  vscode-messenger-common:
+    specifier: ^0.4.5
+    version: 0.4.5
 
 devDependencies:
   '@biomejs/biome':
@@ -677,6 +683,16 @@ packages:
   /util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
     dev: true
+
+  /vscode-messenger-common@0.4.5:
+    resolution: {integrity: sha512-opA+BEYTWdy1fFC3oOw30b0zc/KEuMtw+1pOiH5fEp+BGeA5xff7omSQTZeZJSDJszM471Vi+YY/ipRdRglAlQ==}
+    dev: false
+
+  /vscode-messenger@0.4.5:
+    resolution: {integrity: sha512-a6e54dpPRi/ITmVex49LGU6YXlqcuxGPlDPauvZig20G1D1/QD2E8GfhtvlTj3ml5aU/QV3LHghyepq3riy7sw==}
+    dependencies:
+      vscode-messenger-common: 0.4.5
+    dev: false
 
   /vscode-test@1.6.1:
     resolution: {integrity: sha512-086q88T2ca1k95mUzffvbzb7esqQNvJgiwY4h29ukPhFo8u+vXOOmelUoU5EQUHs3Of8+JuQ3oGdbVCqaxuTXA==}

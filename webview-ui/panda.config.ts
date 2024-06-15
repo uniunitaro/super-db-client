@@ -18,5 +18,15 @@ export default defineConfig({
   // The output directory for your css system
   outdir: 'styled-system',
 
-  jsxFramework: 'react',
+  // jsxFramework: 'react',
+
+  globalVars: {
+    '--vscode-foreground': '',
+    '--vscode-editor-background': '',
+    '--vscode-editor-foreground': '',
+    '--vscode-editor-font-family': '',
+    '--vscode-editor-font-size': '',
+    '--vscode-keybindingTable-headerBackground': '',
+    '--vscode-keybindingTable-rowsBackground': '',
+  },
 })

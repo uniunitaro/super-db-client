@@ -1,6 +1,6 @@
 {
-  "name": "hello-world-react-vite",
-  "displayName": "hello-world-react-vite",
+  "name": "super-db-client",
+  "displayName": "Super DB Client",
   "description": "A hello world sample extension to demonstrate using React + Vite with the Webview UI Toolkit for VS Code.",
   "version": "0.0.1",
   "engines": {
@@ -10,14 +10,32 @@
   "contributes": {
     "commands": [
       {
-        "command": "hello-world.showHelloWorld",
-        "title": "Hello World (React + Vite): Show"
+        "command": "superDBClient.newConnection",
+        "title": "New Connection",
+        "category": "Super DB Client"
+      },
+      {
+        "command": "superDBClient.refreshEntry",
+        "title": "Refresh",
+        "category": "Super DB Client",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "superDBClient.goToTable",
+        "title": "Go to Table",
+        "category": "Super DB Client"
+      }
+    ],
+    "keybindings": [
+      {
+        "key": "ctrl+alt+p",
+        "command": "superDBClient.goToTable"
       }
     ],
     "views": {
-      "database-explorer": [
+      "databaseExplorer": [
         {
-          "id": "super-db-client-explorer",
+          "id": "superDBClient.explorer",
           "name": "Database Explorer"
         }
       ]
@@ -25,11 +43,35 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "database-explorer",
+          "id": "databaseExplorer",
           "title": "Database Explorer",
           "icon": "src/resources/icons/database.svg"
         }
       ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "superDBClient.refreshEntry",
+          "when": "view == superDBClient.explorer",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Super DB Client",
+      "properties": {
+        "fontSize": {
+          "type": ["number", "null"],
+          "default": null,
+          "markdownDescription": "The font size for the Super DB Client. `null` means the editor font size is used."
+        },
+        "rowHeight": {
+          "type": "number",
+          "default": 28,
+          "description": "The row height for the Super DB Client."
+        }
+      }
     }
   },
   "scripts": {
@@ -44,7 +86,9 @@
   },
   "dependencies": {
     "kysely": "^0.27.3",
-    "mysql2": "^3.9.7"
+    "mysql2": "^3.9.7",
+    "vscode-messenger": "^0.4.5",
+    "vscode-messenger-common": "^0.4.5"
   },
   "devDependencies": {
     "@biomejs/biome": "1.7.3",

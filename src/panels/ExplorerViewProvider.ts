@@ -1,52 +1,92 @@
 import * as vscode from 'vscode'
+import { DB } from '../features/connection/models/connection'
+import { getDBConfigs } from '../features/connection/models/dbConfig'
 
 export class ExplorerViewProvider
-  implements vscode.TreeDataProvider<TableItem>
+  implements vscode.TreeDataProvider<ExplorerItem>
 {
+  private _context: vscode.ExtensionContext
+
+  constructor(context: vscode.ExtensionContext) {
+    this._context = context
+  }
+
   private _onDidChangeTreeData: vscode.EventEmitter<
     // biome-ignore lint/suspicious/noConfusingVoidType: This is a void type
-    TableItem | undefined | null | void
+    ExplorerItem | undefined | null | void
     // biome-ignore lint/suspicious/noConfusingVoidType: This is a void type
-  > = new vscode.EventEmitter<TableItem | undefined | null | void>()
+  > = new vscode.EventEmitter<ExplorerItem | undefined | null | void>()
   readonly onDidChangeTreeData: vscode.Event<
     // biome-ignore lint/suspicious/noConfusingVoidType: This is a void type
-    TableItem | undefined | null | void
+    ExplorerItem | undefined | null | void
   > = this._onDidChangeTreeData.event
 
   refresh(): void {
     this._onDidChangeTreeData.fire()
   }
 
-  getTreeItem(element: TableItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
+  getTreeItem(
+    element: ExplorerItem,
+  ): vscode.TreeItem | Thenable<vscode.TreeItem> {
     return element
   }
 
-  getChildren(
-    element?: TableItem | undefined,
-  ): vscode.ProviderResult<TableItem[]> {
-    if (element) {
-      return element.getChildren()
+  async getChildren(
+    element?: ExplorerItem | undefined,
+  ): Promise<ExplorerItem[] | null | undefined> {
+    if (element?.dbUUID) {
+      DB.connect(this._context, element.dbUUID)
+
+      const db = DB.get()
+      if (!db) return
+
+      const tables = await db.introspection.getTables()
+      return tables.map(
+        (table) =>
+          new ExplorerItem({
+            label: table.name,
+            collapsibleState: vscode.TreeItemCollapsibleState.None,
+            command: {
+              command: 'superDBClient.openTable',
+              title: 'Open Table',
+              arguments: [table.name],
+            },
+          }),
+      )
     }
-    return [
-      new TableItem('Item 1', vscode.TreeItemCollapsibleState.Collapsed),
-      new TableItem('Item 2', vscode.TreeItemCollapsibleState.None),
-    ]
+
+    const dbConfigs = getDBConfigs(this._context)
+    return dbConfigs.map(
+      (dbConfig) =>
+        new ExplorerItem({
+          label: dbConfig.connectionName,
+          description: `${dbConfig.host}:${dbConfig.database}`,
+          uuid: dbConfig.uuid,
+          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+        }),
+    )
   }
 }
 
-class TableItem extends vscode.TreeItem {
-  children: TableItem[] | undefined
+class ExplorerItem extends vscode.TreeItem {
+  dbUUID: string | undefined
 
-  constructor(
-    label: string,
-    collapsibleState: vscode.TreeItemCollapsibleState,
-    children?: TableItem[],
-  ) {
+  constructor({
+    label,
+    description,
+    uuid,
+    collapsibleState,
+    command,
+  }: {
+    label: string
+    description?: string
+    uuid?: string
+    collapsibleState: vscode.TreeItemCollapsibleState
+    command?: vscode.Command
+  }) {
     super(label, collapsibleState)
-    this.children = children
-  }
-
-  getChildren(): TableItem[] | undefined {
-    return this.children
+    this.description = description
+    this.dbUUID = uuid
+    this.command = command
   }
 }
