@@ -1,5 +1,5 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react'
-import type { FC } from 'react'
+import type { FC, ReactNode } from 'react'
 import { css } from 'styled-system/css'
 import { hstack } from 'styled-system/patterns/hstack'
 
@@ -9,7 +9,8 @@ const TableFooter: FC<{
   offset: number
   page: number
   onPageChange: (page: number) => void
-}> = ({ totalCount, limit, offset, page, onPageChange }) => {
+  leftItems?: ReactNode
+}> = ({ totalCount, limit, offset, page, onPageChange, leftItems }) => {
   return (
     <div
       className={css({
@@ -19,7 +20,7 @@ const TableFooter: FC<{
         py: 1,
       })}
     >
-      <div />
+      <div>{leftItems}</div>
       <div>
         {totalCount
           ? `${offset + 1} - ${Math.min(

@@ -3,7 +3,7 @@ import { Messenger } from 'vscode-messenger'
 import { ExplorerViewProvider } from './panels/ExplorerViewProvider'
 import { HelloWorldPanel } from './panels/HelloWorldPanel'
 import { TablePanel } from './panels/TablePanel'
-import { showGoToTableQuickPick } from './panels/TableSearchQuickPick'
+import { showGoToTableQuickPick } from './panels/showGoToTableQuickPick'
 
 export function activate(context: ExtensionContext) {
   const messenger = new Messenger()

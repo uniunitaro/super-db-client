@@ -2,7 +2,7 @@ import type { RequestType } from 'vscode-messenger-common'
 import type { Config } from '../features/config/types/config'
 import type { DBConfigInput } from '../features/connection/types/dbConfig'
 import type { TableMetadata } from '../features/table/types/metadata'
-import type { TableRow } from '../features/table/types/table'
+import type { Operation, TableRow } from '../features/table/types/table'
 
 export const testDBConnectionRequest: RequestType<
   DBConfigInput,
@@ -11,7 +11,7 @@ export const testDBConnectionRequest: RequestType<
   method: 'testDBConnection',
 }
 
-export const saveDBConfigRequest: RequestType<DBConfigInput, undefined> = {
+export const saveDBConfigRequest: RequestType<DBConfigInput, void> = {
   method: 'saveDBConfig',
 }
 
@@ -32,4 +32,11 @@ export const getTableDataRequest: RequestType<
 
 export const getConfigRequest: RequestType<undefined, Config> = {
   method: 'getConfig',
+}
+
+export const saveTableChangesRequest: RequestType<
+  { operations: Operation[] },
+  void
+> = {
+  method: 'saveTableChanges',
 }

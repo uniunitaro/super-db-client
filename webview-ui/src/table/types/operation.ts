@@ -1,5 +1,3 @@
-export type TableRow = { [x: string]: unknown }
-
 type PrimaryKeyValue = { key: string; value: string }
 
 export type Operation =

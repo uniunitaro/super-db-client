@@ -10,8 +10,12 @@ import type { Messenger } from 'vscode-messenger'
 import { getConfig } from '../features/config/models/config'
 import { DB } from '../features/connection/models/connection'
 import { getTableMetadata } from '../features/table/model/metadata'
-import { getRows } from '../features/table/model/table'
-import { getConfigRequest, getTableDataRequest } from '../types/message'
+import { getRows, saveChanges } from '../features/table/model/table'
+import {
+  getConfigRequest,
+  getTableDataRequest,
+  saveTableChangesRequest,
+} from '../types/message'
 import { getWebviewContent } from '../utilities/getWebviewContent'
 import { BaseWebviewPanel } from './BaseWebviewPanel'
 
@@ -48,7 +52,7 @@ export class TablePanel extends BaseWebviewPanel {
     const panel = window.createWebviewPanel(
       `table-${tableName}`,
       tableName,
-      ViewColumn.One,
+      ViewColumn.Active,
       {
         enableScripts: true,
         localResourceRoots: [
@@ -114,6 +118,27 @@ export class TablePanel extends BaseWebviewPanel {
       messenger.onRequest(getConfigRequest, async () => getConfig(), {
         sender: { type: 'webview', webviewId },
       }),
+    )
+
+    this._disposables.push(
+      messenger.onRequest(
+        saveTableChangesRequest,
+        async ({ operations }) => {
+          const db = DB.get()
+          if (!db) {
+            throw new Error('DB not found')
+          }
+
+          const { error } = await saveChanges({ db, tableName, operations })
+          if (error) {
+            window.showErrorMessage(error)
+            throw new Error(error)
+          }
+        },
+        {
+          sender: { type: 'webview', webviewId },
+        },
+      ),
     )
   }
 }

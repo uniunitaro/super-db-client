@@ -1,12 +1,12 @@
 {
   "name": "super-db-client",
   "displayName": "Super DB Client",
-  "description": "A hello world sample extension to demonstrate using React + Vite with the Webview UI Toolkit for VS Code.",
+  "description": "A super database client for VS Code",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.75.0"
+    "vscode": "^1.89.0"
   },
-  "main": "./out/extension.js",
+  "main": "./out/main.js",
   "contributes": {
     "commands": [
       {
@@ -45,7 +45,7 @@
         {
           "id": "databaseExplorer",
           "title": "Database Explorer",
-          "icon": "src/resources/icons/database.svg"
+          "icon": "assets/database.svg"
         }
       ]
     },
@@ -78,9 +78,9 @@
     "install:all": "pnpm install && cd webview-ui && pnpm install",
     "start:webview": "cd webview-ui && pnpm start",
     "build:webview": "cd webview-ui && pnpm build",
-    "vscode:prepublish": "pnpm compile",
+    "vscode:prepublish": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify",
     "pretest": "pnpm compile && pnpm lint",
     "lint": "eslint src --ext ts"
   },
@@ -95,6 +95,7 @@
     "@types/glob": "^8.1.0",
     "@types/node": "^20.12.12",
     "@types/vscode": "^1.89.0",
+    "esbuild": "^0.21.5",
     "glob": "^10.3.15",
     "typescript": "^5.4.5",
     "vscode-test": "^1.6.1"

@@ -1,13 +1,15 @@
 import type { ColumnMetadata, TableRow } from '@shared-types/sharedTypes'
 import {
+  type ColumnDef,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { type FC, useMemo, useRef } from 'react'
+import { type FC, useMemo, useRef, useState } from 'react'
 import { css } from 'styled-system/css'
+import type { Operation } from '../types/operation'
 import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
 
 const TABLE_ROW_PADDING_PX = 12
@@ -18,7 +20,20 @@ const VirtualTable: FC<{
   dbRows: TableRow[]
   rowHeight: number
   fontSize: number | undefined
-}> = ({ dbColumns, dbRows, rowHeight, fontSize: configFontSize }) => {
+  operations: Operation[]
+  onCellEdit: ({
+    rowIndex,
+    columnId,
+    newValue,
+  }: { rowIndex: number; columnId: string; newValue: string }) => void
+}> = ({
+  dbColumns,
+  dbRows,
+  rowHeight,
+  fontSize: configFontSize,
+  operations,
+  onCellEdit,
+}) => {
   const fontFamily = useMemo(
     () =>
       getComputedStyle(document.body).getPropertyValue(
@@ -60,9 +75,69 @@ const VirtualTable: FC<{
     [columnHelper, columnsWithWidth],
   )
 
+  const [selectedCell, setSelectedCell] = useState<{
+    rowIndex: number
+    columnId: string
+  }>()
+
+  const defaultColumn: Partial<ColumnDef<TableRow>> = useMemo(
+    () => ({
+      cell: ({ getValue, row: { index }, column: { id }, table }) => {
+        const initialValue = getValue()
+
+        const isSelected =
+          selectedCell?.rowIndex === index && selectedCell?.columnId === id
+
+        return (
+          <button
+            type="button"
+            className={css({
+              display: 'flex',
+              alignItems: 'center',
+              h: '100%',
+              w: '100%',
+            })}
+            onClick={
+              !isSelected
+                ? () => setSelectedCell({ rowIndex: index, columnId: id })
+                : undefined
+            }
+          >
+            {isSelected ? (
+              <input
+                defaultValue={initialValue as string}
+                className={css({
+                  w: '100%',
+                })}
+                onBlur={(e) =>
+                  onCellEdit({
+                    rowIndex: index,
+                    columnId: id,
+                    newValue: e.target.value,
+                  })
+                }
+              />
+            ) : (
+              <div
+                className={css({
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                })}
+              >
+                {initialValue as string}
+              </div>
+            )}
+          </button>
+        )
+      },
+    }),
+    [selectedCell, onCellEdit],
+  )
+
   const table = useReactTable({
     data: dbRows,
     columns,
+    defaultColumn,
     getCoreRowModel: getCoreRowModel(),
   })
 
@@ -188,21 +263,14 @@ const VirtualTable: FC<{
                         style={{ width: cell.column.getSize() }}
                         className={css({
                           px: `${TABLE_ROW_PADDING_PX}px`,
-                          display: 'flex',
-                          alignItems: 'center',
+                          // display: 'flex',
+                          // alignItems: 'center',
                         })}
                       >
-                        <div
-                          className={css({
-                            textOverflow: 'ellipsis',
-                            overflow: 'hidden',
-                          })}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </div>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
                       </div>
                     )
                   })}

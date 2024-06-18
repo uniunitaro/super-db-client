@@ -32,8 +32,17 @@ export const getTableMetadata = async ({
     WHERE TABLE_SCHEMA = ${schema}
     AND TABLE_NAME = ${tableName}
   `.execute(db)
-
   // TODO: 総行数が閾値以下ならcountで取得する
+
+  const columnKeyRes = await sql<{
+    COLUMN_NAME: string
+    CONSTRAINT_NAME: string
+  }>`
+    SELECT COLUMN_NAME, CONSTRAINT_NAME
+    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = ${schema}
+    AND TABLE_NAME = ${tableName}
+  `.execute(db)
 
   return {
     name: tableName,
@@ -46,5 +55,12 @@ export const getTableMetadata = async ({
       extra: row.EXTRA,
       comment: row.COLUMN_COMMENT,
     })),
+    columnKeys: columnKeyRes.rows.map((row) => ({
+      columnName: row.COLUMN_NAME,
+      constraintName: row.CONSTRAINT_NAME,
+    })),
+    primaryKeyColumns: columnKeyRes.rows
+      .filter((row) => row.CONSTRAINT_NAME === 'PRIMARY')
+      .map((row) => row.COLUMN_NAME),
   }
 }

@@ -8,8 +8,15 @@ export type ColumnMetadata = {
   // TODO: foreignKeyほしい
 }
 
+export type ColumnKey = {
+  columnName: string
+  constraintName: string
+}
+
 export type TableMetadata = {
   name: string
   totalRows: number
   columns: ColumnMetadata[]
+  columnKeys: ColumnKey[]
+  primaryKeyColumns: string[]
 }

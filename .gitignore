@@ -10,3 +10,5 @@ build-ssr
 ## Panda
 styled-system
 styled-system-studio
+
+**/*.vsix
