@@ -40,3 +40,8 @@ export const saveTableChangesRequest: RequestType<
 > = {
   method: 'saveTableChanges',
 }
+
+export type Command = 'saveTableChanges'
+export const commandRequest: RequestType<Command, void> = {
+  method: 'command',
+}

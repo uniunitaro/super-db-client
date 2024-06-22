@@ -1,12 +1,7 @@
-import { type ExtensionContext, window } from 'vscode'
-import type { Messenger } from 'vscode-messenger'
+import { commands, window } from 'vscode'
 import { DB } from '../features/connection/models/connection'
-import { TablePanel } from './TablePanel'
 
-export const showGoToTableQuickPick = async (
-  context: ExtensionContext,
-  messenger: Messenger,
-) => {
+export const showGoToTableQuickPick = async () => {
   const db = DB.get()
   if (!db) {
     window.showWarningMessage('No DB connection found')
@@ -20,5 +15,5 @@ export const showGoToTableQuickPick = async (
   })
   if (!tableName) return
 
-  TablePanel.render(context, messenger, tableName)
+  commands.executeCommand('superDBClient.openTable', tableName)
 }

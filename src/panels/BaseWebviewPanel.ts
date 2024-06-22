@@ -6,7 +6,7 @@ export abstract class BaseWebviewPanel {
   protected readonly _panel: WebviewPanel
   protected readonly _context: ExtensionContext
   protected _disposables: Disposable[] = []
-  private readonly _messenger: Messenger
+  protected readonly _messenger: Messenger
 
   protected constructor(
     panel: WebviewPanel,

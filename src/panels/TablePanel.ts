@@ -12,6 +12,8 @@ import { DB } from '../features/connection/models/connection'
 import { getTableMetadata } from '../features/table/model/metadata'
 import { getRows, saveChanges } from '../features/table/model/table'
 import {
+  type Command,
+  commandRequest,
   getConfigRequest,
   getTableDataRequest,
   saveTableChangesRequest,
@@ -20,6 +22,10 @@ import { getWebviewContent } from '../utilities/getWebviewContent'
 import { BaseWebviewPanel } from './BaseWebviewPanel'
 
 export class TablePanel extends BaseWebviewPanel {
+  protected static currentPanel: TablePanel | undefined
+  private readonly _tableName: string
+  private readonly _webviewId: string
+
   private constructor(
     panel: WebviewPanel,
     context: ExtensionContext,
@@ -28,6 +34,8 @@ export class TablePanel extends BaseWebviewPanel {
     webviewId: string,
   ) {
     super(panel, context, messenger)
+    this._tableName = tableName
+    this._webviewId = webviewId
 
     this._panel.webview.html = getWebviewContent(
       this._panel.webview,
@@ -35,13 +43,7 @@ export class TablePanel extends BaseWebviewPanel {
       '/table',
     )
 
-    this._setWebviewMessageListener(
-      this._panel.webview,
-      context,
-      messenger,
-      tableName,
-      webviewId,
-    )
+    this._setWebviewMessageListener(this._panel.webview)
   }
 
   public static render(
@@ -70,17 +72,32 @@ export class TablePanel extends BaseWebviewPanel {
       tableName,
       webviewId,
     )
+
+    return TablePanel.currentPanel
   }
 
-  private _setWebviewMessageListener(
-    webview: Webview,
-    context: ExtensionContext,
-    messenger: Messenger,
-    tableName: string,
-    webviewId: string,
-  ) {
+  public onDidDispose(callback: () => void) {
+    this._panel.onDidDispose(callback)
+  }
+
+  public isActive() {
+    return this._panel.onDidDispose
+  }
+
+  public sendCommand(command: Command) {
+    this._messenger.sendRequest(
+      commandRequest,
+      {
+        type: 'webview',
+        webviewId: this._webviewId,
+      },
+      command,
+    )
+  }
+
+  private _setWebviewMessageListener(webview: Webview) {
     this._disposables.push(
-      messenger.onRequest(
+      this._messenger.onRequest(
         getTableDataRequest,
         async ({ order, orderBy, limit, offset }) => {
           const db = DB.get()
@@ -91,13 +108,13 @@ export class TablePanel extends BaseWebviewPanel {
           const tableMetadata = await getTableMetadata({
             db,
             schema: DB.database,
-            tableName,
+            tableName: this._tableName,
           })
           console.log('tableMetadata', tableMetadata)
 
           const rows = await getRows({
             db,
-            tableName,
+            tableName: this._tableName,
             order,
             orderBy,
             limit,
@@ -110,18 +127,18 @@ export class TablePanel extends BaseWebviewPanel {
             rows,
           }
         },
-        { sender: { type: 'webview', webviewId } },
+        { sender: { type: 'webview', webviewId: this._webviewId } },
       ),
     )
 
     this._disposables.push(
-      messenger.onRequest(getConfigRequest, async () => getConfig(), {
-        sender: { type: 'webview', webviewId },
+      this._messenger.onRequest(getConfigRequest, async () => getConfig(), {
+        sender: { type: 'webview', webviewId: this._webviewId },
       }),
     )
 
     this._disposables.push(
-      messenger.onRequest(
+      this._messenger.onRequest(
         saveTableChangesRequest,
         async ({ operations }) => {
           const db = DB.get()
@@ -129,14 +146,18 @@ export class TablePanel extends BaseWebviewPanel {
             throw new Error('DB not found')
           }
 
-          const { error } = await saveChanges({ db, tableName, operations })
+          const { error } = await saveChanges({
+            db,
+            tableName: this._tableName,
+            operations,
+          })
           if (error) {
             window.showErrorMessage(error)
             throw new Error(error)
           }
         },
         {
-          sender: { type: 'webview', webviewId },
+          sender: { type: 'webview', webviewId: this._webviewId },
         },
       ),
     )

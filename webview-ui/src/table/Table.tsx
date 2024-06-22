@@ -1,17 +1,19 @@
 import { vscode } from '@/utilities/vscode'
 import {
+  commandRequest,
   getConfigRequest,
   getTableDataRequest,
   saveTableChangesRequest,
 } from '@shared-types/message'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react'
-import { type FC, useMemo, useState } from 'react'
+import { type FC, useEffect, useMemo, useState } from 'react'
 import { css } from 'styled-system/css'
 import { HOST_EXTENSION } from 'vscode-messenger-common'
 import TableFooter from './components/TableFooter'
 import VirtualTable from './components/VirtualTable'
 import type { Operation } from './types/operation'
+import { reduceOperations } from './utils/reduceOperations'
 
 const Table: FC = () => {
   const [limit, setLimit] = useState(300)
@@ -29,6 +31,11 @@ const Table: FC = () => {
         offset,
       }),
   })
+  useEffect(() => {
+    if (!tableData) return
+
+    setOperations([])
+  }, [tableData])
 
   const {
     data: config,
@@ -92,22 +99,26 @@ const Table: FC = () => {
   const queryClient = useQueryClient()
   const { mutate: saveTableChanges } = useMutation({
     mutationKey: ['saveTableChanges'],
-    mutationFn: async () => {
-      if (!tableData) return
-      return vscode.messenger.sendRequest(
-        saveTableChangesRequest,
-        HOST_EXTENSION,
-        { operations },
-      )
-    },
+    mutationFn: async () =>
+      vscode.messenger.sendRequest(saveTableChangesRequest, HOST_EXTENSION, {
+        operations: reduceOperations(operations),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getTableData'] })
-      setOperations([])
     },
   })
   const handleSaveChanges = () => {
     saveTableChanges()
   }
+
+  useEffect(() => {
+    vscode.messenger.onRequest(commandRequest, (command) => {
+      if (command === 'saveTableChanges') {
+        saveTableChanges()
+      }
+    })
+    vscode.messenger.start()
+  }, [saveTableChanges])
 
   return (
     <main

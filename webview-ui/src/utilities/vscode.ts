@@ -21,7 +21,6 @@ class VSCodeAPIWrapper {
     if (typeof acquireVsCodeApi === 'function') {
       this.vsCodeApi = acquireVsCodeApi()
       this.messenger = new Messenger(this.vsCodeApi)
-      this.messenger.start()
     }
   }
 

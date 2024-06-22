@@ -24,12 +24,22 @@
         "command": "superDBClient.goToTable",
         "title": "Go to Table",
         "category": "Super DB Client"
+      },
+      {
+        "command": "superDBClient.saveTableChanges",
+        "title": "Save Table Changes",
+        "category": "Super DB Client"
       }
     ],
     "keybindings": [
       {
         "key": "ctrl+alt+p",
         "command": "superDBClient.goToTable"
+      },
+      {
+        "key": "ctrl+s",
+        "command": "superDBClient.saveTableChanges",
+        "when": "activeWebviewPanelId =~ /table/"
       }
     ],
     "views": {
@@ -55,6 +65,12 @@
           "command": "superDBClient.refreshEntry",
           "when": "view == superDBClient.explorer",
           "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "superDBClient.saveTableChanges",
+          "when": "activeWebviewPanelId =~ /table/"
         }
       ]
     },

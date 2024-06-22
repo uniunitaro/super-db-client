@@ -8,6 +8,8 @@ import { showGoToTableQuickPick } from './panels/showGoToTableQuickPick'
 export function activate(context: ExtensionContext) {
   const messenger = new Messenger()
 
+  const tablePanels: TablePanel[] = []
+
   // Create the show hello world command
   const showHelloWorldCommand = commands.registerCommand(
     'superDBClient.newConnection',
@@ -32,13 +34,30 @@ export function activate(context: ExtensionContext) {
 
   context.subscriptions.push(
     commands.registerCommand('superDBClient.openTable', (tableName: string) => {
-      TablePanel.render(context, messenger, tableName)
+      const newPanel = TablePanel.render(context, messenger, tableName)
+      newPanel.onDidDispose(() => {
+        const index = tablePanels.indexOf(newPanel)
+        if (index !== -1) {
+          tablePanels.splice(index, 1)
+        }
+      })
+
+      tablePanels.push(newPanel)
     }),
   )
 
   context.subscriptions.push(
     commands.registerCommand('superDBClient.goToTable', () => {
-      showGoToTableQuickPick(context, messenger)
+      showGoToTableQuickPick()
+    }),
+  )
+
+  context.subscriptions.push(
+    commands.registerCommand('superDBClient.saveTableChanges', () => {
+      const activePanel = tablePanels.find((panel) => panel.isActive())
+      if (activePanel) {
+        activePanel.sendCommand('saveTableChanges')
+      }
     }),
   )
 }
