@@ -7,3 +7,11 @@ body {
 html {
   scrollbar-color: unset !important;
 }
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: unset;
+  outline-offset: unset;
+}

@@ -1,3 +1,4 @@
+import { useVSCodeState } from '@/hooks/useVSCodeState'
 import { vscode } from '@/utilities/vscode'
 import {
   commandRequest,
@@ -7,7 +8,14 @@ import {
 } from '@shared-types/message'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react'
-import { type FC, useEffect, useMemo, useState } from 'react'
+import {
+  type FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { css } from 'styled-system/css'
 import { HOST_EXTENSION } from 'vscode-messenger-common'
 import TableFooter from './components/TableFooter'
@@ -16,8 +24,10 @@ import type { Operation } from './types/operation'
 import { reduceOperations } from './utils/reduceOperations'
 
 const Table: FC = () => {
-  const [limit, setLimit] = useState(300)
-  const [offset, setOffset] = useState(0)
+  const useTablePanelState = useVSCodeState('tablePanel')
+
+  const [limit, setLimit] = useTablePanelState('limit', 300)
+  const [offset, setOffset] = useTablePanelState('offset', 0)
 
   const {
     data: tableData,
@@ -34,7 +44,10 @@ const Table: FC = () => {
   useEffect(() => {
     if (!tableData) return
 
-    setOperations([])
+    if (hasSavedTableChanges.current) {
+      setOperations([])
+      hasSavedTableChanges.current = false
+    }
   }, [tableData])
 
   const {
@@ -47,36 +60,41 @@ const Table: FC = () => {
       vscode.messenger.sendRequest(getConfigRequest, HOST_EXTENSION),
   })
 
-  const handlePageChange = (page: number) => {
-    if (page < 1) {
-      return
-    }
-    setOffset((page - 1) * limit)
-  }
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page < 1) {
+        return
+      }
+      setOffset((page - 1) * limit)
+    },
+    [limit, setOffset],
+  )
 
   const [operations, setOperations] = useState<Operation[]>([])
 
-  const handleCellEdit = ({
-    rowIndex,
-    columnId,
-    newValue,
-  }: { rowIndex: number; columnId: string; newValue: string }) => {
-    if (!tableData) return
+  const handleCellEdit = useCallback(
+    ({
+      rowIndex,
+      columnId,
+      newValue,
+    }: { rowIndex: number; columnId: string; newValue: string }) => {
+      if (!tableData) return
 
-    const targetRow = tableData.rows[rowIndex]
-    const primaryKeys = tableData.tableMetadata.primaryKeyColumns
-    const primaryKeyValues = primaryKeys.map((key) => ({
-      key,
-      // TODO: value unknownじゃなきゃだめなんじゃないか？
-      value: String(targetRow[key]),
-    }))
+      const targetRow = tableData.rows[rowIndex]
+      const primaryKeys = tableData.tableMetadata.primaryKeyColumns
+      const primaryKeyValues = primaryKeys.map((key) => ({
+        key,
+        // TODO: value unknownじゃなきゃだめなんじゃないか？
+        value: String(targetRow[key]),
+      }))
 
-    setOperations([
-      ...operations,
-      { type: 'edit', primaryKeyValues, columnName: columnId, newValue },
-    ])
-  }
-  console.log(operations)
+      setOperations([
+        ...operations,
+        { type: 'edit', primaryKeyValues, columnName: columnId, newValue },
+      ])
+    },
+    [tableData, operations],
+  )
 
   // tableData.rowsとoperationsから、変更後のデータを作成する
   const updatedRows = useMemo(() => {
@@ -96,6 +114,29 @@ const Table: FC = () => {
     return newRows
   }, [operations, tableData])
 
+  const editedCells: { rowIndex: number; columnId: string }[] = useMemo(() => {
+    if (!tableData) return []
+
+    const editedCells: { rowIndex: number; columnId: string }[] = []
+    for (const operation of operations) {
+      if (operation.type === 'edit') {
+        const targetRow = tableData.rows.find((row, index) =>
+          operation.primaryKeyValues.every(
+            (primaryKey) => String(row[primaryKey.key]) === primaryKey.value,
+          ),
+        )
+        if (targetRow) {
+          editedCells.push({
+            rowIndex: tableData.rows.indexOf(targetRow),
+            columnId: operation.columnName,
+          })
+        }
+      }
+    }
+    return editedCells
+  }, [operations, tableData])
+
+  const hasSavedTableChanges = useRef(false)
   const queryClient = useQueryClient()
   const { mutate: saveTableChanges } = useMutation({
     mutationKey: ['saveTableChanges'],
@@ -105,6 +146,7 @@ const Table: FC = () => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getTableData'] })
+      hasSavedTableChanges.current = true
     },
   })
   const handleSaveChanges = () => {
@@ -137,7 +179,7 @@ const Table: FC = () => {
             dbRows={updatedRows}
             rowHeight={config.tableRowHeight}
             fontSize={config.fontSize}
-            operations={operations}
+            editedCells={editedCells}
             onCellEdit={handleCellEdit}
           />
           <TableFooter

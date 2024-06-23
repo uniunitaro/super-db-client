@@ -1,3 +1,4 @@
+import type { VSCodeState } from '@/hooks/useVSCodeState'
 import { Messenger } from 'vscode-messenger-webview'
 import type { WebviewApi } from 'vscode-webview'
 
@@ -48,9 +49,9 @@ class VSCodeAPIWrapper {
    *
    * @return The current state or `undefined` if no state has been set.
    */
-  public getState(): unknown | undefined {
+  public getState(): VSCodeState | undefined {
     if (this.vsCodeApi) {
-      return this.vsCodeApi.getState()
+      return this.vsCodeApi.getState() as VSCodeState | undefined
     }
     const state = localStorage.getItem('vscodeState')
     return state ? JSON.parse(state) : undefined
@@ -67,7 +68,7 @@ class VSCodeAPIWrapper {
    *
    * @return The new state.
    */
-  public setState<T extends unknown | undefined>(newState: T): T {
+  public setState<T extends VSCodeState | undefined>(newState: T): T {
     if (this.vsCodeApi) {
       return this.vsCodeApi.setState(newState)
     }

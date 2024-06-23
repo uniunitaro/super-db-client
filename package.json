@@ -94,6 +94,7 @@
     "install:all": "pnpm install && cd webview-ui && pnpm install",
     "start:webview": "cd webview-ui && pnpm start",
     "build:webview": "cd webview-ui && pnpm build",
+    "package": "vsce package --no-dependencies",
     "vscode:prepublish": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
     "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify",
@@ -107,7 +108,7 @@
     "vscode-messenger-common": "^0.4.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.7.3",
+    "@biomejs/biome": "1.8.2",
     "@types/glob": "^8.1.0",
     "@types/node": "^20.12.12",
     "@types/vscode": "^1.89.0",
