@@ -33,7 +33,9 @@ export const useVSCodeState = <P extends keyof Required<VSCodeState>>(
           const currentState = vscode.getState()
           vscode.setState({
             ...currentState,
-            [panel]: { ...currentState, [key]: value },
+            [panel]: currentState?.[panel]
+              ? { ...currentState[panel], [key]: value }
+              : { [key]: value },
           })
           _setState(value)
         },

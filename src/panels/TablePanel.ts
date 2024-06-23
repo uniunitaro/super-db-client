@@ -81,7 +81,7 @@ export class TablePanel extends BaseWebviewPanel {
   }
 
   public isActive() {
-    return this._panel.onDidDispose
+    return this._panel.active
   }
 
   public sendCommand(command: Command) {

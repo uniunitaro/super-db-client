@@ -1,4 +1,3 @@
-import { useVSCodeState } from '@/hooks/useVSCodeState'
 import { vscode } from '@/utilities/vscode'
 import type { ColumnMetadata, TableRow } from '@shared-types/sharedTypes'
 import {
@@ -11,6 +10,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { type FC, memo, useEffect, useMemo, useRef } from 'react'
 import { css } from 'styled-system/css'
+import type { CellInfo } from '../types/cell'
 import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
 
 const TABLE_ROW_PADDING_PX = 12
@@ -21,19 +21,21 @@ const VirtualTable: FC<{
   dbRows: TableRow[]
   rowHeight: number
   fontSize: number | undefined
-  editedCells: { rowIndex: number; columnId: string }[]
-  onCellEdit: ({
-    rowIndex,
-    columnId,
-    newValue,
-  }: { rowIndex: number; columnId: string; newValue: string }) => void
+  selectedCell: CellInfo | undefined
+  editedCells: CellInfo[]
+  deletedRowIndexes: number[]
+  onCellSelect: (cell: CellInfo) => void
+  onCellEdit: (newValue: string) => void
 }> = memo(
   ({
     dbColumns,
     dbRows,
     rowHeight,
     fontSize: configFontSize,
+    selectedCell,
     editedCells,
+    deletedRowIndexes,
+    onCellSelect,
     onCellEdit,
   }) => {
     const fontFamily = useMemo(
@@ -77,12 +79,6 @@ const VirtualTable: FC<{
       [columnHelper, columnsWithWidth],
     )
 
-    const useTablePanelState = useVSCodeState('tablePanel')
-    const [selectedCell, setSelectedCell] = useTablePanelState(
-      'selectedCell',
-      undefined,
-    )
-
     const defaultColumn: Partial<ColumnDef<TableRow>> = useMemo(
       () => ({
         cell: ({ renderValue, row: { index }, column: { id }, table }) => {
@@ -90,10 +86,10 @@ const VirtualTable: FC<{
 
           const isSelected =
             selectedCell?.rowIndex === index && selectedCell?.columnId === id
-
           const isEdited = editedCells.some(
             (cell) => cell.rowIndex === index && cell.columnId === id,
           )
+          const isDeleted = deletedRowIndexes.includes(index)
 
           return (
             <button
@@ -109,13 +105,18 @@ const VirtualTable: FC<{
                     // すげえ、こんな機能あるんだな
                     'rgb(from var(--vscode-gitDecoration-modifiedResourceForeground) r g b / 30%)',
                 },
+                '&[data-deleted=true]': {
+                  backgroundColor:
+                    'rgb(from var(--vscode-gitDecoration-deletedResourceForeground) r g b / 30%)',
+                },
               })}
               onClick={
                 !isSelected
-                  ? () => setSelectedCell({ rowIndex: index, columnId: id })
+                  ? () => onCellSelect({ rowIndex: index, columnId: id })
                   : undefined
               }
               data-edited={isEdited}
+              data-deleted={isDeleted}
             >
               {isSelected ? (
                 <input
@@ -136,11 +137,7 @@ const VirtualTable: FC<{
                   onBlur={(e) => {
                     if (e.target.value === initialValue) return
 
-                    onCellEdit({
-                      rowIndex: index,
-                      columnId: id,
-                      newValue: e.target.value,
-                    })
+                    onCellEdit(e.target.value)
                     // @ts-expect-error clickが存在しないと怒られるが、clickがないときは何もしないので問題ないはず
                     e.relatedTarget?.click()
                   }}
@@ -152,14 +149,14 @@ const VirtualTable: FC<{
                     overflow: 'hidden',
                   })}
                 >
-                  {initialValue as string}
+                  {initialValue}
                 </div>
               )}
             </button>
           )
         },
       }),
-      [selectedCell, editedCells, onCellEdit, setSelectedCell],
+      [selectedCell, editedCells, deletedRowIndexes, onCellEdit, onCellSelect],
     )
 
     const table = useReactTable({
@@ -259,29 +256,27 @@ const VirtualTable: FC<{
                 })}
                 style={{ height: `${rowHeight}px` }}
               >
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <div
-                      role="columnheader"
-                      key={header.id}
-                      style={{ width: header.getSize() }}
-                      className={css({
-                        px: `${TABLE_ROW_PADDING_PX}px`,
-                        textOverflow: 'ellipsis',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        fontWeight: 'bold',
-                      })}
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                    </div>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <div
+                    role="columnheader"
+                    key={header.id}
+                    style={{ width: header.getSize() }}
+                    className={css({
+                      px: `${TABLE_ROW_PADDING_PX}px`,
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      fontWeight: 'bold',
+                    })}
+                  >
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext(),
+                    )}
+                  </div>
+                ))}
               </div>
             ))}
           </div>
@@ -296,7 +291,7 @@ const VirtualTable: FC<{
               })}
               style={{ height: `${virtualizer.getTotalSize()}px` }}
             >
-              {virtualizer.getVirtualItems().map((virtualRow, index) => {
+              {virtualizer.getVirtualItems().map((virtualRow) => {
                 const row = rows[virtualRow.index]
                 return (
                   <div
@@ -325,20 +320,18 @@ const VirtualTable: FC<{
                     data-parity={virtualRow.index % 2 === 0 ? 'odd' : 'even'}
                     data-selected={selectedCell?.rowIndex === row.index}
                   >
-                    {row.getVisibleCells().map((cell) => {
-                      return (
-                        <div
-                          key={cell.id}
-                          role="cell"
-                          style={{ width: cell.column.getSize() }}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </div>
-                      )
-                    })}
+                    {row.getVisibleCells().map((cell) => (
+                      <div
+                        key={cell.id}
+                        role="cell"
+                        style={{ width: cell.column.getSize() }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )
               })}
