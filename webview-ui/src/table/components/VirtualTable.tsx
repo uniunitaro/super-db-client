@@ -1,5 +1,5 @@
 import { vscode } from '@/utilities/vscode'
-import type { ColumnMetadata, TableRow } from '@shared-types/sharedTypes'
+import type { ColumnMetadata } from '@shared-types/sharedTypes'
 import {
   type ColumnDef,
   createColumnHelper,
@@ -8,17 +8,26 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { type FC, memo, useEffect, useMemo, useRef } from 'react'
+import {
+  type FC,
+  type RefObject,
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react'
 import { css } from 'styled-system/css'
 import type { CellInfo } from '../types/cell'
+import type { TableRowWithType } from '../types/table'
 import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
 
 const TABLE_ROW_PADDING_PX = 12
 const ROW_MAX_WIDTH = 500
 
 const VirtualTable: FC<{
+  tableRef: RefObject<HTMLDivElement | null>
   dbColumns: ColumnMetadata[]
-  dbRows: TableRow[]
+  dbRows: TableRowWithType[]
   rowHeight: number
   fontSize: number | undefined
   selectedCell: CellInfo | undefined
@@ -28,6 +37,7 @@ const VirtualTable: FC<{
   onCellEdit: (newValue: string) => void
 }> = memo(
   ({
+    tableRef,
     dbColumns,
     dbRows,
     rowHeight,
@@ -66,22 +76,24 @@ const VirtualTable: FC<{
       [dbColumns, dbRows, fontFamily, fontSize],
     )
 
-    const columnHelper = createColumnHelper<TableRow>()
+    const columnHelper = createColumnHelper<TableRowWithType>()
 
     const columns = useMemo(
       () =>
         columnsWithWidth.map((column) =>
-          columnHelper.accessor(column.name, {
+          columnHelper.accessor(`row.${column.name}`, {
             size: column.width + TABLE_ROW_PADDING_PX * 2,
             maxSize: ROW_MAX_WIDTH,
+            header: column.name,
+            id: column.name,
           }),
         ),
       [columnHelper, columnsWithWidth],
     )
 
-    const defaultColumn: Partial<ColumnDef<TableRow>> = useMemo(
+    const defaultColumn: Partial<ColumnDef<TableRowWithType>> = useMemo(
       () => ({
-        cell: ({ renderValue, row: { index }, column: { id }, table }) => {
+        cell: ({ renderValue, row: { index, original }, column: { id } }) => {
           const initialValue = String(renderValue())
 
           const isSelected =
@@ -90,6 +102,22 @@ const VirtualTable: FC<{
             (cell) => cell.rowIndex === index && cell.columnId === id,
           )
           const isDeleted = deletedRowIndexes.includes(index)
+          const isInserted = original.type === 'inserted'
+
+          const handleClick = () => {
+            if (!isSelected) {
+              onCellSelect(
+                original.type === 'existing'
+                  ? { type: 'existing', rowIndex: index, columnId: id }
+                  : {
+                      type: 'inserted',
+                      rowIndex: index,
+                      columnId: id,
+                      rowUUID: original.uuid,
+                    },
+              )
+            }
+          }
 
           return (
             <button
@@ -109,14 +137,15 @@ const VirtualTable: FC<{
                   backgroundColor:
                     'rgb(from var(--vscode-gitDecoration-deletedResourceForeground) r g b / 30%)',
                 },
+                '&[data-inserted=true]': {
+                  backgroundColor:
+                    'rgb(from var(--vscode-gitDecoration-addedResourceForeground) r g b / 30%)',
+                },
               })}
-              onClick={
-                !isSelected
-                  ? () => onCellSelect({ rowIndex: index, columnId: id })
-                  : undefined
-              }
+              onClick={handleClick}
               data-edited={isEdited}
               data-deleted={isDeleted}
+              data-inserted={isInserted}
             >
               {isSelected ? (
                 <input
@@ -218,6 +247,7 @@ const VirtualTable: FC<{
         })}
       >
         <div
+          ref={tableRef}
           role="table"
           className={css({
             display: 'grid',

@@ -36,31 +36,36 @@ export const saveChanges = async ({
   tableName: string
   operations: Operation[]
 }): Promise<{ error?: string }> => {
-  // TODO: トランザクション
   try {
-    for (const operation of operations) {
-      if (operation.type === 'edit') {
-        const { primaryKeyValues, columnName, newValue } = operation
+    await db.transaction().execute(async (tx) => {
+      for (const operation of operations) {
+        if (operation.type === 'edit') {
+          const { primaryKeyValues, columnName, newValue } = operation
 
-        let query = db.updateTable(tableName).set(columnName, newValue)
+          let query = tx.updateTable(tableName).set(columnName, newValue)
 
-        for (const { key, value } of primaryKeyValues) {
-          query = query.where(key, '=', value)
+          for (const { key, value } of primaryKeyValues) {
+            query = query.where(key, '=', value)
+          }
+
+          await query.execute()
+        } else if (operation.type === 'delete') {
+          const { primaryKeyValues } = operation
+
+          let query = tx.deleteFrom(tableName)
+
+          for (const { key, value } of primaryKeyValues) {
+            query = query.where(key, '=', value)
+          }
+
+          await query.execute()
+        } else if (operation.type === 'insert') {
+          const { row } = operation
+
+          await tx.insertInto(tableName).values(row).execute()
         }
-
-        await query.execute()
-      } else if (operation.type === 'delete') {
-        const { primaryKeyValues } = operation
-
-        let query = db.deleteFrom(tableName)
-
-        for (const { key, value } of primaryKeyValues) {
-          query = query.where(key, '=', value)
-        }
-
-        await query.execute()
       }
-    }
+    })
   } catch (error) {
     return { error: getErrorMessage(error) }
   }

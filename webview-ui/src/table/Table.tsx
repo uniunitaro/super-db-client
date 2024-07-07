@@ -9,6 +9,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react'
 import { type FC, useCallback, useEffect, useMemo, useRef } from 'react'
+import { flushSync } from 'react-dom'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { css } from 'styled-system/css'
 import { hstack } from 'styled-system/patterns/hstack'
@@ -17,8 +18,9 @@ import { HOST_EXTENSION } from 'vscode-messenger-common'
 import TableFooter from './components/TableFooter'
 import VirtualTable from './components/VirtualTable'
 import type { CellInfo } from './types/cell'
-import type { Operation } from './types/operation'
-import { reduceOperations } from './utils/reduceOperations'
+import type { ClientOperation } from './types/operation'
+import type { TableRowWithType } from './types/table'
+import { convertClientOperationToOperation } from './utils/reduceOperations'
 
 const Table: FC = () => {
   const useTablePanelState = useVSCodeState('tablePanel')
@@ -74,7 +76,7 @@ const Table: FC = () => {
 
   // 型引数なしだとnever[]に推論される
   const [operations, setOperations] = useTablePanelState<
-    Operation[],
+    ClientOperation[],
     'operations'
   >('operations', [])
 
@@ -82,23 +84,35 @@ const Table: FC = () => {
     (newValue: string) => {
       if (!tableData || !selectedCell) return
 
-      const targetRow = tableData.rows[selectedCell.rowIndex]
-      const primaryKeys = tableData.tableMetadata.primaryKeyColumns
-      const primaryKeyValues = primaryKeys.map((key) => ({
-        key,
-        // TODO: value unknownじゃなきゃだめなんじゃないか？
-        value: String(targetRow[key]),
-      }))
+      if (selectedCell.type === 'existing') {
+        const targetRow = tableData.rows[selectedCell.rowIndex]
+        const primaryKeys = tableData.tableMetadata.primaryKeyColumns
+        const primaryKeyValues = primaryKeys.map((key) => ({
+          key,
+          // TODO: value unknownじゃなきゃだめなんじゃないか？
+          value: String(targetRow[key]),
+        }))
 
-      setOperations([
-        ...operations,
-        {
-          type: 'edit',
-          primaryKeyValues,
-          columnName: selectedCell.columnId,
-          newValue,
-        },
-      ])
+        setOperations([
+          ...operations,
+          {
+            type: 'edit',
+            primaryKeyValues,
+            columnName: selectedCell.columnId,
+            newValue,
+          },
+        ])
+      } else if (selectedCell.type === 'inserted') {
+        setOperations([
+          ...operations,
+          {
+            type: 'editInserted',
+            insertedRowUUID: selectedCell.rowUUID,
+            columnName: selectedCell.columnId,
+            newValue,
+          },
+        ])
+      }
     },
     [tableData, operations, selectedCell, setOperations],
   )
@@ -106,28 +120,74 @@ const Table: FC = () => {
   const handleRowDelete = useCallback(() => {
     if (!tableData || !selectedCell) return
 
-    const targetRow = tableData.rows[selectedCell.rowIndex]
-    const primaryKeys = tableData.tableMetadata.primaryKeyColumns
-    const primaryKeyValues = primaryKeys.map((key) => ({
-      key,
-      value: String(targetRow[key]),
-    }))
+    if (selectedCell.type === 'existing') {
+      const targetRow = tableData.rows[selectedCell.rowIndex]
+      const primaryKeys = tableData.tableMetadata.primaryKeyColumns
+      const primaryKeyValues = primaryKeys.map((key) => ({
+        key,
+        value: String(targetRow[key]),
+      }))
 
-    setOperations([...operations, { type: 'delete', primaryKeyValues }])
+      setOperations([...operations, { type: 'delete', primaryKeyValues }])
+    } else if (selectedCell.type === 'inserted') {
+      setOperations([
+        ...operations,
+        { type: 'deleteInserted', insertedRowUUID: selectedCell.rowUUID },
+      ])
+    }
   }, [tableData, operations, selectedCell, setOperations])
 
+  const virtualTableTableRef = useRef<HTMLDivElement>(null)
+  const handleRowInsert = useCallback(() => {
+    const uuid = crypto.randomUUID()
+    flushSync(() => {
+      setOperations([...operations, { type: 'insert', uuid }])
+    })
+
+    virtualTableTableRef.current?.scrollIntoView(false)
+  }, [operations, setOperations])
+
   // tableData.rowsとoperationsから、変更後のデータを作成する
-  const updatedRows = useMemo(() => {
-    const newRows = tableData ? structuredClone(tableData.rows) : []
+  const updatedRows: TableRowWithType[] = useMemo(() => {
+    const newRows: TableRowWithType[] = tableData
+      ? structuredClone(tableData.rows).map((row) => ({
+          type: 'existing',
+          row,
+        }))
+      : []
     for (const operation of operations) {
+      if (operation.type === 'insert') {
+        newRows.push({ type: 'inserted', uuid: operation.uuid, row: {} })
+      }
       if (operation.type === 'edit') {
-        const targetRow = newRows.find((row) =>
-          operation.primaryKeyValues.every(
-            (primaryKey) => String(row[primaryKey.key]) === primaryKey.value,
-          ),
+        const targetRow = newRows.find(
+          (row) =>
+            row.type === 'existing' &&
+            operation.primaryKeyValues.every(
+              (primaryKey) =>
+                String(row.row[primaryKey.key]) === primaryKey.value,
+            ),
         )
         if (targetRow) {
-          targetRow[operation.columnName] = operation.newValue
+          targetRow.row[operation.columnName] = operation.newValue
+        }
+      }
+      if (operation.type === 'editInserted') {
+        const targetRow = newRows.find(
+          (row) =>
+            row.type === 'inserted' && operation.insertedRowUUID === row.uuid,
+        )
+        if (targetRow) {
+          targetRow.row[operation.columnName] = operation.newValue
+        }
+      }
+      if (operation.type === 'deleteInserted') {
+        const targetRowIndex = newRows.findIndex(
+          (row) =>
+            row.type === 'inserted' && operation.insertedRowUUID === row.uuid,
+        )
+        if (targetRowIndex !== -1) {
+          newRows.splice(targetRowIndex, 1)
         }
       }
     }
@@ -138,21 +198,44 @@ const Table: FC = () => {
     if (!tableData) return []
 
     return operations
-      .filter((operation) => operation.type === 'edit')
+      .filter(
+        (operation) =>
+          operation.type === 'edit' || operation.type === 'editInserted',
+      )
       .flatMap((operation) => {
-        const targetRowIndex = tableData.rows.findIndex((row) =>
-          operation.primaryKeyValues.every(
-            (primaryKey) => String(row[primaryKey.key]) === primaryKey.value,
-          ),
-        )
-        if (targetRowIndex === -1) return []
+        if (operation.type === 'edit') {
+          const targetRowIndex = tableData.rows.findIndex((row) =>
+            operation.primaryKeyValues.every(
+              (primaryKey) => String(row[primaryKey.key]) === primaryKey.value,
+            ),
+          )
+          if (targetRowIndex === -1) return []
 
-        return {
-          rowIndex: targetRowIndex,
-          columnId: operation.columnName,
+          return {
+            type: 'existing',
+            rowIndex: targetRowIndex,
+            columnId: operation.columnName,
+          }
         }
+        if (operation.type === 'editInserted') {
+          const targetRowIndex = updatedRows.findIndex(
+            (row) =>
+              row.type === 'inserted' && operation.insertedRowUUID === row.uuid,
+          )
+          console.log(targetRowIndex)
+          if (targetRowIndex === -1) return []
+
+          return {
+            type: 'inserted',
+            rowIndex: targetRowIndex,
+            columnId: operation.columnName,
+            rowUUID: operation.insertedRowUUID,
+          }
+        }
+
+        return []
       })
-  }, [operations, tableData])
+  }, [operations, tableData, updatedRows])
 
   const deletedRowIndexes: number[] = useMemo(() => {
     if (!tableData) return []
@@ -175,7 +258,7 @@ const Table: FC = () => {
     mutationKey: ['saveTableChanges'],
     mutationFn: async () =>
       vscode.messenger.sendRequest(saveTableChangesRequest, HOST_EXTENSION, {
-        operations: reduceOperations(operations),
+        operations: convertClientOperationToOperation(operations),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getTableData'] })
@@ -210,6 +293,7 @@ const Table: FC = () => {
       {tableData && config && (
         <>
           <VirtualTable
+            tableRef={virtualTableTableRef}
             dbColumns={tableData.tableMetadata.columns}
             dbRows={updatedRows}
             rowHeight={config.tableRowHeight}
@@ -245,6 +329,13 @@ const Table: FC = () => {
                   <div
                     className={`${css({ px: '3' })} codicon codicon-trash`}
                   />
+                </VSCodeButton>
+                <VSCodeButton
+                  appearance="icon"
+                  aria-label="Insert row"
+                  onClick={handleRowInsert}
+                >
+                  <div className={`${css({ px: '3' })} codicon codicon-add`} />
                 </VSCodeButton>
               </div>
             }

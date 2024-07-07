@@ -13,3 +13,7 @@ export type Operation =
       type: 'delete'
       primaryKeyValues: PrimaryKeyValue[]
     }
+  | {
+      type: 'insert'
+      row: TableRow
+    }

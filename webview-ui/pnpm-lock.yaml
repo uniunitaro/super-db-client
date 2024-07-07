@@ -7,31 +7,31 @@ settings:
 dependencies:
   '@tanstack/react-query':
     specifier: ^5.45.0
-    version: 5.45.1(react@18.3.1)
+    version: 5.45.1(react@19.0.0-rc-58af67a8f8-20240628)
   '@tanstack/react-query-persist-client':
     specifier: ^5.45.1
-    version: 5.45.1(@tanstack/react-query@5.45.1)(react@18.3.1)
+    version: 5.45.1(@tanstack/react-query@5.45.1)(react@19.0.0-rc-58af67a8f8-20240628)
   '@tanstack/react-table':
     specifier: ^8.17.3
-    version: 8.17.3(react-dom@18.3.1)(react@18.3.1)
+    version: 8.17.3(react-dom@19.0.0-rc-58af67a8f8-20240628)(react@19.0.0-rc-58af67a8f8-20240628)
   '@tanstack/react-virtual':
     specifier: ^3.5.1
-    version: 3.5.1(react-dom@18.3.1)(react@18.3.1)
+    version: 3.5.1(react-dom@19.0.0-rc-58af67a8f8-20240628)(react@19.0.0-rc-58af67a8f8-20240628)
   '@vscode/webview-ui-toolkit':
     specifier: ^1.4.0
-    version: 1.4.0(react@18.3.1)
+    version: 1.4.0(react@19.0.0-rc-58af67a8f8-20240628)
   react:
-    specifier: ^18.3.1
-    version: 18.3.1
+    specifier: rc
+    version: 19.0.0-rc-58af67a8f8-20240628
   react-dom:
-    specifier: ^18.3.1
-    version: 18.3.1(react@18.3.1)
+    specifier: rc
+    version: 19.0.0-rc-58af67a8f8-20240628(react@19.0.0-rc-58af67a8f8-20240628)
   react-hotkeys-hook:
     specifier: ^4.5.0
-    version: 4.5.0(react-dom@18.3.1)(react@18.3.1)
+    version: 4.5.0(react-dom@19.0.0-rc-58af67a8f8-20240628)(react@19.0.0-rc-58af67a8f8-20240628)
   react-router-dom:
     specifier: ^6.23.1
-    version: 6.23.1(react-dom@18.3.1)(react@18.3.1)
+    version: 6.23.1(react-dom@19.0.0-rc-58af67a8f8-20240628)(react@19.0.0-rc-58af67a8f8-20240628)
   ts-key-enum:
     specifier: ^2.0.12
     version: 2.0.12
@@ -47,11 +47,11 @@ devDependencies:
     specifier: ^0.39.1
     version: 0.39.1(typescript@5.5.2)
   '@types/react':
-    specifier: ^18.3.2
-    version: 18.3.2
+    specifier: npm:types-react@rc
+    version: /types-react@19.0.0-rc.1
   '@types/react-dom':
-    specifier: ^18.3.0
-    version: 18.3.0
+    specifier: npm:types-react-dom@rc
+    version: /types-react-dom@19.0.0-rc.1
   '@types/vscode-webview':
     specifier: ^1.57.5
     version: 1.57.5
@@ -735,14 +735,14 @@ packages:
       tslib: 1.14.1
     dev: false
 
-  /@microsoft/fast-react-wrapper@0.3.24(react@18.3.1):
+  /@microsoft/fast-react-wrapper@0.3.24(react@19.0.0-rc-58af67a8f8-20240628):
     resolution: {integrity: sha512-sRnSBIKaO42p4mYoYR60spWVkg89wFxFAgQETIMazAm2TxtlsnsGszJnTwVhXq2Uz+XNiD8eKBkfzK5c/i6/Kw==}
     peerDependencies:
       react: '>=16.9.0'
     dependencies:
       '@microsoft/fast-element': 1.13.0
       '@microsoft/fast-foundation': 2.49.6
-      react: 18.3.1
+      react: 19.0.0-rc-58af67a8f8-20240628
     dev: false
 
   /@microsoft/fast-web-utilities@5.4.1:
@@ -1106,27 +1106,27 @@ packages:
       '@tanstack/query-core': 5.45.0
     dev: false
 
-  /@tanstack/react-query-persist-client@5.45.1(@tanstack/react-query@5.45.1)(react@18.3.1):
+  /@tanstack/react-query-persist-client@5.45.1(@tanstack/react-query@5.45.1)(react@19.0.0-rc-58af67a8f8-20240628):
     resolution: {integrity: sha512-Hk5rh2ov7YdHSP16HWnDbHcEAS19yJIvjQWGNXP6JiwZWbNJgXpKOriEOvHxLC5FPfEXl5MnA8cHTWj31kJv8Q==}
     peerDependencies:
       '@tanstack/react-query': ^5.45.1
       react: ^18 || ^19
     dependencies:
       '@tanstack/query-persist-client-core': 5.45.0
-      '@tanstack/react-query': 5.45.1(react@18.3.1)
-      react: 18.3.1
+      '@tanstack/react-query': 5.45.1(react@19.0.0-rc-58af67a8f8-20240628)
+      react: 19.0.0-rc-58af67a8f8-20240628
     dev: false
 
-  /@tanstack/react-query@5.45.1(react@18.3.1):
+  /@tanstack/react-query@5.45.1(react@19.0.0-rc-58af67a8f8-20240628):
     resolution: {integrity: sha512-mYYfJujKg2kxmkRRjA6nn4YKG3ITsKuH22f1kteJ5IuVQqgKUgbaSQfYwVP0gBS05mhwxO03HVpD0t7BMN7WOA==}
     peerDependencies:
       react: ^18.0.0
     dependencies:
       '@tanstack/query-core': 5.45.0
-      react: 18.3.1
+      react: 19.0.0-rc-58af67a8f8-20240628
     dev: false
 
-  /@tanstack/react-table@8.17.3(react-dom@18.3.1)(react@18.3.1):
+  /@tanstack/react-table@8.17.3(react-dom@19.0.0-rc-58af67a8f8-20240628)(react@19.0.0-rc-58af67a8f8-20240628):
     resolution: {integrity: sha512-5gwg5SvPD3lNAXPuJJz1fOCEZYk9/GeBFH3w/hCgnfyszOIzwkwgp5I7Q4MJtn0WECp84b5STQUDdmvGi8m3nA==}
     engines: {node: '>=12'}
     peerDependencies:
@@ -1134,19 +1134,19 @@ packages:
       react-dom: '>=16.8'
     dependencies:
       '@tanstack/table-core': 8.17.3
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
+      react: 19.0.0-rc-58af67a8f8-20240628
+      react-dom: 19.0.0-rc-58af67a8f8-20240628(react@19.0.0-rc-58af67a8f8-20240628)
     dev: false
 
-  /@tanstack/react-virtual@3.5.1(react-dom@18.3.1)(react@18.3.1):
+  /@tanstack/react-virtual@3.5.1(react-dom@19.0.0-rc-58af67a8f8-20240628)(react@19.0.0-rc-58af67a8f8-20240628):
     resolution: {integrity: sha512-jIsuhfgy8GqA67PdWqg73ZB2LFE+HD9hjWL1L6ifEIZVyZVAKpYmgUG4WsKQ005aEyImJmbuimPiEvc57IY0Aw==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
       '@tanstack/virtual-core': 3.5.1
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
+      react: 19.0.0-rc-58af67a8f8-20240628
+      react-dom: 19.0.0-rc-58af67a8f8-20240628(react@19.0.0-rc-58af67a8f8-20240628)
     dev: false
 
   /@tanstack/table-core@8.17.3:
@@ -1206,12 +1206,6 @@ packages:
 
   /@types/prop-types@15.7.12:
     resolution: {integrity: sha512-5zvhXYtRNRluoE/jAp4GVsSduVUzNWKkOZrCDBWYtE7biZywwdC2AcEzg+cSMLFRfVgeAFqpfNabiPjxFddV1Q==}
-    dev: true
-
-  /@types/react-dom@18.3.0:
-    resolution: {integrity: sha512-EhwApuTmMBmXuFOikhQLIBUn6uFg81SwLMOAUgodJF14SOBOCMdU04gDoYi0WOJJHD144TL32z4yDqCW3dnkQg==}
-    dependencies:
-      '@types/react': 18.3.2
     dev: true
 
   /@types/react@18.3.2:
@@ -1372,15 +1366,15 @@ packages:
       - supports-color
     dev: true
 
-  /@vscode/webview-ui-toolkit@1.4.0(react@18.3.1):
+  /@vscode/webview-ui-toolkit@1.4.0(react@19.0.0-rc-58af67a8f8-20240628):
     resolution: {integrity: sha512-modXVHQkZLsxgmd5yoP3ptRC/G8NBDD+ob+ngPiWNQdlrH6H1xR/qgOBD85bfU3BhOB5sZzFWBwwhp9/SfoHww==}
     peerDependencies:
       react: '>=16.9.0'
     dependencies:
       '@microsoft/fast-element': 1.13.0
       '@microsoft/fast-foundation': 2.49.6
-      '@microsoft/fast-react-wrapper': 0.3.24(react@18.3.1)
-      react: 18.3.1
+      '@microsoft/fast-react-wrapper': 0.3.24(react@19.0.0-rc-58af67a8f8-20240628)
+      react: 19.0.0-rc-58af67a8f8-20240628
       tslib: 2.6.2
     dev: false
 
@@ -2132,6 +2126,7 @@ packages:
 
   /js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
+    dev: true
 
   /js-yaml@3.14.1:
     resolution: {integrity: sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==}
@@ -2340,13 +2335,6 @@ packages:
   /look-it-up@2.1.0:
     resolution: {integrity: sha512-nMoGWW2HurtuJf6XAL56FWTDCWLOTSsanrgwOyaR5Y4e3zfG5N/0cU5xWZSEU3tBxhQugRbV1xL9jb+ug7yZww==}
     dev: true
-
-  /loose-envify@1.4.0:
-    resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
-    hasBin: true
-    dependencies:
-      js-tokens: 4.0.0
-    dev: false
 
   /lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
@@ -2704,24 +2692,23 @@ packages:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
     dev: true
 
-  /react-dom@18.3.1(react@18.3.1):
-    resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
+  /react-dom@19.0.0-rc-58af67a8f8-20240628(react@19.0.0-rc-58af67a8f8-20240628):
+    resolution: {integrity: sha512-4iJcvjjTFuigD7JloPVTwBMMjJsE1U4Z6iYojwx+v2a8DrUM0oTB7o/+DXRhxw1iEJQnHClDw8kXivnHKUQgqg==}
     peerDependencies:
-      react: ^18.3.1
+      react: 19.0.0-rc-58af67a8f8-20240628
     dependencies:
-      loose-envify: 1.4.0
-      react: 18.3.1
-      scheduler: 0.23.2
+      react: 19.0.0-rc-58af67a8f8-20240628
+      scheduler: 0.25.0-rc-58af67a8f8-20240628
     dev: false
 
-  /react-hotkeys-hook@4.5.0(react-dom@18.3.1)(react@18.3.1):
+  /react-hotkeys-hook@4.5.0(react-dom@19.0.0-rc-58af67a8f8-20240628)(react@19.0.0-rc-58af67a8f8-20240628):
     resolution: {integrity: sha512-Samb85GSgAWFQNvVt3PS90LPPGSf9mkH/r4au81ZP1yOIFayLC3QAvqTgGtJ8YEDMXtPmaVBs6NgipHO6h4Mug==}
     peerDependencies:
       react: '>=16.8.1'
       react-dom: '>=16.8.1'
     dependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
+      react: 19.0.0-rc-58af67a8f8-20240628
+      react-dom: 19.0.0-rc-58af67a8f8-20240628(react@19.0.0-rc-58af67a8f8-20240628)
     dev: false
 
   /react-refresh@0.14.2:
@@ -2729,7 +2716,7 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /react-router-dom@6.23.1(react-dom@18.3.1)(react@18.3.1):
+  /react-router-dom@6.23.1(react-dom@19.0.0-rc-58af67a8f8-20240628)(react@19.0.0-rc-58af67a8f8-20240628):
     resolution: {integrity: sha512-utP+K+aSTtEdbWpC+4gxhdlPFwuEfDKq8ZrPFU65bbRJY+l706qjR7yaidBpo3MSeA/fzwbXWbKBI6ftOnP3OQ==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
@@ -2737,26 +2724,24 @@ packages:
       react-dom: '>=16.8'
     dependencies:
       '@remix-run/router': 1.16.1
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      react-router: 6.23.1(react@18.3.1)
+      react: 19.0.0-rc-58af67a8f8-20240628
+      react-dom: 19.0.0-rc-58af67a8f8-20240628(react@19.0.0-rc-58af67a8f8-20240628)
+      react-router: 6.23.1(react@19.0.0-rc-58af67a8f8-20240628)
     dev: false
 
-  /react-router@6.23.1(react@18.3.1):
+  /react-router@6.23.1(react@19.0.0-rc-58af67a8f8-20240628):
     resolution: {integrity: sha512-fzcOaRF69uvqbbM7OhvQyBTFDVrrGlsFdS3AL+1KfIBtGETibHzi3FkoTRyiDJnWNc2VxrfvR+657ROHjaNjqQ==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       react: '>=16.8'
     dependencies:
       '@remix-run/router': 1.16.1
-      react: 18.3.1
+      react: 19.0.0-rc-58af67a8f8-20240628
     dev: false
 
-  /react@18.3.1:
-    resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
+  /react@19.0.0-rc-58af67a8f8-20240628:
+    resolution: {integrity: sha512-s5Bv9TNybVxfX3nKZIjeu5dU/N4dwVdSxEnXc4hVNeCKZcVZyrKWd8WrwFfDPWHLbADMo1S0Fje86nmNDtPlPA==}
     engines: {node: '>=0.10.0'}
-    dependencies:
-      loose-envify: 1.4.0
     dev: false
 
   /readdirp@3.6.0:
@@ -2816,10 +2801,8 @@ packages:
       queue-microtask: 1.2.3
     dev: true
 
-  /scheduler@0.23.2:
-    resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
-    dependencies:
-      loose-envify: 1.4.0
+  /scheduler@0.25.0-rc-58af67a8f8-20240628:
+    resolution: {integrity: sha512-eVsdTsnTC5Lx5H+SLQdlo78LEUWcFJqVqSBp/l6A8kU3iAJTXlEKRhMX+dsk+cNI+kLjhH8L0D67bJnXH+YduA==}
     dev: false
 
   /semver@6.3.1:
@@ -2998,6 +2981,18 @@ packages:
   /type-fest@0.20.2:
     resolution: {integrity: sha512-Ne+eE4r0/iWnpAxD852z3A+N0Bt5RN//NjJwRd2VFHEmrywxf5vsZlh4R6lixl6B+wz/8d+maTSAkN1FIkI3LQ==}
     engines: {node: '>=10'}
+    dev: true
+
+  /types-react-dom@19.0.0-rc.1:
+    resolution: {integrity: sha512-VSLZJl8VXCD0fAWp7DUTFUDCcZ8DVXOQmjhJMD03odgeFmu14ZQJHCXeETm3BEAhJqfgJaFkLnGkQv88sRx0fQ==}
+    dependencies:
+      '@types/react': 18.3.2
+    dev: true
+
+  /types-react@19.0.0-rc.1:
+    resolution: {integrity: sha512-RshndUfqTW6K3STLPis8BtAYCGOkMbtvYsi90gmVNDZBXUyUc5juf2PE9LfS/JmOlUIRO8cWTS/1MTnmhjDqyQ==}
+    dependencies:
+      csstype: 3.1.3
     dev: true
 
   /typescript@5.3.3:

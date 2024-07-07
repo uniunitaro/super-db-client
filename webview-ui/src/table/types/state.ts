@@ -1,5 +1,5 @@
 import type { CellInfo } from './cell'
-import type { Operation } from './operation'
+import type { ClientOperation } from './operation'
 
 export type TablePanelState = {
   limit?: number
@@ -7,5 +7,5 @@ export type TablePanelState = {
   scrollX?: number
   scrollY?: number
   selectedCell?: CellInfo
-  operations?: Operation[]
+  operations?: ClientOperation[]
 }
