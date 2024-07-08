@@ -6,7 +6,12 @@ import {
   getTableDataRequest,
   saveTableChangesRequest,
 } from '@shared-types/message'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react'
 import { type FC, useCallback, useEffect, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
@@ -20,25 +25,50 @@ import VirtualTable from './components/VirtualTable'
 import type { CellInfo } from './types/cell'
 import type { ClientOperation } from './types/operation'
 import type { TableRowWithType } from './types/table'
-import { convertClientOperationToOperation } from './utils/reduceOperations'
+import { convertClientOperationToOperation } from './utils/convertClientOperationToOperations'
 
 const Table: FC = () => {
   const useTablePanelState = useVSCodeState('tablePanel')
 
   const [limit, setLimit] = useTablePanelState('limit', 300)
   const [offset, setOffset] = useTablePanelState('offset', 0)
+  const [sort, setSort] = useTablePanelState('sort', undefined)
+  const handleSortChange = useCallback(
+    (columnId: string) => {
+      if (sort?.orderBy === columnId) {
+        if (sort.order === 'desc') {
+          setSort(undefined)
+          return
+        }
+
+        setSort({
+          orderBy: columnId,
+          order: 'desc',
+        })
+      } else {
+        setSort({
+          orderBy: columnId,
+          order: 'asc',
+        })
+      }
+    },
+    [setSort, sort],
+  )
 
   const {
     data: tableData,
     isPending: tableDataIsPending,
     error: tableDataError,
   } = useQuery({
-    queryKey: ['getTableData', limit, offset],
+    queryKey: ['getTableData', limit, offset, sort],
     queryFn: () =>
       vscode.messenger.sendRequest(getTableDataRequest, HOST_EXTENSION, {
         limit,
         offset,
+        order: sort?.order,
+        orderBy: sort?.orderBy,
       }),
+    placeholderData: keepPreviousData,
   })
   useEffect(() => {
     if (!tableData) return
@@ -301,8 +331,10 @@ const Table: FC = () => {
             selectedCell={selectedCell}
             editedCells={editedCells}
             deletedRowIndexes={deletedRowIndexes}
+            sort={sort}
             onCellSelect={setSelectedCell}
             onCellEdit={handleCellEdit}
+            onSortChange={handleSortChange}
           />
           <TableFooter
             totalCount={tableData.tableMetadata.totalRows}

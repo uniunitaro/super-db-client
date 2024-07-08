@@ -17,12 +17,12 @@ import {
   useRef,
 } from 'react'
 import { css } from 'styled-system/css'
+import { ROW_MAX_WIDTH, TABLE_ROW_PADDING_PX } from '../constants/constants'
 import type { CellInfo } from '../types/cell'
+import type { Sort } from '../types/sort'
 import type { TableRowWithType } from '../types/table'
 import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
-
-const TABLE_ROW_PADDING_PX = 12
-const ROW_MAX_WIDTH = 500
+import TableCell from './TableCell'
 
 const VirtualTable: FC<{
   tableRef: RefObject<HTMLDivElement | null>
@@ -33,8 +33,10 @@ const VirtualTable: FC<{
   selectedCell: CellInfo | undefined
   editedCells: CellInfo[]
   deletedRowIndexes: number[]
+  sort: Sort
   onCellSelect: (cell: CellInfo) => void
   onCellEdit: (newValue: string) => void
+  onSortChange: (columnId: string) => void
 }> = memo(
   ({
     tableRef,
@@ -45,8 +47,10 @@ const VirtualTable: FC<{
     selectedCell,
     editedCells,
     deletedRowIndexes,
+    sort,
     onCellSelect,
     onCellEdit,
+    onSortChange,
   }) => {
     const fontFamily = useMemo(
       () =>
@@ -84,7 +88,7 @@ const VirtualTable: FC<{
           columnHelper.accessor(`row.${column.name}`, {
             size: column.width + TABLE_ROW_PADDING_PX * 2,
             maxSize: ROW_MAX_WIDTH,
-            header: column.name,
+            // header: column.name,
             id: column.name,
           }),
         ),
@@ -93,99 +97,61 @@ const VirtualTable: FC<{
 
     const defaultColumn: Partial<ColumnDef<TableRowWithType>> = useMemo(
       () => ({
-        cell: ({ renderValue, row: { index, original }, column: { id } }) => {
-          const initialValue = String(renderValue())
-
-          const isSelected =
-            selectedCell?.rowIndex === index && selectedCell?.columnId === id
-          const isEdited = editedCells.some(
-            (cell) => cell.rowIndex === index && cell.columnId === id,
-          )
-          const isDeleted = deletedRowIndexes.includes(index)
-          const isInserted = original.type === 'inserted'
-
-          const handleClick = () => {
-            if (!isSelected) {
-              onCellSelect(
-                original.type === 'existing'
-                  ? { type: 'existing', rowIndex: index, columnId: id }
-                  : {
-                      type: 'inserted',
-                      rowIndex: index,
-                      columnId: id,
-                      rowUUID: original.uuid,
-                    },
-              )
-            }
-          }
+        cell: (props) => (
+          <TableCell
+            {...props}
+            selectedCell={selectedCell}
+            editedCells={editedCells}
+            deletedRowIndexes={deletedRowIndexes}
+            onCellEdit={onCellEdit}
+            onCellSelect={onCellSelect}
+          />
+        ),
+        header: ({ header: { getSize, column } }) => {
+          const isSortedAsc =
+            sort?.orderBy === column.id && sort.order === 'asc'
+          const isSortedDesc =
+            sort?.orderBy === column.id && sort.order === 'desc'
 
           return (
             <button
               type="button"
+              style={{ width: getSize() }}
               className={css({
+                h: 'full',
+                px: 'tableRowPadding',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
                 display: 'flex',
+                justifyContent: 'center',
                 alignItems: 'center',
-                h: '100%',
-                w: '100%',
-                px: `${TABLE_ROW_PADDING_PX}px`,
-                '&[data-edited=true]': {
-                  backgroundColor:
-                    // すげえ、こんな機能あるんだな
-                    'rgb(from var(--vscode-gitDecoration-modifiedResourceForeground) r g b / 30%)',
-                },
-                '&[data-deleted=true]': {
-                  backgroundColor:
-                    'rgb(from var(--vscode-gitDecoration-deletedResourceForeground) r g b / 30%)',
-                },
-                '&[data-inserted=true]': {
-                  backgroundColor:
-                    'rgb(from var(--vscode-gitDecoration-addedResourceForeground) r g b / 30%)',
-                },
+                fontWeight: 'bold',
               })}
-              onClick={handleClick}
-              data-edited={isEdited}
-              data-deleted={isDeleted}
-              data-inserted={isInserted}
+              onClick={() => onSortChange(column.id)}
             >
-              {isSelected ? (
-                <input
-                  defaultValue={initialValue}
-                  className={css({
-                    w: 'calc(100% + 8px)',
-                    mx: '-4px',
-                    px: '4px',
-                    rounded: '2px',
-                    backgroundColor: 'var(--vscode-input-background)',
-                    color: 'var(--vscode-input-foreground)',
-                    outline:
-                      '1px solid var(--vscode-input-border, transparent)',
-                    _focus: {
-                      outline: '1px solid var(--vscode-focusBorder) !important',
-                    },
-                  })}
-                  onBlur={(e) => {
-                    if (e.target.value === initialValue) return
+              <span>{String(column.id)}</span>
 
-                    onCellEdit(e.target.value)
-                    // @ts-expect-error clickが存在しないと怒られるが、clickがないときは何もしないので問題ないはず
-                    e.relatedTarget?.click()
-                  }}
-                />
-              ) : (
+              {(isSortedAsc || isSortedDesc) && (
                 <div
-                  className={css({
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                  })}
-                >
-                  {initialValue}
-                </div>
+                  aria-label={
+                    isSortedAsc ? 'sorted ascending' : 'sorted descending'
+                  }
+                  className={`${css({ pl: '1', fontSize: '12px!' })} codicon ${isSortedAsc ? 'codicon-arrow-up' : 'codicon-arrow-down'}`}
+                />
               )}
             </button>
           )
         },
       }),
-      [selectedCell, editedCells, deletedRowIndexes, onCellEdit, onCellSelect],
+      [
+        deletedRowIndexes,
+        editedCells,
+        onCellEdit,
+        onCellSelect,
+        selectedCell,
+        onSortChange,
+        sort,
+      ],
     )
 
     const table = useReactTable({
@@ -269,8 +235,8 @@ const VirtualTable: FC<{
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                width: '100%',
-                height: '100%',
+                width: 'full',
+                height: 'full',
                 bgColor: 'var(--vscode-editor-background)',
                 zIndex: -1,
               },
@@ -287,20 +253,7 @@ const VirtualTable: FC<{
                 style={{ height: `${rowHeight}px` }}
               >
                 {headerGroup.headers.map((header) => (
-                  <div
-                    role="columnheader"
-                    key={header.id}
-                    style={{ width: header.getSize() }}
-                    className={css({
-                      px: `${TABLE_ROW_PADDING_PX}px`,
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      fontWeight: 'bold',
-                    })}
-                  >
+                  <div role="columnheader" key={header.id}>
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext(),
@@ -351,11 +304,7 @@ const VirtualTable: FC<{
                     data-selected={selectedCell?.rowIndex === row.index}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <div
-                        key={cell.id}
-                        role="cell"
-                        style={{ width: cell.column.getSize() }}
-                      >
+                      <div key={cell.id} role="cell">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),

@@ -1,4 +1,5 @@
 import { defineConfig } from '@pandacss/dev'
+import { TABLE_ROW_PADDING_PX } from './src/table/constants/constants'
 
 export default defineConfig({
   // Whether to use css reset
@@ -12,7 +13,13 @@ export default defineConfig({
 
   // Useful for theme customization
   theme: {
-    extend: {},
+    extend: {
+      tokens: {
+        spacing: {
+          tableRowPadding: { value: `${TABLE_ROW_PADDING_PX}px` },
+        },
+      },
+    },
   },
 
   // The output directory for your css system
