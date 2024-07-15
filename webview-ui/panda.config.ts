@@ -19,6 +19,22 @@ export default defineConfig({
           tableRowPadding: { value: `${TABLE_ROW_PADDING_PX}px` },
         },
       },
+      keyframes: {
+        progress: {
+          '0%': {
+            backgroundSize: '200% 100%',
+            backgroundPosition: 'left -31.25% top 0%',
+          },
+          '50%': {
+            backgroundSize: '800% 100%',
+            backgroundPosition: 'left -49% top 0%',
+          },
+          '100%': {
+            backgroundSize: '400% 100%',
+            backgroundPosition: 'left -102% top 0%',
+          },
+        },
+      },
     },
   },
 
@@ -45,5 +61,6 @@ export default defineConfig({
     '--vscode-gitDecoration-addedResourceForeground': {},
     '--vscode-gitDecoration-modifiedResourceForeground': {},
     '--vscode-gitDecoration-deletedResourceForeground': {},
+    '--vscode-progressBar-background': {},
   },
 })

@@ -1,3 +1,4 @@
+import LinearProgress from '@/components/LinearProgress'
 import { useVSCodeState } from '@/hooks/useVSCodeState'
 import { vscode } from '@/utilities/vscode'
 import {
@@ -14,7 +15,7 @@ import {
 } from '@tanstack/react-query'
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react'
 import { type FC, useCallback, useEffect, useMemo, useRef } from 'react'
-import { flushSync } from 'react-dom'
+import { createPortal, flushSync } from 'react-dom'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { css } from 'styled-system/css'
 import { hstack } from 'styled-system/patterns/hstack'
@@ -57,7 +58,8 @@ const Table: FC = () => {
 
   const {
     data: tableData,
-    isPending: tableDataIsPending,
+    // placeholderDataが使われているときもロードインジケータを表示したいためisPendingではなくisFetchingを使う
+    isFetching: isFetchingTableData,
     error: tableDataError,
   } = useQuery({
     queryKey: ['getTableData', limit, offset, sort],
@@ -81,7 +83,7 @@ const Table: FC = () => {
 
   const {
     data: config,
-    isPending: configIsPending,
+    isPending: isConfigPending,
     error: configError,
   } = useQuery({
     queryKey: ['getConfig'],
@@ -311,69 +313,89 @@ const Table: FC = () => {
   useHotkeys([Key.Backspace, Key.Delete], handleRowDelete, [handleRowDelete])
 
   return (
-    <main
-      className={css({
-        color: 'var(--vscode-foreground)',
-        display: 'grid',
-        gridTemplateColumns: '1',
-        gridTemplateRows: '1',
-        h: '100vh',
-      })}
-    >
-      {tableData && config && (
+    <main>
+      {(isFetchingTableData || isConfigPending) && (
         <>
-          <VirtualTable
-            tableRef={virtualTableTableRef}
-            dbColumns={tableData.tableMetadata.columns}
-            dbRows={updatedRows}
-            rowHeight={config.tableRowHeight}
-            fontSize={config.fontSize}
-            selectedCell={selectedCell}
-            editedCells={editedCells}
-            deletedRowIndexes={deletedRowIndexes}
-            sort={sort}
-            onCellSelect={setSelectedCell}
-            onCellEdit={handleCellEdit}
-            onSortChange={handleSortChange}
-          />
-          <TableFooter
-            totalCount={tableData.tableMetadata.totalRows}
-            limit={limit}
-            offset={offset}
-            page={offset / limit + 1}
-            onPageChange={handlePageChange}
-            leftItems={
-              <div className={hstack({ gap: '4' })}>
-                <VSCodeButton
-                  appearance="icon"
-                  aria-label="Save changes"
-                  disabled={operations.length === 0}
-                  onClick={handleSaveChanges}
-                >
-                  <div className={`${css({ px: '3' })} codicon codicon-save`} />
-                </VSCodeButton>
-                <VSCodeButton
-                  appearance="icon"
-                  aria-label="Delete row"
-                  disabled={!selectedCell}
-                  onClick={handleRowDelete}
-                >
-                  <div
-                    className={`${css({ px: '3' })} codicon codicon-trash`}
-                  />
-                </VSCodeButton>
-                <VSCodeButton
-                  appearance="icon"
-                  aria-label="Insert row"
-                  onClick={handleRowInsert}
-                >
-                  <div className={`${css({ px: '3' })} codicon codicon-add`} />
-                </VSCodeButton>
-              </div>
-            }
-          />
+          {/* createPortalをフラグメントで囲わないと型エラーが発生するバグがある */}
+          {/* https://github.com/DefinitelyTyped/DefinitelyTyped/issues/66841#issuecomment-1750651348 */}
+          {createPortal(
+            <div
+              className={css({ pos: 'fixed', top: 0, w: 'full', zIndex: 1 })}
+            >
+              <LinearProgress />
+            </div>,
+            document.body,
+          )}
         </>
       )}
+      <div
+        className={css({
+          color: 'var(--vscode-foreground)',
+          display: 'grid',
+          gridTemplateColumns: '1',
+          gridTemplateRows: '1',
+          h: '100vh',
+        })}
+      >
+        {tableData && config && (
+          <>
+            <VirtualTable
+              tableRef={virtualTableTableRef}
+              dbColumns={tableData.tableMetadata.columns}
+              dbRows={updatedRows}
+              rowHeight={config.tableRowHeight}
+              fontSize={config.fontSize}
+              selectedCell={selectedCell}
+              editedCells={editedCells}
+              deletedRowIndexes={deletedRowIndexes}
+              sort={sort}
+              onCellSelect={setSelectedCell}
+              onCellEdit={handleCellEdit}
+              onSortChange={handleSortChange}
+            />
+            <TableFooter
+              totalCount={tableData.tableMetadata.totalRows}
+              limit={limit}
+              offset={offset}
+              page={offset / limit + 1}
+              onPageChange={handlePageChange}
+              leftItems={
+                <div className={hstack({ gap: '4' })}>
+                  <VSCodeButton
+                    appearance="icon"
+                    aria-label="Save changes"
+                    disabled={operations.length === 0}
+                    onClick={handleSaveChanges}
+                  >
+                    <div
+                      className={`${css({ px: '3' })} codicon codicon-save`}
+                    />
+                  </VSCodeButton>
+                  <VSCodeButton
+                    appearance="icon"
+                    aria-label="Delete row"
+                    disabled={!selectedCell}
+                    onClick={handleRowDelete}
+                  >
+                    <div
+                      className={`${css({ px: '3' })} codicon codicon-trash`}
+                    />
+                  </VSCodeButton>
+                  <VSCodeButton
+                    appearance="icon"
+                    aria-label="Insert row"
+                    onClick={handleRowInsert}
+                  >
+                    <div
+                      className={`${css({ px: '3' })} codicon codicon-add`}
+                    />
+                  </VSCodeButton>
+                </div>
+              }
+            />
+          </>
+        )}
+      </div>
     </main>
   )
 }
