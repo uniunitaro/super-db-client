@@ -1,22 +1,27 @@
 import type { CellContext } from '@tanstack/react-table'
-import { type FC, memo } from 'react'
+import { type FC, type RefObject, memo } from 'react'
 import { css } from 'styled-system/css'
-import type { CellInfo } from '../types/cell'
-import type { TableRowWithType } from '../types/table'
+import type {
+  CellInfo,
+  SelectedCellInfo,
+  TableRowWithType,
+} from '../types/table'
 
 const TableCell: FC<
   CellContext<TableRowWithType, unknown> & {
-    selectedCell: CellInfo | undefined
+    inputRef: RefObject<HTMLInputElement | null>
+    selectedCell: SelectedCellInfo | undefined
     editedCells: CellInfo[]
     deletedRowIndexes: number[]
-    onCellSelect: (cell: CellInfo) => void
+    onCellSelect: (cell: SelectedCellInfo) => void
     onCellEdit: (newValue: string) => void
   }
 > = memo(
   ({
     renderValue,
     row: { index, original },
-    column: { id, getSize },
+    column: { id, getSize, getIndex },
+    inputRef,
     selectedCell,
     editedCells,
     deletedRowIndexes,
@@ -37,12 +42,18 @@ const TableCell: FC<
       if (!isSelected) {
         onCellSelect(
           original.type === 'existing'
-            ? { type: 'existing', rowIndex: index, columnId: id }
+            ? {
+                type: 'existing',
+                rowIndex: index,
+                columnId: id,
+                columnIndex: getIndex(),
+              }
             : {
                 type: 'inserted',
                 rowIndex: index,
-                columnId: id,
                 rowUUID: original.uuid,
+                columnId: id,
+                columnIndex: getIndex(),
               },
         )
       }
@@ -78,6 +89,7 @@ const TableCell: FC<
       >
         {isSelected ? (
           <input
+            ref={inputRef}
             defaultValue={initialValue}
             className={css({
               w: 'calc(100% + 8px)',
@@ -98,6 +110,7 @@ const TableCell: FC<
               // @ts-expect-error clickが存在しないと怒られるが、clickがないときは何もしないので問題ないはず
               e.relatedTarget?.click()
             }}
+            onFocus={(e) => e.target.select()}
           />
         ) : (
           <div

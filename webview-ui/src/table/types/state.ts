@@ -1,13 +1,11 @@
-import type { CellInfo } from './cell'
-import type { ClientOperation } from './operation'
-import type { Sort } from './sort'
+import type { ClientOperation, SelectedCellInfo, Sort } from './table'
 
 export type TablePanelState = {
   limit?: number
   offset?: number
   scrollX?: number
   scrollY?: number
-  selectedCell?: CellInfo
+  selectedCell?: SelectedCellInfo
   operations?: ClientOperation[]
   sort?: Sort
 }

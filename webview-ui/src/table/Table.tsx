@@ -16,16 +16,14 @@ import {
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react'
 import { type FC, useCallback, useEffect, useMemo, useRef } from 'react'
 import { createPortal, flushSync } from 'react-dom'
-import { useHotkeys } from 'react-hotkeys-hook'
 import { css } from 'styled-system/css'
 import { hstack } from 'styled-system/patterns/hstack'
-import { Key } from 'ts-key-enum'
 import { HOST_EXTENSION } from 'vscode-messenger-common'
 import TableFooter from './components/TableFooter'
 import VirtualTable from './components/VirtualTable'
-import type { CellInfo } from './types/cell'
-import type { ClientOperation } from './types/operation'
-import type { TableRowWithType } from './types/table'
+import { useSelectionHandler } from './hooks/useSelectionHandler'
+import { useShortcutKeys } from './hooks/useShortcutKeys'
+import type { CellInfo, ClientOperation, TableRowWithType } from './types/table'
 import { convertClientOperationToOperation } from './utils/convertClientOperationToOperations'
 
 const Table: FC = () => {
@@ -101,83 +99,11 @@ const Table: FC = () => {
     [limit, setOffset],
   )
 
-  const [selectedCell, setSelectedCell] = useTablePanelState(
-    'selectedCell',
-    undefined,
-  )
-
   // 型引数なしだとnever[]に推論される
   const [operations, setOperations] = useTablePanelState<
     ClientOperation[],
     'operations'
   >('operations', [])
-
-  const handleCellEdit = useCallback(
-    (newValue: string) => {
-      if (!tableData || !selectedCell) return
-
-      if (selectedCell.type === 'existing') {
-        const targetRow = tableData.rows[selectedCell.rowIndex]
-        const primaryKeys = tableData.tableMetadata.primaryKeyColumns
-        const primaryKeyValues = primaryKeys.map((key) => ({
-          key,
-          // TODO: value unknownじゃなきゃだめなんじゃないか？
-          value: String(targetRow[key]),
-        }))
-
-        setOperations([
-          ...operations,
-          {
-            type: 'edit',
-            primaryKeyValues,
-            columnName: selectedCell.columnId,
-            newValue,
-          },
-        ])
-      } else if (selectedCell.type === 'inserted') {
-        setOperations([
-          ...operations,
-          {
-            type: 'editInserted',
-            insertedRowUUID: selectedCell.rowUUID,
-            columnName: selectedCell.columnId,
-            newValue,
-          },
-        ])
-      }
-    },
-    [tableData, operations, selectedCell, setOperations],
-  )
-
-  const handleRowDelete = useCallback(() => {
-    if (!tableData || !selectedCell) return
-
-    if (selectedCell.type === 'existing') {
-      const targetRow = tableData.rows[selectedCell.rowIndex]
-      const primaryKeys = tableData.tableMetadata.primaryKeyColumns
-      const primaryKeyValues = primaryKeys.map((key) => ({
-        key,
-        value: String(targetRow[key]),
-      }))
-
-      setOperations([...operations, { type: 'delete', primaryKeyValues }])
-    } else if (selectedCell.type === 'inserted') {
-      setOperations([
-        ...operations,
-        { type: 'deleteInserted', insertedRowUUID: selectedCell.rowUUID },
-      ])
-    }
-  }, [tableData, operations, selectedCell, setOperations])
-
-  const virtualTableTableRef = useRef<HTMLDivElement>(null)
-  const handleRowInsert = useCallback(() => {
-    const uuid = crypto.randomUUID()
-    flushSync(() => {
-      setOperations([...operations, { type: 'insert', uuid }])
-    })
-
-    virtualTableTableRef.current?.scrollIntoView(false)
-  }, [operations, setOperations])
 
   // tableData.rowsとoperationsから、変更後のデータを作成する
   const updatedRows: TableRowWithType[] = useMemo(() => {
@@ -225,6 +151,109 @@ const Table: FC = () => {
     }
     return newRows
   }, [operations, tableData])
+
+  const {
+    selectedCell,
+    selectedCellInputRef,
+    shouldNotUpdateCellRef,
+    setSelectedCell,
+    moveSelectedCell,
+    toggleSelectedCellInputFocus,
+    exitSelectedCellInput,
+  } = useSelectionHandler({
+    rows: updatedRows,
+    columns: tableData?.tableMetadata.columns ?? [],
+  })
+
+  const handleCellEdit = useCallback(
+    (newValue: string) => {
+      if (!tableData || !selectedCell) return
+
+      if (shouldNotUpdateCellRef.current) {
+        // ESCキーなどでセルの編集をキャンセルした場合
+        shouldNotUpdateCellRef.current = false
+
+        const oldValue =
+          tableData.rows[selectedCell.rowIndex][selectedCell.columnId]
+
+        if (selectedCellInputRef.current) {
+          // セルの編集をキャンセルした場合、元の値に戻す
+          // FIXME: useImperativeHandleを使って隠蔽する
+          selectedCellInputRef.current.value = String(oldValue)
+        }
+
+        return
+      }
+
+      if (selectedCell.type === 'existing') {
+        const targetRow = tableData.rows[selectedCell.rowIndex]
+        const primaryKeys = tableData.tableMetadata.primaryKeyColumns
+        const primaryKeyValues = primaryKeys.map((key) => ({
+          key,
+          // TODO: value unknownじゃなきゃだめなんじゃないか？
+          value: String(targetRow[key]),
+        }))
+
+        setOperations([
+          ...operations,
+          {
+            type: 'edit',
+            primaryKeyValues,
+            columnName: selectedCell.columnId,
+            newValue,
+          },
+        ])
+      } else if (selectedCell.type === 'inserted') {
+        setOperations([
+          ...operations,
+          {
+            type: 'editInserted',
+            insertedRowUUID: selectedCell.rowUUID,
+            columnName: selectedCell.columnId,
+            newValue,
+          },
+        ])
+      }
+    },
+    [
+      tableData,
+      operations,
+      selectedCell,
+      setOperations,
+      shouldNotUpdateCellRef,
+      selectedCellInputRef,
+    ],
+  )
+
+  const handleRowDelete = useCallback(() => {
+    if (!tableData || !selectedCell) return
+
+    if (selectedCell.type === 'existing') {
+      const targetRow = tableData.rows[selectedCell.rowIndex]
+      const primaryKeys = tableData.tableMetadata.primaryKeyColumns
+      const primaryKeyValues = primaryKeys.map((key) => ({
+        key,
+        value: String(targetRow[key]),
+      }))
+
+      setOperations([...operations, { type: 'delete', primaryKeyValues }])
+    } else if (selectedCell.type === 'inserted') {
+      setOperations([
+        ...operations,
+        { type: 'deleteInserted', insertedRowUUID: selectedCell.rowUUID },
+      ])
+    }
+  }, [tableData, operations, selectedCell, setOperations])
+
+  const virtualTableTableRef = useRef<HTMLDivElement>(null)
+  const handleRowInsert = useCallback(() => {
+    const uuid = crypto.randomUUID()
+    flushSync(() => {
+      setOperations([...operations, { type: 'insert', uuid }])
+    })
+
+    virtualTableTableRef.current?.scrollIntoView(false)
+  }, [operations, setOperations])
 
   const editedCells: CellInfo[] = useMemo(() => {
     if (!tableData) return []
@@ -310,7 +339,12 @@ const Table: FC = () => {
     vscode.messenger.start()
   }, [saveTableChanges])
 
-  useHotkeys([Key.Backspace, Key.Delete], handleRowDelete, [handleRowDelete])
+  useShortcutKeys({
+    deleteRow: handleRowDelete,
+    moveSelectedCell,
+    toggleSelectedCellInputFocus,
+    exitSelectedCellInput,
+  })
 
   return (
     <main>
@@ -341,6 +375,7 @@ const Table: FC = () => {
           <>
             <VirtualTable
               tableRef={virtualTableTableRef}
+              selectedCellInputRef={selectedCellInputRef}
               dbColumns={tableData.tableMetadata.columns}
               dbRows={updatedRows}
               rowHeight={config.tableRowHeight}

@@ -1,5 +1,5 @@
 import type { Operation, TableRow } from '@shared-types/sharedTypes'
-import type { ClientOperation } from '../types/operation'
+import type { ClientOperation } from '../types/table'
 
 export const convertClientOperationToOperation = (
   operations: ClientOperation[],

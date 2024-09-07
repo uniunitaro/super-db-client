@@ -18,28 +18,34 @@ import {
 } from 'react'
 import { css } from 'styled-system/css'
 import { ROW_MAX_WIDTH, TABLE_ROW_PADDING_PX } from '../constants/constants'
-import type { CellInfo } from '../types/cell'
-import type { Sort } from '../types/sort'
-import type { TableRowWithType } from '../types/table'
+import type {
+  CellInfo,
+  SelectedCellInfo,
+  Sort,
+  TableRowWithType,
+} from '../types/table'
 import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
 import TableCell from './TableCell'
+import TableRow from './TableRow'
 
 const VirtualTable: FC<{
   tableRef: RefObject<HTMLDivElement | null>
+  selectedCellInputRef: RefObject<HTMLInputElement | null>
   dbColumns: ColumnMetadata[]
   dbRows: TableRowWithType[]
   rowHeight: number
   fontSize: number | undefined
-  selectedCell: CellInfo | undefined
+  selectedCell: SelectedCellInfo | undefined
   editedCells: CellInfo[]
   deletedRowIndexes: number[]
   sort: Sort
-  onCellSelect: (cell: CellInfo) => void
+  onCellSelect: (cell: SelectedCellInfo) => void
   onCellEdit: (newValue: string) => void
   onSortChange: (columnId: string) => void
 }> = memo(
   ({
     tableRef,
+    selectedCellInputRef,
     dbColumns,
     dbRows,
     rowHeight,
@@ -100,6 +106,7 @@ const VirtualTable: FC<{
         cell: (props) => (
           <TableCell
             {...props}
+            inputRef={selectedCellInputRef}
             selectedCell={selectedCell}
             editedCells={editedCells}
             deletedRowIndexes={deletedRowIndexes}
@@ -151,6 +158,7 @@ const VirtualTable: FC<{
         selectedCell,
         onSortChange,
         sort,
+        selectedCellInputRef,
       ],
     )
 
@@ -276,42 +284,17 @@ const VirtualTable: FC<{
             >
               {virtualizer.getVirtualItems().map((virtualRow) => {
                 const row = rows[virtualRow.index]
+                const isSelected = selectedCell?.rowIndex === row.index
                 return (
-                  <div
+                  <TableRow
                     key={row.id}
-                    role="row"
-                    className={css({
-                      display: 'flex',
-                      pos: 'absolute',
-                      whiteSpace: 'pre',
-                      '&[data-parity=even]': {
-                        bgColor: 'var(--vscode-keybindingTable-rowsBackground)',
-                      },
-                      '&[data-selected=true]': {
-                        bgColor: 'var(--vscode-list-activeSelectionBackground)',
-                        color: 'var(--vscode-list-activeSelectionForeground)',
-                        outlineWidth: '1px',
-                        outlineStyle: 'solid',
-                        outlineColor: 'var(--vscode-list-focusOutline)',
-                        outlineOffset: '-1px',
-                      },
-                    })}
-                    style={{
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}
-                    data-parity={virtualRow.index % 2 === 0 ? 'odd' : 'even'}
-                    data-selected={selectedCell?.rowIndex === row.index}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <div key={cell.id} role="cell">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                    row={row}
+                    virtualRow={virtualRow}
+                    isSelected={isSelected}
+                    unUsedSelectedColumnId={
+                      isSelected ? selectedCell?.columnId : undefined
+                    }
+                  />
                 )
               })}
             </div>
