@@ -34,6 +34,15 @@ export function activate(context: ExtensionContext) {
 
   context.subscriptions.push(
     commands.registerCommand('superDBClient.openTable', (tableName: string) => {
+      // 同じパネルが開かれている場合は新たに開かず、既存のパネルをアクティブにする
+      const existingPanel = tablePanels.find(
+        (panel) => panel.getTableName() === tableName,
+      )
+      if (existingPanel) {
+        existingPanel.reveal()
+        return
+      }
+
       const newPanel = TablePanel.render(context, messenger, tableName)
       newPanel.onDidDispose(() => {
         const index = tablePanels.indexOf(newPanel)

@@ -84,6 +84,14 @@ export class TablePanel extends BaseWebviewPanel {
     return this._panel.active
   }
 
+  public getTableName() {
+    return this._tableName
+  }
+
+  public reveal() {
+    this._panel.reveal()
+  }
+
   public sendCommand(command: Command) {
     this._messenger.sendRequest(
       commandRequest,
