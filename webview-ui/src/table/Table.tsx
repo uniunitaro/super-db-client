@@ -13,11 +13,9 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react'
 import { type FC, useCallback, useEffect, useMemo, useRef } from 'react'
 import { createPortal, flushSync } from 'react-dom'
 import { css } from 'styled-system/css'
-import { hstack } from 'styled-system/patterns/hstack'
 import { HOST_EXTENSION } from 'vscode-messenger-common'
 import TableFooter from './components/TableFooter'
 import VirtualTable from './components/VirtualTable'
@@ -58,7 +56,9 @@ const Table: FC = () => {
     data: tableData,
     // placeholderDataが使われているときもロードインジケータを表示したいためisPendingではなくisFetchingを使う
     isFetching: isFetchingTableData,
+    isRefetching: isRefetchingTableData,
     error: tableDataError,
+    refetch: refetchTableData,
   } = useQuery({
     queryKey: ['getTableData', limit, offset, sort],
     queryFn: () =>
@@ -332,12 +332,17 @@ const Table: FC = () => {
 
   useEffect(() => {
     vscode.messenger.onRequest(commandRequest, (command) => {
-      if (command === 'saveTableChanges') {
-        saveTableChanges()
+      switch (command) {
+        case 'saveTableChanges':
+          saveTableChanges()
+          break
+        case 'refreshTable':
+          refetchTableData()
+          break
       }
     })
     vscode.messenger.start()
-  }, [saveTableChanges])
+  }, [saveTableChanges, refetchTableData])
 
   useShortcutKeys({
     deleteRow: handleRowDelete,
@@ -348,7 +353,7 @@ const Table: FC = () => {
 
   return (
     <main>
-      {(isFetchingTableData || isConfigPending) && (
+      {(isFetchingTableData || isConfigPending || isRefetchingTableData) && (
         <>
           {/* createPortalをフラグメントで囲わないと型エラーが発生するバグがある */}
           {/* https://github.com/DefinitelyTyped/DefinitelyTyped/issues/66841#issuecomment-1750651348 */}
@@ -371,8 +376,8 @@ const Table: FC = () => {
           h: '100vh',
         })}
       >
-        {tableData && config && (
-          <>
+        <div className={css({ display: 'flex' })}>
+          {tableData && config && (
             <VirtualTable
               tableRef={virtualTableTableRef}
               selectedCellInputRef={selectedCellInputRef}
@@ -388,48 +393,22 @@ const Table: FC = () => {
               onCellEdit={handleCellEdit}
               onSortChange={handleSortChange}
             />
-            <TableFooter
-              totalCount={tableData.tableMetadata.totalRows}
-              limit={limit}
-              offset={offset}
-              page={offset / limit + 1}
-              onPageChange={handlePageChange}
-              leftItems={
-                <div className={hstack({ gap: '4' })}>
-                  <VSCodeButton
-                    appearance="icon"
-                    aria-label="Save changes"
-                    disabled={operations.length === 0}
-                    onClick={handleSaveChanges}
-                  >
-                    <div
-                      className={`${css({ px: '3' })} codicon codicon-save`}
-                    />
-                  </VSCodeButton>
-                  <VSCodeButton
-                    appearance="icon"
-                    aria-label="Delete row"
-                    disabled={!selectedCell}
-                    onClick={handleRowDelete}
-                  >
-                    <div
-                      className={`${css({ px: '3' })} codicon codicon-trash`}
-                    />
-                  </VSCodeButton>
-                  <VSCodeButton
-                    appearance="icon"
-                    aria-label="Insert row"
-                    onClick={handleRowInsert}
-                  >
-                    <div
-                      className={`${css({ px: '3' })} codicon codicon-add`}
-                    />
-                  </VSCodeButton>
-                </div>
-              }
-            />
-          </>
-        )}
+          )}
+        </div>
+        <TableFooter
+          isLoading={!tableData || !config}
+          totalCount={tableData?.tableMetadata.totalRows ?? 0}
+          limit={limit}
+          offset={offset}
+          page={offset / limit + 1}
+          onPageChange={handlePageChange}
+          isSaveDisabled={operations.length === 0}
+          isDeleteDisabled={!selectedCell}
+          onSave={handleSaveChanges}
+          onDelete={handleRowDelete}
+          onInsert={handleRowInsert}
+          onRefresh={refetchTableData}
+        />
       </div>
     </main>
   )

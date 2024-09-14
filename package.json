@@ -15,8 +15,8 @@
         "category": "Super DB Client"
       },
       {
-        "command": "superDBClient.refreshEntry",
-        "title": "Refresh",
+        "command": "superDBClient.refreshDatabases",
+        "title": "Refresh Databases",
         "category": "Super DB Client",
         "icon": "$(refresh)"
       },
@@ -29,6 +29,11 @@
         "command": "superDBClient.saveTableChanges",
         "title": "Save Table Changes",
         "category": "Super DB Client"
+      },
+      {
+        "command": "superDBClient.refreshTable",
+        "title": "Refresh Table",
+        "category": "Super DB Client"
       }
     ],
     "keybindings": [
@@ -39,6 +44,11 @@
       {
         "key": "ctrl+s",
         "command": "superDBClient.saveTableChanges",
+        "when": "activeWebviewPanelId =~ /table/"
+      },
+      {
+        "key": "ctrl+r",
+        "command": "superDBClient.refreshTable",
         "when": "activeWebviewPanelId =~ /table/"
       }
     ],
@@ -62,7 +72,7 @@
     "menus": {
       "view/title": [
         {
-          "command": "superDBClient.refreshEntry",
+          "command": "superDBClient.refreshDatabases",
           "when": "view == superDBClient.explorer",
           "group": "navigation"
         }
@@ -70,6 +80,10 @@
       "commandPalette": [
         {
           "command": "superDBClient.saveTableChanges",
+          "when": "activeWebviewPanelId =~ /table/"
+        },
+        {
+          "command": "superDBClient.refreshTable",
           "when": "activeWebviewPanelId =~ /table/"
         }
       ]

@@ -27,7 +27,7 @@ export function activate(context: ExtensionContext) {
   })
 
   context.subscriptions.push(
-    commands.registerCommand('superDBClient.refreshEntry', () => {
+    commands.registerCommand('superDBClient.refreshDatabases', () => {
       explorerViewProvider.refresh()
     }),
   )
@@ -66,6 +66,15 @@ export function activate(context: ExtensionContext) {
       const activePanel = tablePanels.find((panel) => panel.isActive())
       if (activePanel) {
         activePanel.sendCommand('saveTableChanges')
+      }
+    }),
+  )
+
+  context.subscriptions.push(
+    commands.registerCommand('superDBClient.refreshTable', () => {
+      const activePanel = tablePanels.find((panel) => panel.isActive())
+      if (activePanel) {
+        activePanel.sendCommand('refreshTable')
       }
     }),
   )
