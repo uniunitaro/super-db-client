@@ -44,6 +44,11 @@ export class TablePanel extends BaseWebviewPanel {
     )
 
     this._setWebviewMessageListener(this._panel.webview)
+
+    this._panel.iconPath = {
+      light: Uri.joinPath(context.extensionUri, 'assets/database-light.svg'),
+      dark: Uri.joinPath(context.extensionUri, 'assets/database-dark.svg'),
+    }
   }
 
   public static render(
