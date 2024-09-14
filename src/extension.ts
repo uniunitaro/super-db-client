@@ -1,7 +1,7 @@
 import { type ExtensionContext, commands, window } from 'vscode'
 import { Messenger } from 'vscode-messenger'
+import { ConnectionSettingPanel } from './panels/ConnectionSettingPanel'
 import { ExplorerViewProvider } from './panels/ExplorerViewProvider'
-import { HelloWorldPanel } from './panels/HelloWorldPanel'
 import { TablePanel } from './panels/TablePanel'
 import { showGoToTableQuickPick } from './panels/showGoToTableQuickPick'
 
@@ -14,7 +14,7 @@ export function activate(context: ExtensionContext) {
   const showHelloWorldCommand = commands.registerCommand(
     'superDBClient.newConnection',
     () => {
-      HelloWorldPanel.render(context, messenger)
+      ConnectionSettingPanel.render(context, messenger)
     },
   )
 

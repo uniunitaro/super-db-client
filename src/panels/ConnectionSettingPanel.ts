@@ -13,7 +13,7 @@ import { saveDBConfigRequest, testDBConnectionRequest } from '../types/message'
 import { getWebviewContent } from '../utilities/getWebviewContent'
 import { BaseWebviewPanel } from './BaseWebviewPanel'
 
-export class HelloWorldPanel extends BaseWebviewPanel {
+export class ConnectionSettingPanel extends BaseWebviewPanel {
   private constructor(
     panel: WebviewPanel,
     context: ExtensionContext,
@@ -44,7 +44,7 @@ export class HelloWorldPanel extends BaseWebviewPanel {
       },
     )
 
-    HelloWorldPanel.currentPanel = new HelloWorldPanel(
+    ConnectionSettingPanel.currentPanel = new ConnectionSettingPanel(
       panel,
       context,
       messenger,
