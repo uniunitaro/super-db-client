@@ -291,7 +291,7 @@ const VirtualTable: FC<{
                     row={row}
                     virtualRow={virtualRow}
                     isSelected={isSelected}
-                    unUsedSelectedColumnId={
+                    unusedSelectedColumnId={
                       isSelected ? selectedCell?.columnId : undefined
                     }
                   />

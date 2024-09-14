@@ -11,7 +11,7 @@ const TableRow: FC<{
   row: Row<TableRowWithType>
   virtualRow: VirtualItem
   isSelected: boolean
-  unUsedSelectedColumnId: string | undefined
+  unusedSelectedColumnId: string | undefined
 }> = memo(({ row, virtualRow, isSelected }) => {
   return (
     <div
