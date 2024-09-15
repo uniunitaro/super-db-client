@@ -57,7 +57,7 @@ export class TablePanel extends BaseWebviewPanel {
     tableName: string,
   ) {
     const panel = window.createWebviewPanel(
-      `table-${tableName}`,
+      `superDBClient.table-${tableName}`,
       tableName,
       ViewColumn.Active,
       {

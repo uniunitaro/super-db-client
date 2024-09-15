@@ -44,12 +44,12 @@
       {
         "key": "ctrl+s",
         "command": "superDBClient.saveTableChanges",
-        "when": "activeWebviewPanelId =~ /table/"
+        "when": "activeWebviewPanelId =~ /superDBClient.table/"
       },
       {
         "key": "ctrl+r",
         "command": "superDBClient.refreshTable",
-        "when": "activeWebviewPanelId =~ /table/"
+        "when": "activeWebviewPanelId =~ /superDBClient.table/"
       }
     ],
     "views": {
@@ -80,11 +80,11 @@
       "commandPalette": [
         {
           "command": "superDBClient.saveTableChanges",
-          "when": "activeWebviewPanelId =~ /table/"
+          "when": "activeWebviewPanelId =~ /superDBClient.table/"
         },
         {
           "command": "superDBClient.refreshTable",
-          "when": "activeWebviewPanelId =~ /table/"
+          "when": "activeWebviewPanelId =~ /superDBClient.table/"
         }
       ]
     },
