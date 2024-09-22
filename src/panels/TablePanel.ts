@@ -95,6 +95,7 @@ export class TablePanel extends BaseWebviewPanel {
 
   public reveal() {
     this._panel.reveal()
+    this.sendCommand('refreshTable')
   }
 
   public sendCommand(command: Command) {
