@@ -160,6 +160,7 @@ const Table: FC = () => {
     moveSelectedCell,
     toggleSelectedCellInputFocus,
     exitSelectedCellInput,
+    blurSelectedCellInput,
   } = useSelectionHandler({
     rows: updatedRows,
     columns: tableData?.tableMetadata.columns ?? [],
@@ -326,15 +327,16 @@ const Table: FC = () => {
       hasSavedTableChanges.current = true
     },
   })
-  const handleSaveChanges = () => {
+  const handleSaveChanges = useCallback(() => {
+    blurSelectedCellInput()
     saveTableChanges()
-  }
+  }, [blurSelectedCellInput, saveTableChanges])
 
   useEffect(() => {
     vscode.messenger.onRequest(commandRequest, (command) => {
       switch (command) {
         case 'saveTableChanges':
-          saveTableChanges()
+          handleSaveChanges()
           break
         case 'refreshTable':
           refetchTableData()
@@ -345,7 +347,7 @@ const Table: FC = () => {
       }
     })
     vscode.messenger.start()
-  }, [saveTableChanges, refetchTableData, handleRowDelete])
+  }, [handleSaveChanges, refetchTableData, handleRowDelete])
 
   useShortcutKeys({
     deleteRow: handleRowDelete,

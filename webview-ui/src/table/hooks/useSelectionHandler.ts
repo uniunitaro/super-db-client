@@ -83,6 +83,10 @@ export const useSelectionHandler = ({
     selectedCellInputRef.current?.focus()
   }, [])
 
+  const blurSelectedCellInput = useCallback(() => {
+    selectedCellInputRef.current?.blur()
+  }, [])
+
   const shouldNotUpdateCellRef = useRef(false)
   const exitSelectedCellInput = useCallback(() => {
     shouldNotUpdateCellRef.current = true
@@ -104,6 +108,7 @@ export const useSelectionHandler = ({
     setSelectedCell,
     moveSelectedCell,
     focusSelectedCellInput,
+    blurSelectedCellInput,
     exitSelectedCellInput,
     toggleSelectedCellInputFocus,
   }
