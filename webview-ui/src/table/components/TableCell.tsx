@@ -83,9 +83,13 @@ const TableCell: FC<
         })}
         style={{ width: getSize() }}
         onClick={handleClick}
+        onContextMenu={(e) => {
+          handleClick()
+        }}
         data-edited={isEdited}
         data-deleted={isDeleted}
         data-inserted={isInserted}
+        data-vscode-context='{"webviewSection": "row", "preventDefaultContextMenuItems": true}'
       >
         {isSelected ? (
           <input

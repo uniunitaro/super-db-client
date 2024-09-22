@@ -41,7 +41,7 @@ export const saveTableChangesRequest: RequestType<
   method: 'saveTableChanges',
 }
 
-export type Command = 'saveTableChanges' | 'refreshTable'
+export type Command = 'saveTableChanges' | 'refreshTable' | 'deleteRows'
 export const commandRequest: RequestType<Command, void> = {
   method: 'command',
 }

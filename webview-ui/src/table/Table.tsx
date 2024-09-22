@@ -339,10 +339,13 @@ const Table: FC = () => {
         case 'refreshTable':
           refetchTableData()
           break
+        case 'deleteRows':
+          handleRowDelete()
+          break
       }
     })
     vscode.messenger.start()
-  }, [saveTableChanges, refetchTableData])
+  }, [saveTableChanges, refetchTableData, handleRowDelete])
 
   useShortcutKeys({
     deleteRow: handleRowDelete,
@@ -352,7 +355,7 @@ const Table: FC = () => {
   })
 
   return (
-    <main>
+    <main data-vscode-context='{"preventDefaultContextMenuItems": true}'>
       {(isFetchingTableData || isConfigPending || isRefetchingTableData) && (
         <>
           {/* createPortalをフラグメントで囲わないと型エラーが発生するバグがある */}
@@ -403,9 +406,7 @@ const Table: FC = () => {
           page={offset / limit + 1}
           onPageChange={handlePageChange}
           isSaveDisabled={operations.length === 0}
-          isDeleteDisabled={!selectedCell}
           onSave={handleSaveChanges}
-          onDelete={handleRowDelete}
           onInsert={handleRowInsert}
           onRefresh={refetchTableData}
         />

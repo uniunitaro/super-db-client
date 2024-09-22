@@ -78,4 +78,13 @@ export function activate(context: ExtensionContext) {
       }
     }),
   )
+
+  context.subscriptions.push(
+    commands.registerCommand('superDBClient.deleteRows', () => {
+      const activePanel = tablePanels.find((panel) => panel.isActive())
+      if (activePanel) {
+        activePanel.sendCommand('deleteRows')
+      }
+    }),
+  )
 }

@@ -11,9 +11,7 @@ const TableFooter: FC<{
   page: number
   onPageChange: (page: number) => void
   isSaveDisabled: boolean
-  isDeleteDisabled: boolean
   onSave: () => void
-  onDelete: () => void
   onInsert: () => void
   onRefresh: () => void
 }> = ({
@@ -24,9 +22,7 @@ const TableFooter: FC<{
   page,
   onPageChange,
   isSaveDisabled,
-  isDeleteDisabled,
   onSave,
-  onDelete,
   onInsert,
   onRefresh,
 }) => {
@@ -51,14 +47,6 @@ const TableFooter: FC<{
           onClick={onSave}
         >
           <div className={`${css({ px: '3' })} codicon codicon-save`} />
-        </VSCodeButton>
-        <VSCodeButton
-          appearance="icon"
-          aria-label="Delete row"
-          disabled={isDeleteDisabled}
-          onClick={onDelete}
-        >
-          <div className={`${css({ px: '3' })} codicon codicon-trash`} />
         </VSCodeButton>
         <VSCodeButton
           appearance="icon"

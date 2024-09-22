@@ -34,6 +34,11 @@
         "command": "superDBClient.refreshTable",
         "title": "Refresh Table",
         "category": "Super DB Client"
+      },
+      {
+        "command": "superDBClient.deleteRows",
+        "title": "Delete Rows",
+        "category": "Super DB Client"
       }
     ],
     "keybindings": [
@@ -84,7 +89,19 @@
         },
         {
           "command": "superDBClient.refreshTable",
-          "when": "activeWebviewPanelId =~ /superDBClient.table/"
+          "when": "activeWebviewPanelId =~ /superDBClient.superDBClient.table/"
+        }
+      ],
+      "webview/context": [
+        {
+          "command": "superDBClient.refreshTable",
+          "when": "webviewId =~ /superDBClient.table/",
+          "group": "001"
+        },
+        {
+          "command": "superDBClient.deleteRows",
+          "when": "webviewId =~ /superDBClient.table/ && webviewSection == 'row'",
+          "group": "002"
         }
       ]
     },
