@@ -1,6 +1,7 @@
 import { serializeVSCodeContext } from '@/utilities/vscodeContext'
 import type { CellContext } from '@tanstack/react-table'
 import { type FC, type RefObject, memo } from 'react'
+import { flushSync } from 'react-dom'
 import { css } from 'styled-system/css'
 import type {
   CellInfo,
@@ -10,24 +11,30 @@ import type {
 
 const TableCell: FC<
   CellContext<TableRowWithType, unknown> & {
+    selectedCellRef: RefObject<HTMLDivElement | null>
     inputRef: RefObject<HTMLInputElement | null>
     selectedCell: SelectedCellInfo | undefined
     editedCells: CellInfo[]
     deletedRowIndexes: number[]
+    shouldShowInput: boolean
     onCellSelect: (cell: SelectedCellInfo) => void
-    onCellEdit: (newValue: string) => void
+    onCellEdit?: (newValue: string) => void
+    onShouldShowInputChange: (shouldShowInput: boolean) => void
   }
 > = memo(
   ({
     getValue,
     row: { index, original },
     column: { id, getSize, getIndex, columnDef },
+    selectedCellRef,
     inputRef,
     selectedCell,
     editedCells,
     deletedRowIndexes,
+    shouldShowInput,
     onCellSelect,
     onCellEdit,
+    onShouldShowInputChange,
   }) => {
     const value = getValue()
     const isNull = value === null
@@ -43,11 +50,20 @@ const TableCell: FC<
     const isDeleted = deletedRowIndexes.includes(index)
     const isInserted = original.type === 'inserted'
 
-    const canSetAsNull = !!columnDef.meta?.columnMetadata.isNullable
-    const canSetAsEmpty = !!columnDef.meta?.columnMetadata.isTextType
+    const canSetAsNull = !!columnDef.meta?.columnMetadata.isNullable && !isNull
+    const canSetAsEmpty =
+      !!columnDef.meta?.columnMetadata.isTextType && !isEmpty
 
-    const handleClick = () => {
-      if (!isSelected) {
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isSelected) {
+        flushSync(() => {
+          onShouldShowInputChange(true)
+        })
+
+        inputRef.current?.focus()
+      } else {
+        e.currentTarget.focus()
+
         onCellSelect(
           original.type === 'existing'
             ? {
@@ -71,8 +87,10 @@ const TableCell: FC<
       'color-mix(in srgb, transparent, currentColor 60%)'
 
     return (
-      <button
-        type="button"
+      // biome-ignore lint/a11y/useKeyWithClickEvents: テーブル側でキーボード操作を実装しているため
+      <div
+        ref={isSelected ? selectedCellRef : null}
+        role="gridcell"
         className={css({
           display: 'flex',
           alignItems: 'center',
@@ -91,10 +109,15 @@ const TableCell: FC<
             backgroundColor:
               'rgb(from var(--vscode-gitDecoration-addedResourceForeground) r g b / 30%)',
           },
+          _focus: {
+            outline: 'none',
+          },
         })}
         style={{ width: getSize() }}
+        tabIndex={isSelected ? 0 : -1}
         onClick={handleClick}
-        onContextMenu={handleClick}
+        // isSelectedのときにクリックしてしまうとinputの表示と競合してメニューがバグるので非選択のときだけ右クリックメニューを表示する
+        onContextMenu={(e) => !isSelected && handleClick(e)}
         data-edited={isEdited}
         data-deleted={isDeleted}
         data-inserted={isInserted}
@@ -105,7 +128,7 @@ const TableCell: FC<
           preventDefaultContextMenuItems: true,
         })}
       >
-        {isSelected ? (
+        {isSelected && shouldShowInput ? (
           <input
             ref={inputRef}
             defaultValue={initialValue}
@@ -126,12 +149,12 @@ const TableCell: FC<
                 color: nullAndEmptyColor,
               },
             })}
+            tabIndex={-1}
             onBlur={(e) => {
-              if (e.target.value === initialValue) return
-
-              onCellEdit(e.target.value)
-              // @ts-expect-error clickが存在しないと怒られるが、clickがないときは何もしないので問題ないはず
-              e.relatedTarget?.click()
+              onShouldShowInputChange(false)
+              if (e.target.value !== initialValue) {
+                onCellEdit?.(e.target.value)
+              }
             }}
             onFocus={(e) => e.target.select()}
           />
@@ -140,7 +163,17 @@ const TableCell: FC<
             className={css({
               textOverflow: 'ellipsis',
               overflow: 'hidden',
+              w: 'calc(100% + 8px)',
+              mx: '-4px',
+              px: '4px',
+              rounded: '2px',
+              '&[data-selected=true]': {
+                backgroundColor: 'var(--vscode-input-background)',
+                color: 'var(--vscode-input-foreground)',
+                outline: '1px solid var(--vscode-input-border, transparent)',
+              },
             })}
+            data-selected={isSelected}
           >
             {isNull || isEmpty ? (
               <span
@@ -155,7 +188,7 @@ const TableCell: FC<
             )}
           </div>
         )}
-      </button>
+      </div>
     )
   },
 )

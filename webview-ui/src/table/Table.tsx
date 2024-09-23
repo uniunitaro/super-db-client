@@ -155,13 +155,16 @@ const Table: FC = () => {
 
   const {
     selectedCell,
+    selectedCellRef,
     selectedCellInputRef,
     shouldNotUpdateCellRef,
+    shouldShowInput,
     setSelectedCell,
     moveSelectedCell,
     toggleSelectedCellInputFocus,
     exitSelectedCellInput,
     blurSelectedCellInput,
+    setShouldShowInput,
   } = useSelectionHandler({
     rows: updatedRows,
     columns: tableData?.tableMetadata.columns ?? [],
@@ -404,6 +407,7 @@ const Table: FC = () => {
           {tableData && config && (
             <VirtualTable
               tableRef={virtualTableTableRef}
+              selectedCellRef={selectedCellRef}
               selectedCellInputRef={selectedCellInputRef}
               dbColumns={tableData.tableMetadata.columns}
               dbRows={updatedRows}
@@ -413,9 +417,11 @@ const Table: FC = () => {
               editedCells={editedCells}
               deletedRowIndexes={deletedRowIndexes}
               sort={sort}
+              shouldShowInput={shouldShowInput}
               onCellSelect={setSelectedCell}
               onCellEdit={handleCellEdit}
               onSortChange={handleSortChange}
+              onShouldShowInputChange={setShouldShowInput}
             />
           )}
         </div>

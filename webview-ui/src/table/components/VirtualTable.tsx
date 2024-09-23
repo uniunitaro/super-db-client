@@ -25,11 +25,11 @@ import type {
   TableRowWithType,
 } from '../types/table'
 import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
-import TableCell from './TableCell'
 import TableRow from './TableRow'
 
 const VirtualTable: FC<{
   tableRef: RefObject<HTMLDivElement | null>
+  selectedCellRef: RefObject<HTMLDivElement | null>
   selectedCellInputRef: RefObject<HTMLInputElement | null>
   dbColumns: ColumnMetadata[]
   dbRows: TableRowWithType[]
@@ -39,12 +39,15 @@ const VirtualTable: FC<{
   editedCells: CellInfo[]
   deletedRowIndexes: number[]
   sort: Sort
+  shouldShowInput: boolean
   onCellSelect: (cell: SelectedCellInfo) => void
   onCellEdit: (newValue: string) => void
   onSortChange: (columnId: string) => void
+  onShouldShowInputChange: (shouldShowInput: boolean) => void
 }> = memo(
   ({
     tableRef,
+    selectedCellRef,
     selectedCellInputRef,
     dbColumns,
     dbRows,
@@ -54,9 +57,11 @@ const VirtualTable: FC<{
     editedCells,
     deletedRowIndexes,
     sort,
+    shouldShowInput,
     onCellSelect,
     onCellEdit,
     onSortChange,
+    onShouldShowInputChange,
   }) => {
     const fontFamily = useMemo(
       () =>
@@ -104,17 +109,6 @@ const VirtualTable: FC<{
 
     const defaultColumn: Partial<ColumnDef<TableRowWithType>> = useMemo(
       () => ({
-        cell: (props) => (
-          <TableCell
-            {...props}
-            inputRef={selectedCellInputRef}
-            selectedCell={selectedCell}
-            editedCells={editedCells}
-            deletedRowIndexes={deletedRowIndexes}
-            onCellEdit={onCellEdit}
-            onCellSelect={onCellSelect}
-          />
-        ),
         header: ({ header: { getSize, column } }) => {
           const isSortedAsc =
             sort?.orderBy === column.id && sort.order === 'asc'
@@ -151,16 +145,7 @@ const VirtualTable: FC<{
           )
         },
       }),
-      [
-        deletedRowIndexes,
-        editedCells,
-        onCellEdit,
-        onCellSelect,
-        selectedCell,
-        onSortChange,
-        sort,
-        selectedCellInputRef,
-      ],
+      [onSortChange, sort],
     )
 
     const table = useReactTable({
@@ -222,7 +207,7 @@ const VirtualTable: FC<{
       >
         <div
           ref={tableRef}
-          role="table"
+          role="grid"
           className={css({
             display: 'grid',
             fontFamily: 'var(--vscode-editor-font-family)',
@@ -286,14 +271,21 @@ const VirtualTable: FC<{
                 const row = rows[virtualRow.index]
                 const isSelected = selectedCell?.rowIndex === row.index
                 return (
+                  // 再レンダリング抑制のためにisSelectedによってpropsを渡すか切り替えている
                   <TableRow
                     key={row.id}
                     row={row}
                     virtualRow={virtualRow}
                     isSelected={isSelected}
-                    unusedSelectedColumnId={
-                      isSelected ? selectedCell?.columnId : undefined
-                    }
+                    selectedCellRef={selectedCellRef}
+                    inputRef={selectedCellInputRef}
+                    selectedCell={isSelected ? selectedCell : undefined}
+                    editedCells={editedCells}
+                    deletedRowIndexes={deletedRowIndexes}
+                    shouldShowInput={isSelected ? shouldShowInput : false}
+                    onCellSelect={onCellSelect}
+                    onCellEdit={isSelected ? onCellEdit : undefined}
+                    onShouldShowInputChange={onShouldShowInputChange}
                   />
                 )
               })}
