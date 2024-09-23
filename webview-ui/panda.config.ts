@@ -45,8 +45,10 @@ export default defineConfig({
 
   globalVars: {
     '--vscode-foreground': {},
+    '--vscode-descriptionForeground': {},
     '--vscode-editor-background': {},
     '--vscode-editor-foreground': {},
+    '--vscode-editor-placeholder\\.foreground': {},
     '--vscode-editor-font-family': {},
     '--vscode-editor-font-size': {},
     '--vscode-keybindingTable-headerBackground': {},

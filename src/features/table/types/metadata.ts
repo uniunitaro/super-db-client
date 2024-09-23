@@ -2,6 +2,7 @@ export type ColumnMetadata = {
   name: string
   dataType: string
   isNullable: boolean
+  isTextType: boolean
   default: string | null
   extra: string
   comment: string

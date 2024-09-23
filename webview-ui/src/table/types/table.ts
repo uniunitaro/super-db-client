@@ -16,13 +16,13 @@ export type ClientOperation =
       type: 'edit'
       primaryKeyValues: PrimaryKeyValue[]
       columnName: string
-      newValue: string
+      newValue: string | null
     }
   | {
       type: 'editInserted'
       insertedRowUUID: string
       columnName: string
-      newValue: string
+      newValue: string | null
     }
   | {
       type: 'delete'

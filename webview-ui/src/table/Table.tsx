@@ -1,6 +1,7 @@
 import LinearProgress from '@/components/LinearProgress'
 import { useVSCodeState } from '@/hooks/useVSCodeState'
 import { vscode } from '@/utilities/vscode'
+import { serializeVSCodeContext } from '@/utilities/vscodeContext'
 import {
   commandRequest,
   getConfigRequest,
@@ -167,7 +168,7 @@ const Table: FC = () => {
   })
 
   const handleCellEdit = useCallback(
-    (newValue: string) => {
+    (newValue: string | null) => {
       if (!tableData || !selectedCell) return
 
       if (shouldNotUpdateCellRef.current) {
@@ -186,6 +187,14 @@ const Table: FC = () => {
         return
       }
 
+      const targetColumn = tableData.tableMetadata.columns.find(
+        (column) => column.name === selectedCell.columnId,
+      )
+
+      // テキスト型以外のカラムに空文字を入力した場合、nullに変換する
+      const adjustedNewValue =
+        newValue === '' && !targetColumn?.isTextType ? null : newValue
+
       if (selectedCell.type === 'existing') {
         const targetRow = tableData.rows[selectedCell.rowIndex]
         const primaryKeys = tableData.tableMetadata.primaryKeyColumns
@@ -201,7 +210,7 @@ const Table: FC = () => {
             type: 'edit',
             primaryKeyValues,
             columnName: selectedCell.columnId,
-            newValue,
+            newValue: adjustedNewValue,
           },
         ])
       } else if (selectedCell.type === 'inserted') {
@@ -211,7 +220,7 @@ const Table: FC = () => {
             type: 'editInserted',
             insertedRowUUID: selectedCell.rowUUID,
             columnName: selectedCell.columnId,
-            newValue,
+            newValue: adjustedNewValue,
           },
         ])
       }
@@ -344,10 +353,16 @@ const Table: FC = () => {
         case 'deleteRows':
           handleRowDelete()
           break
+        case 'setAsNull':
+          handleCellEdit(null)
+          break
+        case 'setAsEmpty':
+          handleCellEdit('')
+          break
       }
     })
     vscode.messenger.start()
-  }, [handleSaveChanges, refetchTableData, handleRowDelete])
+  }, [handleSaveChanges, refetchTableData, handleRowDelete, handleCellEdit])
 
   useShortcutKeys({
     deleteRow: handleRowDelete,
@@ -357,7 +372,11 @@ const Table: FC = () => {
   })
 
   return (
-    <main data-vscode-context='{"preventDefaultContextMenuItems": true}'>
+    <main
+      data-vscode-context={serializeVSCodeContext({
+        preventDefaultContextMenuItems: true,
+      })}
+    >
       {(isFetchingTableData || isConfigPending || isRefetchingTableData) && (
         <>
           {/* createPortalをフラグメントで囲わないと型エラーが発生するバグがある */}

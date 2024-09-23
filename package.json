@@ -39,6 +39,16 @@
         "command": "superDBClient.deleteRows",
         "title": "Delete Rows",
         "category": "Super DB Client"
+      },
+      {
+        "command": "superDBClient.setAsNull",
+        "title": "Set as NULL",
+        "category": "Super DB Client"
+      },
+      {
+        "command": "superDBClient.setAsEmpty",
+        "title": "Set as EMPTY",
+        "category": "Super DB Client"
       }
     ],
     "keybindings": [
@@ -89,19 +99,37 @@
         },
         {
           "command": "superDBClient.refreshTable",
-          "when": "activeWebviewPanelId =~ /superDBClient.superDBClient.table/"
+          "when": "activeWebviewPanelId =~ /superDBClient.table/"
+        },
+        {
+          "command": "superDBClient.setAsNull",
+          "when": "false"
+        },
+        {
+          "command": "superDBClient.setAsEmpty",
+          "when": "false"
         }
       ],
       "webview/context": [
         {
           "command": "superDBClient.refreshTable",
           "when": "webviewId =~ /superDBClient.table/",
-          "group": "001"
+          "group": "1"
+        },
+        {
+          "command": "superDBClient.setAsEmpty",
+          "when": "webviewId =~ /superDBClient.table/ && canSetAsEmpty == true",
+          "group": "2@1"
+        },
+        {
+          "command": "superDBClient.setAsNull",
+          "when": "webviewId =~ /superDBClient.table/ && canSetAsNull == true",
+          "group": "2@2"
         },
         {
           "command": "superDBClient.deleteRows",
           "when": "webviewId =~ /superDBClient.table/ && webviewSection == 'row'",
-          "group": "002"
+          "group": "3"
         }
       ]
     },

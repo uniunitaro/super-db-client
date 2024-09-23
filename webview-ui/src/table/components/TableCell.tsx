@@ -1,3 +1,4 @@
+import { serializeVSCodeContext } from '@/utilities/vscodeContext'
 import type { CellContext } from '@tanstack/react-table'
 import { type FC, type RefObject, memo } from 'react'
 import { css } from 'styled-system/css'
@@ -18,9 +19,9 @@ const TableCell: FC<
   }
 > = memo(
   ({
-    renderValue,
+    getValue,
     row: { index, original },
-    column: { id, getSize, getIndex },
+    column: { id, getSize, getIndex, columnDef },
     inputRef,
     selectedCell,
     editedCells,
@@ -28,7 +29,11 @@ const TableCell: FC<
     onCellSelect,
     onCellEdit,
   }) => {
-    const initialValue = String(renderValue())
+    const value = getValue()
+    const isNull = value === null
+    const isEmpty = value === ''
+
+    const initialValue = value === null ? '' : String(value)
 
     const isSelected =
       selectedCell?.rowIndex === index && selectedCell?.columnId === id
@@ -37,6 +42,9 @@ const TableCell: FC<
     )
     const isDeleted = deletedRowIndexes.includes(index)
     const isInserted = original.type === 'inserted'
+
+    const canSetAsNull = !!columnDef.meta?.columnMetadata.isNullable
+    const canSetAsEmpty = !!columnDef.meta?.columnMetadata.isTextType
 
     const handleClick = () => {
       if (!isSelected) {
@@ -58,6 +66,9 @@ const TableCell: FC<
         )
       }
     }
+
+    const nullAndEmptyColor =
+      'color-mix(in srgb, transparent, currentColor 60%)'
 
     return (
       <button
@@ -83,18 +94,23 @@ const TableCell: FC<
         })}
         style={{ width: getSize() }}
         onClick={handleClick}
-        onContextMenu={(e) => {
-          handleClick()
-        }}
+        onContextMenu={handleClick}
         data-edited={isEdited}
         data-deleted={isDeleted}
         data-inserted={isInserted}
-        data-vscode-context='{"webviewSection": "row", "preventDefaultContextMenuItems": true}'
+        data-vscode-context={serializeVSCodeContext({
+          webviewSection: 'row',
+          canSetAsNull,
+          canSetAsEmpty,
+          preventDefaultContextMenuItems: true,
+        })}
       >
         {isSelected ? (
           <input
             ref={inputRef}
             defaultValue={initialValue}
+            // TODO: いまはplaceholderで表示しているが後々改修が必要そう
+            placeholder={isNull ? 'NULL' : isEmpty ? 'EMPTY' : ''}
             className={css({
               w: 'calc(100% + 8px)',
               mx: '-4px',
@@ -105,6 +121,9 @@ const TableCell: FC<
               outline: '1px solid var(--vscode-input-border, transparent)',
               _focus: {
                 outline: '1px solid var(--vscode-focusBorder) !important',
+              },
+              _placeholder: {
+                color: nullAndEmptyColor,
               },
             })}
             onBlur={(e) => {
@@ -123,7 +142,17 @@ const TableCell: FC<
               overflow: 'hidden',
             })}
           >
-            {initialValue}
+            {isNull || isEmpty ? (
+              <span
+                className={css({
+                  color: nullAndEmptyColor,
+                })}
+              >
+                {isNull ? 'NULL' : 'EMPTY'}
+              </span>
+            ) : (
+              <span>{initialValue}</span>
+            )}
           </div>
         )}
       </button>

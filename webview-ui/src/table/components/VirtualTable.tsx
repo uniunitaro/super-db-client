@@ -96,6 +96,7 @@ const VirtualTable: FC<{
             maxSize: ROW_MAX_WIDTH,
             // header: column.name,
             id: column.name,
+            meta: { columnMetadata: column },
           }),
         ),
       [columnHelper, columnsWithWidth],
@@ -183,7 +184,6 @@ const VirtualTable: FC<{
       if (!parentRef.current) return
 
       const currentState = vscode.getState()
-      console.log(currentState)
       if (
         currentState?.tablePanel?.scrollX !== undefined &&
         currentState?.tablePanel?.scrollY !== undefined

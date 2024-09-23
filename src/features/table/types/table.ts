@@ -7,7 +7,7 @@ export type Operation =
       type: 'edit'
       primaryKeyValues: PrimaryKeyValue[]
       columnName: string
-      newValue: string
+      newValue: string | null
     }
   | {
       type: 'delete'
