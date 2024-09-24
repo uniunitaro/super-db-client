@@ -15,6 +15,10 @@ export const saveDBConfigRequest: RequestType<DBConfigInput, void> = {
   method: 'saveDBConfig',
 }
 
+export type GetTableDataRequestResponse = {
+  tableMetadata: TableMetadata
+  rows: TableRow[]
+}
 export const getTableDataRequest: RequestType<
   {
     order?: 'asc' | 'desc'
@@ -22,10 +26,7 @@ export const getTableDataRequest: RequestType<
     limit: number
     offset: number
   },
-  {
-    tableMetadata: TableMetadata
-    rows: TableRow[]
-  }
+  GetTableDataRequestResponse
 > = {
   method: 'getTableData',
 }

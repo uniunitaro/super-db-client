@@ -7,15 +7,13 @@ import type { TableRowWithType } from '../types/table'
 /**
  * テーブルのセル、行の選択状態を管理
  */
-export const useSelectionHandler = ({
-  rows,
-  columns,
-}: { rows: TableRowWithType[]; columns: ColumnMetadata[] }) => {
+export const useSelectionHandler = () => {
   const useTablePanelState = useVSCodeState('tablePanel')
 
   const [selectedCell, setSelectedCell] = useTablePanelState('selectedCell', {
     type: 'existing',
     rowIndex: 0,
+    // FIXME: id固定にしてるの直す
     columnId: 'id',
     columnIndex: 0,
   })
@@ -26,7 +24,15 @@ export const useSelectionHandler = ({
   const [shouldShowInput, setShouldShowInput] = useState(false)
 
   const moveSelectedCell = useCallback(
-    (direction: 'up' | 'down' | 'left' | 'right') => {
+    ({
+      rows,
+      columns,
+      direction,
+    }: {
+      rows: TableRowWithType[]
+      columns: ColumnMetadata[]
+      direction: 'up' | 'down' | 'left' | 'right'
+    }) => {
       if (!selectedCell) return
 
       const { rowIndex, columnIndex } = selectedCell
@@ -83,7 +89,7 @@ export const useSelectionHandler = ({
         selectedCellRef.current?.focus()
       }
     },
-    [selectedCell, rows, columns, setSelectedCell],
+    [selectedCell, setSelectedCell],
   )
 
   const focusSelectedCellInput = useCallback(() => {
