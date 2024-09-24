@@ -15,6 +15,7 @@ import {
   type Command,
   commandRequest,
   getConfigRequest,
+  getInitialDataRequest,
   getTableDataRequest,
   saveTableChangesRequest,
 } from '../types/message'
@@ -25,6 +26,7 @@ export class TablePanel extends BaseWebviewPanel {
   protected static currentPanel: TablePanel | undefined
   private readonly _tableName: string
   private readonly _webviewId: string
+  private _shouldRefresh = false
 
   private constructor(
     panel: WebviewPanel,
@@ -94,8 +96,15 @@ export class TablePanel extends BaseWebviewPanel {
   }
 
   public reveal() {
-    this._panel.reveal()
-    this.sendCommand('refreshTable')
+    if (this._panel.visible) {
+      // パネルが表示されていたらアクティブにしてテーブルを更新
+      this._panel.reveal()
+      this.sendCommand('refreshTable')
+    } else {
+      // 非表示の場合はフロント側のリスナが起動しておらずsendCommandは使えないため次回表示時にテーブルを更新
+      this._panel.reveal()
+      this._shouldRefresh = true
+    }
   }
 
   public sendCommand(command: Command) {
@@ -169,6 +178,20 @@ export class TablePanel extends BaseWebviewPanel {
             window.showErrorMessage(error)
             throw new Error(error)
           }
+        },
+        {
+          sender: { type: 'webview', webviewId: this._webviewId },
+        },
+      ),
+    )
+
+    this._disposables.push(
+      this._messenger.onRequest(
+        getInitialDataRequest,
+        () => {
+          const shouldRefresh = this._shouldRefresh
+          this._shouldRefresh = false
+          return { shouldRefresh }
         },
         {
           sender: { type: 'webview', webviewId: this._webviewId },

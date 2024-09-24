@@ -5,6 +5,7 @@ import { serializeVSCodeContext } from '@/utilities/vscodeContext'
 import {
   commandRequest,
   getConfigRequest,
+  getInitialDataRequest,
   getTableDataRequest,
   saveTableChangesRequest,
 } from '@shared-types/message'
@@ -89,6 +90,24 @@ const Table: FC = () => {
     queryFn: () =>
       vscode.messenger.sendRequest(getConfigRequest, HOST_EXTENSION),
   })
+
+  const {
+    data: initialData,
+    isPending: isInitialDataPending,
+    error: initialDataError,
+  } = useQuery({
+    queryKey: ['getInitialData'],
+    queryFn: () =>
+      vscode.messenger.sendRequest(getInitialDataRequest, HOST_EXTENSION),
+    // 毎回取得したいのでキャッシュしない
+    staleTime: 0,
+    gcTime: 0,
+  })
+  useEffect(() => {
+    if (initialData?.shouldRefresh) {
+      refetchTableData()
+    }
+  }, [initialData, refetchTableData])
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -380,7 +399,10 @@ const Table: FC = () => {
         preventDefaultContextMenuItems: true,
       })}
     >
-      {(isFetchingTableData || isConfigPending || isRefetchingTableData) && (
+      {(isFetchingTableData ||
+        isConfigPending ||
+        isRefetchingTableData ||
+        isInitialDataPending) && (
         <>
           {/* createPortalをフラグメントで囲わないと型エラーが発生するバグがある */}
           {/* https://github.com/DefinitelyTyped/DefinitelyTyped/issues/66841#issuecomment-1750651348 */}

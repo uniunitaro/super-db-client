@@ -41,6 +41,13 @@ export const saveTableChangesRequest: RequestType<
   method: 'saveTableChanges',
 }
 
+export const getInitialDataRequest: RequestType<
+  undefined,
+  { shouldRefresh: boolean }
+> = {
+  method: 'getInitialData',
+}
+
 export type Command =
   | 'saveTableChanges'
   | 'refreshTable'
