@@ -40,7 +40,8 @@ const TableCell: FC<
     const isNull = value === null
     const isEmpty = value === ''
 
-    const initialValue = value === null ? '' : String(value)
+    const initialValue =
+      value === null || value === undefined ? '' : String(value)
 
     const isSelected =
       selectedCell?.rowIndex === index && selectedCell?.columnId === id
@@ -96,6 +97,7 @@ const TableCell: FC<
           alignItems: 'center',
           h: 'full',
           px: 'tableRowPadding',
+          py: '1',
           '&[data-edited=true]': {
             backgroundColor:
               // すげえ、こんな機能あるんだな
@@ -136,6 +138,7 @@ const TableCell: FC<
             placeholder={isNull ? 'NULL' : isEmpty ? 'EMPTY' : ''}
             className={css({
               w: 'calc(100% + 8px)',
+              h: 'full',
               mx: '-4px',
               px: '4px',
               rounded: '2px',
@@ -161,9 +164,10 @@ const TableCell: FC<
         ) : (
           <div
             className={css({
-              textOverflow: 'ellipsis',
-              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
               w: 'calc(100% + 8px)',
+              h: 'full',
               mx: '-4px',
               px: '4px',
               rounded: '2px',
@@ -175,17 +179,24 @@ const TableCell: FC<
             })}
             data-selected={isSelected}
           >
-            {isNull || isEmpty ? (
-              <span
-                className={css({
-                  color: nullAndEmptyColor,
-                })}
-              >
-                {isNull ? 'NULL' : 'EMPTY'}
-              </span>
-            ) : (
-              <span>{initialValue}</span>
-            )}
+            <div
+              className={css({
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+              })}
+            >
+              {isNull || isEmpty ? (
+                <span
+                  className={css({
+                    color: nullAndEmptyColor,
+                  })}
+                >
+                  {isNull ? 'NULL' : 'EMPTY'}
+                </span>
+              ) : (
+                <span>{initialValue}</span>
+              )}
+            </div>
           </div>
         )}
       </div>
