@@ -256,7 +256,6 @@ const Table: FC = () => {
               selectedCellInputRef={selectedCellInputRef}
               dbColumns={tableData.tableMetadata.columns}
               dbRows={updatedRows}
-              rowHeight={config.tableRowHeight}
               fontSize={config.fontSize}
               selectedCell={selectedCell}
               editedCells={editedCells}

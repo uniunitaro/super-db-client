@@ -140,11 +140,6 @@
           "type": ["number", "null"],
           "default": null,
           "markdownDescription": "The font size for the Super DB Client. `null` means the editor font size is used."
-        },
-        "rowHeight": {
-          "type": "number",
-          "default": 28,
-          "description": "The row height for the Super DB Client."
         }
       }
     }

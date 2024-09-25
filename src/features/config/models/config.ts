@@ -5,6 +5,5 @@ export const getConfig = (): Config => {
   const config = workspace.getConfiguration()
   return {
     fontSize: config.get('fontSize'),
-    tableRowHeight: config.get('rowHeight') ?? 28,
   }
 }

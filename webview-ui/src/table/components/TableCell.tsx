@@ -96,8 +96,8 @@ const TableCell: FC<
           display: 'flex',
           alignItems: 'center',
           h: 'full',
-          px: 'tableRowPadding',
-          py: '1',
+          px: 'tableRowPaddingX',
+          py: 'tableRowPaddingY',
           '&[data-edited=true]': {
             backgroundColor:
               // すげえ、こんな機能あるんだな

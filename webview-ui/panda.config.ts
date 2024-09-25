@@ -1,5 +1,9 @@
 import { defineConfig } from '@pandacss/dev'
-import { TABLE_ROW_PADDING_PX } from './src/table/constants/constants'
+import {
+  TABLE_LINE_HEIGHT,
+  TABLE_ROW_PADDING_X_PX,
+  TABLE_ROW_PADDING_Y_PX,
+} from './src/table/constants/constants'
 
 export default defineConfig({
   // Whether to use css reset
@@ -16,7 +20,11 @@ export default defineConfig({
     extend: {
       tokens: {
         spacing: {
-          tableRowPadding: { value: `${TABLE_ROW_PADDING_PX}px` },
+          tableRowPaddingX: { value: `${TABLE_ROW_PADDING_X_PX}px` },
+          tableRowPaddingY: { value: `${TABLE_ROW_PADDING_Y_PX}px` },
+        },
+        lineHeights: {
+          table: { value: `${TABLE_LINE_HEIGHT}` },
         },
       },
       keyframes: {

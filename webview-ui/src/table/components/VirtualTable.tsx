@@ -17,7 +17,12 @@ import {
   useRef,
 } from 'react'
 import { css } from 'styled-system/css'
-import { ROW_MAX_WIDTH, TABLE_ROW_PADDING_PX } from '../constants/constants'
+import {
+  ROW_MAX_WIDTH,
+  TABLE_LINE_HEIGHT,
+  TABLE_ROW_PADDING_X_PX,
+  TABLE_ROW_PADDING_Y_PX,
+} from '../constants/constants'
 import type {
   CellInfo,
   SelectedCellInfo,
@@ -33,7 +38,6 @@ const VirtualTable: FC<{
   selectedCellInputRef: RefObject<HTMLInputElement | null>
   dbColumns: ColumnMetadata[]
   dbRows: TableRowWithType[]
-  rowHeight: number
   fontSize: number | undefined
   selectedCell: SelectedCellInfo | undefined
   editedCells: CellInfo[]
@@ -51,7 +55,6 @@ const VirtualTable: FC<{
     selectedCellInputRef,
     dbColumns,
     dbRows,
-    rowHeight,
     fontSize: configFontSize,
     selectedCell,
     editedCells,
@@ -80,6 +83,7 @@ const VirtualTable: FC<{
         ),
       [configFontSize],
     )
+    const rowHeight = fontSize * TABLE_LINE_HEIGHT + TABLE_ROW_PADDING_Y_PX * 2
     const columnsWithWidth = useMemo(
       () =>
         getColumnsWithWidth({
@@ -90,14 +94,13 @@ const VirtualTable: FC<{
         }),
       [dbColumns, dbRows, fontFamily, fontSize],
     )
-
     const columnHelper = createColumnHelper<TableRowWithType>()
 
     const columns = useMemo(
       () =>
         columnsWithWidth.map((column) =>
           columnHelper.accessor(`row.${column.name}`, {
-            size: column.width + TABLE_ROW_PADDING_PX * 2,
+            size: column.width + TABLE_ROW_PADDING_X_PX * 2,
             maxSize: ROW_MAX_WIDTH,
             // header: column.name,
             id: column.name,
@@ -121,7 +124,7 @@ const VirtualTable: FC<{
               style={{ width: getSize() }}
               className={css({
                 h: 'full',
-                px: 'tableRowPadding',
+                px: 'tableRowPaddingX',
                 textOverflow: 'ellipsis',
                 overflow: 'hidden',
                 display: 'flex',
