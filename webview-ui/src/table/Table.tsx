@@ -248,7 +248,7 @@ const Table: FC = () => {
           h: '100vh',
         })}
       >
-        <div className={css({ display: 'flex' })}>
+        <div className={css({ display: 'grid' })}>
           {tableData && config && (
             <VirtualTable
               tableRef={virtualTableTableRef}
