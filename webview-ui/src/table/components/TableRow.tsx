@@ -2,32 +2,37 @@ import type { Row } from '@tanstack/react-table'
 import type { VirtualItem } from '@tanstack/react-virtual'
 import { type FC, type RefObject, memo } from 'react'
 import { css } from 'styled-system/css'
+import type { SetSelectedCell } from '../hooks/useSelectionHandler'
 import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
 import TableCell from './TableCell'
 
 const TableRow: FC<{
   row: Row<TableRowWithType>
   virtualRow: VirtualItem
-  isSelected: boolean
+  isCellSelected: boolean
   selectedCellRef: RefObject<HTMLDivElement | null>
   inputRef: RefObject<HTMLInputElement | null>
   selectedCell: SelectedCell | undefined
   editedCells: Cell[]
   deletedRowIndexes: number[]
+  isRowSelected: boolean
+  isMultiSelected: boolean
   shouldShowInput: boolean
-  onCellSelect: (cell: SelectedCell) => void
+  onCellSelect: SetSelectedCell
   onCellEdit?: (newValue: string) => void
   onShouldShowInputChange: (shouldShowInput: boolean) => void
 }> = memo(
   ({
     row,
     virtualRow,
-    isSelected,
+    isCellSelected,
     selectedCellRef,
     inputRef,
     selectedCell,
     editedCells,
     deletedRowIndexes,
+    isRowSelected,
+    isMultiSelected,
     shouldShowInput,
     onCellSelect,
     onCellEdit,
@@ -60,7 +65,7 @@ const TableRow: FC<{
           transform: `translateY(${virtualRow.start}px)`,
         }}
         data-parity={virtualRow.index % 2 === 0 ? 'odd' : 'even'}
-        data-selected={isSelected}
+        data-selected={isCellSelected || isRowSelected}
       >
         {row.getVisibleCells().map((cell) => (
           <div key={cell.id}>
@@ -72,6 +77,7 @@ const TableRow: FC<{
               editedCells={editedCells}
               deletedRowIndexes={deletedRowIndexes}
               shouldShowInput={shouldShowInput}
+              isMultiSelected={isMultiSelected}
               onCellSelect={onCellSelect}
               onCellEdit={onCellEdit}
               onShouldShowInputChange={onShouldShowInputChange}

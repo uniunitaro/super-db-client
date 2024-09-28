@@ -8,30 +8,55 @@ export const useShortcutKeys = ({
   exitSelectedCellInput,
 }: {
   deleteRow: () => void
-  moveSelectedCell: (direction: 'up' | 'down' | 'left' | 'right') => void
+  moveSelectedCell: ({
+    direction,
+    isShiftPressed,
+  }: {
+    direction: 'up' | 'down' | 'left' | 'right'
+    isShiftPressed: boolean
+  }) => void
   toggleSelectedCellInputFocus: () => void
   exitSelectedCellInput: () => void
 }) => {
   useHotkeys([Key.Backspace, Key.Delete], deleteRow)
 
   useHotkeys(
-    [Key.ArrowUp, Key.ArrowDown],
+    [
+      Key.ArrowUp,
+      Key.ArrowDown,
+      `${Key.Shift}+${Key.ArrowUp}`,
+      `${Key.Shift}+${Key.ArrowDown}`,
+    ],
     (event) => {
       // デフォルトのスクロール動作を無効化
       event.preventDefault()
 
-      moveSelectedCell(event.key === Key.ArrowUp ? 'up' : 'down')
+      moveSelectedCell({
+        direction: event.key === Key.ArrowUp ? 'up' : 'down',
+        isShiftPressed: event.shiftKey,
+      })
     },
     // 上下移動の場合は入力中でも動作させる
     // が、複数行の場合に行を変えるのが不可能になるので要検討
     { enableOnFormTags: true },
   )
-  useHotkeys([Key.ArrowLeft, Key.ArrowRight], (event) => {
-    // デフォルトのスクロール動作を無効化
-    event.preventDefault()
+  useHotkeys(
+    [
+      Key.ArrowLeft,
+      Key.ArrowRight,
+      `${Key.Shift}+${Key.ArrowLeft}`,
+      `${Key.Shift}+${Key.ArrowRight}`,
+    ],
+    (event) => {
+      // デフォルトのスクロール動作を無効化
+      event.preventDefault()
 
-    moveSelectedCell(event.key === Key.ArrowLeft ? 'left' : 'right')
-  })
+      moveSelectedCell({
+        direction: event.key === Key.ArrowLeft ? 'left' : 'right',
+        isShiftPressed: event.shiftKey,
+      })
+    },
+  )
 
   useHotkeys(
     [Key.Enter],

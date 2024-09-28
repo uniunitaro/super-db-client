@@ -69,3 +69,14 @@ export type SelectedCell =
       columnId: string
       columnIndex: number
     }
+
+export type SelectedRow =
+  | {
+      type: 'existing'
+      rowIndex: number
+    }
+  | {
+      type: 'inserted'
+      rowIndex: number
+      rowUUID: string
+    }

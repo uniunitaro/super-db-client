@@ -3,6 +3,7 @@ import type { CellContext } from '@tanstack/react-table'
 import { type FC, type RefObject, memo } from 'react'
 import { flushSync } from 'react-dom'
 import { css } from 'styled-system/css'
+import type { SetSelectedCell } from '../hooks/useSelectionHandler'
 import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
 
 const TableCell: FC<
@@ -13,7 +14,8 @@ const TableCell: FC<
     editedCells: Cell[]
     deletedRowIndexes: number[]
     shouldShowInput: boolean
-    onCellSelect: (cell: SelectedCell) => void
+    isMultiSelected: boolean
+    onCellSelect: SetSelectedCell
     onCellEdit?: (newValue: string) => void
     onShouldShowInputChange: (shouldShowInput: boolean) => void
   }
@@ -28,6 +30,7 @@ const TableCell: FC<
     editedCells,
     deletedRowIndexes,
     shouldShowInput,
+    isMultiSelected,
     onCellSelect,
     onCellEdit,
     onShouldShowInputChange,
@@ -61,22 +64,25 @@ const TableCell: FC<
       } else {
         e.currentTarget.focus()
 
-        onCellSelect(
-          original.type === 'existing'
-            ? {
-                type: 'existing',
-                rowIndex: index,
-                columnId: id,
-                columnIndex: getIndex(),
-              }
-            : {
-                type: 'inserted',
-                rowIndex: index,
-                rowUUID: original.uuid,
-                columnId: id,
-                columnIndex: getIndex(),
-              },
-        )
+        onCellSelect({
+          cell:
+            original.type === 'existing'
+              ? {
+                  type: 'existing',
+                  rowIndex: index,
+                  columnId: id,
+                  columnIndex: getIndex(),
+                }
+              : {
+                  type: 'inserted',
+                  rowIndex: index,
+                  rowUUID: original.uuid,
+                  columnId: id,
+                  columnIndex: getIndex(),
+                },
+          isShiftPressed: e.shiftKey,
+          isCtrlPressed: e.ctrlKey,
+        })
       }
     }
 
@@ -114,8 +120,9 @@ const TableCell: FC<
         style={{ width: getSize() }}
         tabIndex={isSelected ? 0 : -1}
         onClick={handleClick}
-        // isSelectedのときにクリックしてしまうとinputの表示と競合してメニューがバグるので非選択のときだけ右クリックメニューを表示する
-        onContextMenu={(e) => !isSelected && handleClick(e)}
+        // isSelectedのときにクリックしてしまうとinputの表示と競合してメニューがバグるので非選択のときだけセルを選択する
+        // 複数選択時は右クリック時にセルを選択してしまうと選択が解除されてしまうのでセルを選択しない
+        onContextMenu={(e) => !isSelected && !isMultiSelected && handleClick(e)}
         data-edited={isEdited}
         data-deleted={isDeleted}
         data-inserted={isInserted}

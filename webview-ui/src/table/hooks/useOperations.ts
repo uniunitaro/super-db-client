@@ -7,11 +7,13 @@ import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
 export const useOperations = ({
   tableData,
   selectedCell,
+  selectedRowIndexes,
   shouldNotUpdateCellRef,
   selectedCellInputRef,
 }: {
   tableData: GetTableDataRequestResponse | undefined
   selectedCell: SelectedCell
+  selectedRowIndexes: number[]
   shouldNotUpdateCellRef: RefObject<boolean>
   selectedCellInputRef: RefObject<HTMLInputElement | null>
 }) => {
@@ -132,22 +134,27 @@ export const useOperations = ({
   const handleRowDelete = useCallback(() => {
     if (!tableData) return
 
-    if (selectedCell.type === 'existing') {
-      const targetRow = tableData.rows[selectedCell.rowIndex]
-      const primaryKeys = tableData.tableMetadata.primaryKeyColumns
-      const primaryKeyValues = primaryKeys.map((key) => ({
-        key,
-        value: String(targetRow[key]),
-      }))
+    const deleteOperations = selectedRowIndexes.map((rowIndex) => {
+      if (selectedCell.type === 'existing') {
+        const targetRow = tableData.rows[rowIndex]
+        const primaryKeys = tableData.tableMetadata.primaryKeyColumns
+        const primaryKeyValues = primaryKeys.map((key) => ({
+          key,
+          value: String(targetRow[key]),
+        }))
 
-      setOperations([...operations, { type: 'delete', primaryKeyValues }])
-    } else if (selectedCell.type === 'inserted') {
-      setOperations([
-        ...operations,
-        { type: 'deleteInserted', insertedRowUUID: selectedCell.rowUUID },
-      ])
-    }
-  }, [tableData, operations, setOperations, selectedCell])
+        return { type: 'delete', primaryKeyValues } as const
+      }
+
+      return {
+        type: 'deleteInserted',
+        insertedRowUUID: selectedCell.rowUUID,
+      } as const
+    })
+
+    // TODO: これだと後々undoを実装したときに一個ずつしか戻せない、、ぐええ
+    setOperations([...operations, ...deleteOperations])
+  }, [tableData, operations, setOperations, selectedCell, selectedRowIndexes])
 
   const virtualTableTableRef = useRef<HTMLDivElement>(null)
   const handleRowInsert = useCallback(() => {

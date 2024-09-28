@@ -23,6 +23,7 @@ import {
   TABLE_ROW_PADDING_X_PX,
   TABLE_ROW_PADDING_Y_PX,
 } from '../constants/constants'
+import type { SetSelectedCell } from '../hooks/useSelectionHandler'
 import type { Cell, SelectedCell, Sort, TableRowWithType } from '../types/table'
 import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
 import TableRow from './TableRow'
@@ -37,9 +38,10 @@ const VirtualTable: FC<{
   selectedCell: SelectedCell | undefined
   editedCells: Cell[]
   deletedRowIndexes: number[]
+  selectedRowIndexes: number[]
   sort: Sort
   shouldShowInput: boolean
-  onCellSelect: (cell: SelectedCell) => void
+  onCellSelect: SetSelectedCell
   onCellEdit: (newValue: string) => void
   onSortChange: (columnId: string) => void
   onShouldShowInputChange: (shouldShowInput: boolean) => void
@@ -54,6 +56,7 @@ const VirtualTable: FC<{
     selectedCell,
     editedCells,
     deletedRowIndexes,
+    selectedRowIndexes,
     sort,
     shouldShowInput,
     onCellSelect,
@@ -209,6 +212,7 @@ const VirtualTable: FC<{
           className={css({
             display: 'grid',
             fontFamily: 'var(--vscode-editor-font-family)',
+            userSelect: 'none',
           })}
           style={{ fontSize: `${fontSize}px` }}
         >
@@ -267,22 +271,29 @@ const VirtualTable: FC<{
             >
               {virtualizer.getVirtualItems().map((virtualRow) => {
                 const row = rows[virtualRow.index]
-                const isSelected = selectedCell?.rowIndex === row.index
+                const isCellSelected = selectedCell?.rowIndex === row.index
+                const isRowSelected = selectedRowIndexes.some(
+                  (rowIndex) => rowIndex === row.index,
+                )
+                const isMultiSelected = selectedRowIndexes.length > 1
+
                 return (
-                  // 再レンダリング抑制のためにisSelectedによってpropsを渡すか切り替えている
+                  // 再レンダリング抑制のためにisCellSelectedによってpropsを渡すか切り替えている
                   <TableRow
                     key={row.id}
                     row={row}
                     virtualRow={virtualRow}
-                    isSelected={isSelected}
+                    isCellSelected={isCellSelected}
                     selectedCellRef={selectedCellRef}
                     inputRef={selectedCellInputRef}
-                    selectedCell={isSelected ? selectedCell : undefined}
+                    selectedCell={isCellSelected ? selectedCell : undefined}
                     editedCells={editedCells}
                     deletedRowIndexes={deletedRowIndexes}
-                    shouldShowInput={isSelected ? shouldShowInput : false}
+                    isRowSelected={isRowSelected}
+                    isMultiSelected={isMultiSelected}
+                    shouldShowInput={isCellSelected ? shouldShowInput : false}
                     onCellSelect={onCellSelect}
-                    onCellEdit={isSelected ? onCellEdit : undefined}
+                    onCellEdit={isCellSelected ? onCellEdit : undefined}
                     onShouldShowInputChange={onShouldShowInputChange}
                   />
                 )

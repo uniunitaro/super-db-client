@@ -6,6 +6,7 @@ export type TablePanelState = {
   scrollX?: number
   scrollY?: number
   selectedCell?: SelectedCell
+  selectedRowIndexes?: number[]
   operations?: ClientOperation[]
   sort?: Sort
 }

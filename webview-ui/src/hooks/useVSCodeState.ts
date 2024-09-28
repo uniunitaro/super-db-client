@@ -32,7 +32,7 @@ export const useVSCodeState = <P extends keyof VSCodeState>(panel: P) =>
       >(vscodeStoredState ?? initialValue)
 
       const setState = useCallback(
-        (value: T | NonNullable<NonNullable<VSCodeState[P]>[K]>) => {
+        (value: Required<Required<VSCodeState>[P]>[K]) => {
           const currentState = vscode.getState()
           vscode.setState({
             ...currentState,

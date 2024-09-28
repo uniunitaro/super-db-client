@@ -125,6 +125,7 @@ const Table: FC = () => {
     selectedCellInputRef,
     shouldNotUpdateCellRef,
     shouldShowInput,
+    selectedRowIndexes,
     setSelectedCell,
     moveSelectedCell,
     toggleSelectedCellInputFocus,
@@ -146,6 +147,7 @@ const Table: FC = () => {
   } = useOperations({
     tableData,
     selectedCell,
+    selectedRowIndexes,
     selectedCellInputRef,
     shouldNotUpdateCellRef,
   })
@@ -204,11 +206,12 @@ const Table: FC = () => {
   useShortcutKeys({
     deleteRow: handleRowDelete,
     moveSelectedCell: useCallback(
-      (direction) =>
+      ({ direction, isShiftPressed }) =>
         moveSelectedCell({
           rows: updatedRows,
           columns: tableData?.tableMetadata.columns ?? [],
           direction,
+          isShiftPressed,
         }),
       [moveSelectedCell, updatedRows, tableData],
     ),
@@ -260,6 +263,7 @@ const Table: FC = () => {
               selectedCell={selectedCell}
               editedCells={editedCells}
               deletedRowIndexes={deletedRowIndexes}
+              selectedRowIndexes={selectedRowIndexes}
               sort={sort}
               shouldShowInput={shouldShowInput}
               onCellSelect={setSelectedCell}
