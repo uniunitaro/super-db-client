@@ -3,6 +3,7 @@ import { vscode } from '@/utilities/vscode'
 import type { PersistedClient } from '@tanstack/react-query-persist-client'
 import { useCallback, useState } from 'react'
 
+// stateをnullableにしたい場合はundefinedではなくnullを使う
 export type VSCodeState = {
   tablePanel?: TablePanelState
   persistedClient?: {
@@ -10,23 +11,25 @@ export type VSCodeState = {
   }
 }
 
-export const useVSCodeState = <P extends keyof Required<VSCodeState>>(
-  panel: P,
-) =>
+export const useVSCodeState = <P extends keyof VSCodeState>(panel: P) =>
   useCallback(
     <
-      T extends Required<VSCodeState>[P][K],
+      // Requiredは {foo?: string | undefined} を {foo: string} にしてしまうので、
+      // nullableにしたい場合はundefinedではなくnullを使う
+      T extends Required<Required<VSCodeState>[P]>[K],
       K extends keyof Required<VSCodeState>[P],
     >(
       key: K,
       initialValue: T,
     ) => {
-      const [state, _setState] = useState(
-        // 俺またはTypeScriptの敗北
-        (vscode.getState()?.[panel] as Required<VSCodeState>[P] | undefined)?.[
-          key
-        ] ?? initialValue,
-      )
+      // 俺またはTypeScriptの敗北
+      const vscodeStoredState = (
+        vscode.getState()?.[panel] as Required<VSCodeState>[P] | undefined
+      )?.[key]
+
+      const [state, _setState] = useState<
+        Required<Required<VSCodeState>[P]>[K]
+      >(vscodeStoredState ?? initialValue)
 
       const setState = useCallback(
         (value: T | NonNullable<NonNullable<VSCodeState[P]>[K]>) => {

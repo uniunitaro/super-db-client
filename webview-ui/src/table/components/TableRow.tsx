@@ -2,11 +2,7 @@ import type { Row } from '@tanstack/react-table'
 import type { VirtualItem } from '@tanstack/react-virtual'
 import { type FC, type RefObject, memo } from 'react'
 import { css } from 'styled-system/css'
-import type {
-  CellInfo,
-  SelectedCellInfo,
-  TableRowWithType,
-} from '../types/table'
+import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
 import TableCell from './TableCell'
 
 const TableRow: FC<{
@@ -15,11 +11,11 @@ const TableRow: FC<{
   isSelected: boolean
   selectedCellRef: RefObject<HTMLDivElement | null>
   inputRef: RefObject<HTMLInputElement | null>
-  selectedCell: SelectedCellInfo | undefined
-  editedCells: CellInfo[]
+  selectedCell: SelectedCell | undefined
+  editedCells: Cell[]
   deletedRowIndexes: number[]
   shouldShowInput: boolean
-  onCellSelect: (cell: SelectedCellInfo) => void
+  onCellSelect: (cell: SelectedCell) => void
   onCellEdit?: (newValue: string) => void
   onShouldShowInputChange: (shouldShowInput: boolean) => void
 }> = memo(

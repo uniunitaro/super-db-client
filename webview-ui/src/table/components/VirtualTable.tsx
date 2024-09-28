@@ -23,12 +23,7 @@ import {
   TABLE_ROW_PADDING_X_PX,
   TABLE_ROW_PADDING_Y_PX,
 } from '../constants/constants'
-import type {
-  CellInfo,
-  SelectedCellInfo,
-  Sort,
-  TableRowWithType,
-} from '../types/table'
+import type { Cell, SelectedCell, Sort, TableRowWithType } from '../types/table'
 import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
 import TableRow from './TableRow'
 
@@ -39,12 +34,12 @@ const VirtualTable: FC<{
   dbColumns: ColumnMetadata[]
   dbRows: TableRowWithType[]
   fontSize: number | undefined
-  selectedCell: SelectedCellInfo | undefined
-  editedCells: CellInfo[]
+  selectedCell: SelectedCell | undefined
+  editedCells: Cell[]
   deletedRowIndexes: number[]
   sort: Sort
   shouldShowInput: boolean
-  onCellSelect: (cell: SelectedCellInfo) => void
+  onCellSelect: (cell: SelectedCell) => void
   onCellEdit: (newValue: string) => void
   onSortChange: (columnId: string) => void
   onShouldShowInputChange: (shouldShowInput: boolean) => void

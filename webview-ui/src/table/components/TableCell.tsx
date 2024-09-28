@@ -3,21 +3,17 @@ import type { CellContext } from '@tanstack/react-table'
 import { type FC, type RefObject, memo } from 'react'
 import { flushSync } from 'react-dom'
 import { css } from 'styled-system/css'
-import type {
-  CellInfo,
-  SelectedCellInfo,
-  TableRowWithType,
-} from '../types/table'
+import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
 
 const TableCell: FC<
   CellContext<TableRowWithType, unknown> & {
     selectedCellRef: RefObject<HTMLDivElement | null>
     inputRef: RefObject<HTMLInputElement | null>
-    selectedCell: SelectedCellInfo | undefined
-    editedCells: CellInfo[]
+    selectedCell: SelectedCell | undefined
+    editedCells: Cell[]
     deletedRowIndexes: number[]
     shouldShowInput: boolean
-    onCellSelect: (cell: SelectedCellInfo) => void
+    onCellSelect: (cell: SelectedCell) => void
     onCellEdit?: (newValue: string) => void
     onShouldShowInputChange: (shouldShowInput: boolean) => void
   }

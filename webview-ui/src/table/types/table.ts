@@ -37,14 +37,12 @@ export type ClientOperation =
       uuid: string
     }
 
-export type Sort =
-  | {
-      order: 'asc' | 'desc'
-      orderBy: string
-    }
-  | undefined
+export type Sort = {
+  order: 'asc' | 'desc'
+  orderBy: string
+} | null
 
-export type CellInfo =
+export type Cell =
   | {
       type: 'existing'
       rowIndex: number
@@ -57,7 +55,7 @@ export type CellInfo =
       columnId: string
     }
 
-export type SelectedCellInfo =
+export type SelectedCell =
   | {
       type: 'existing'
       rowIndex: number

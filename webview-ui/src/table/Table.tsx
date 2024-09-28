@@ -31,12 +31,12 @@ const Table: FC = () => {
 
   const [limit, setLimit] = useTablePanelState('limit', 300)
   const [offset, setOffset] = useTablePanelState('offset', 0)
-  const [sort, setSort] = useTablePanelState('sort', undefined)
+  const [sort, setSort] = useTablePanelState('sort', null)
   const handleSortChange = useCallback(
     (columnId: string) => {
       if (sort?.orderBy === columnId) {
         if (sort.order === 'desc') {
-          setSort(undefined)
+          setSort(null)
           return
         }
 

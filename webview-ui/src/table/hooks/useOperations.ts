@@ -2,12 +2,7 @@ import { useVSCodeState } from '@/hooks/useVSCodeState'
 import type { GetTableDataRequestResponse } from '@shared-types/message'
 import { type RefObject, useCallback, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
-import type {
-  CellInfo,
-  ClientOperation,
-  SelectedCellInfo,
-  TableRowWithType,
-} from '../types/table'
+import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
 
 export const useOperations = ({
   tableData,
@@ -16,16 +11,13 @@ export const useOperations = ({
   selectedCellInputRef,
 }: {
   tableData: GetTableDataRequestResponse | undefined
-  selectedCell: SelectedCellInfo
+  selectedCell: SelectedCell
   shouldNotUpdateCellRef: RefObject<boolean>
   selectedCellInputRef: RefObject<HTMLInputElement | null>
 }) => {
   const useTablePanelState = useVSCodeState('tablePanel')
   // 型引数なしだとnever[]に推論される
-  const [operations, setOperations] = useTablePanelState<
-    ClientOperation[],
-    'operations'
-  >('operations', [])
+  const [operations, setOperations] = useTablePanelState('operations', [])
 
   // tableData.rowsとoperationsから、変更後のデータを作成する
   const updatedRows: TableRowWithType[] = useMemo(() => {
@@ -167,7 +159,7 @@ export const useOperations = ({
     virtualTableTableRef.current?.scrollIntoView(false)
   }, [operations, setOperations])
 
-  const editedCells: CellInfo[] = useMemo(() => {
+  const editedCells: Cell[] = useMemo(() => {
     if (!tableData) return []
 
     return operations
