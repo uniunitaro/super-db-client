@@ -6,6 +6,7 @@ export const useShortcutKeys = ({
   moveSelectedCell,
   toggleSelectedCellInputFocus,
   exitSelectedCellInput,
+  resetMultiSelection,
 }: {
   deleteRow: () => void
   moveSelectedCell: ({
@@ -17,6 +18,7 @@ export const useShortcutKeys = ({
   }) => void
   toggleSelectedCellInputFocus: () => void
   exitSelectedCellInput: () => void
+  resetMultiSelection: () => void
 }) => {
   useHotkeys([Key.Backspace, Key.Delete], deleteRow)
 
@@ -40,7 +42,7 @@ export const useShortcutKeys = ({
 
       moveSelectedCell({
         direction: handler.keys?.includes('up') ? 'up' : 'down',
-        isShiftPressed: event.shiftKey,
+        isShiftPressed,
       })
     },
     // 上下移動の場合は入力中でも動作させる
@@ -72,5 +74,12 @@ export const useShortcutKeys = ({
       enableOnFormTags: true,
     },
   )
-  useHotkeys([Key.Escape], exitSelectedCellInput, { enableOnFormTags: true })
+  useHotkeys(
+    [Key.Escape],
+    () => {
+      exitSelectedCellInput()
+      resetMultiSelection()
+    },
+    { enableOnFormTags: true },
+  )
 }

@@ -132,6 +132,7 @@ const Table: FC = () => {
     exitSelectedCellInput,
     blurSelectedCellInput,
     setShouldShowInput,
+    resetMultiSelection,
   } = useSelectionHandler()
 
   const {
@@ -217,6 +218,7 @@ const Table: FC = () => {
     ),
     toggleSelectedCellInputFocus,
     exitSelectedCellInput,
+    resetMultiSelection,
   })
 
   return (

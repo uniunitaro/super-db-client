@@ -53,10 +53,14 @@ export const useSelectionHandler = () => {
         // Ctrlが押されている場合は基準行を更新
         setOriginRowIndex(nextRowIndex)
 
-        setSelectedRowIndexes([
-          // 重複を削除
-          ...new Set([...selectedRowIndexes, nextRowIndex]),
-        ])
+        if (selectedRowIndexes.includes(nextRowIndex)) {
+          // 既に選択されている行を選択解除
+          setSelectedRowIndexes(
+            selectedRowIndexes.filter((index) => index !== nextRowIndex),
+          )
+        } else {
+          setSelectedRowIndexes([...selectedRowIndexes, nextRowIndex])
+        }
       } else {
         // Shift, Ctrlが押されていない場合は基準行を更新
         setOriginRowIndex(nextRowIndex)
@@ -66,6 +70,11 @@ export const useSelectionHandler = () => {
     },
     [originRowIndex, selectedRowIndexes, setSelectedRowIndexes],
   )
+
+  const resetMultiSelection = useCallback(() => {
+    setSelectedRowIndexes([selectedCell.rowIndex])
+    setOriginRowIndex(selectedCell.rowIndex)
+  }, [selectedCell, setSelectedRowIndexes])
 
   const setSelectedCellAndRows = useCallback<SetSelectedCell>(
     ({ cell, isShiftPressed, isCtrlPressed }) => {
@@ -202,5 +211,6 @@ export const useSelectionHandler = () => {
     exitSelectedCellInput,
     toggleSelectedCellInputFocus,
     setShouldShowInput,
+    resetMultiSelection,
   }
 }

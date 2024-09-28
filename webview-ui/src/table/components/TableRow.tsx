@@ -65,7 +65,8 @@ const TableRow: FC<{
           transform: `translateY(${virtualRow.start}px)`,
         }}
         data-parity={virtualRow.index % 2 === 0 ? 'odd' : 'even'}
-        data-selected={isCellSelected || isRowSelected}
+        // セルが選択されていても行が選択されていない場合は行を選択状態にしない
+        data-selected={isRowSelected || (isCellSelected && isRowSelected)}
       >
         {row.getVisibleCells().map((cell) => (
           <div key={cell.id}>
