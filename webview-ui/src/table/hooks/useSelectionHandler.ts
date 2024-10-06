@@ -27,7 +27,7 @@ export const useSelectionHandler = () => {
 
   const [selectedRowIndexes, setSelectedRowIndexes] = useTablePanelState(
     'selectedRowIndexes',
-    [],
+    [selectedCell.rowIndex],
   )
   // 複数選択の場合の基準となる行
   const [originRowIndex, setOriginRowIndex] = useState(selectedCell.rowIndex)
