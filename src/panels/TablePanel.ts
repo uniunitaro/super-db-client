@@ -7,10 +7,10 @@ import {
   window,
 } from 'vscode'
 import type { Messenger } from 'vscode-messenger'
-import { getConfig } from '../features/config/models/config'
-import { DB } from '../features/connection/models/connection'
-import { getTableMetadata } from '../features/table/model/metadata'
-import { getRows, saveChanges } from '../features/table/model/table'
+import { getConfig } from '../features/configs/services/config'
+import { DB } from '../features/connections/services/connection'
+import { getTableMetadata } from '../features/tables/services/metadata'
+import { getRows, saveChanges } from '../features/tables/services/table'
 import {
   type Command,
   commandRequest,

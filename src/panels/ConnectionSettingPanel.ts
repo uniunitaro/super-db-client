@@ -7,8 +7,8 @@ import {
   window,
 } from 'vscode'
 import type { Messenger } from 'vscode-messenger'
-import { testConnection } from '../features/connection/models/connection'
-import { saveDBConfig } from '../features/connection/models/dbConfig'
+import { testConnection } from '../features/connections/services/connection'
+import { saveDBConfig } from '../features/connections/services/dbConfig'
 import { saveDBConfigRequest, testDBConnectionRequest } from '../types/message'
 import { getWebviewContent } from '../utilities/getWebviewContent'
 import { BaseWebviewPanel } from './BaseWebviewPanel'

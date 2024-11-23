@@ -1,8 +1,8 @@
 import type { RequestType } from 'vscode-messenger-common'
-import type { Config } from '../features/config/types/config'
-import type { DBConfigInput } from '../features/connection/types/dbConfig'
-import type { TableMetadata } from '../features/table/types/metadata'
-import type { Operation, TableRow } from '../features/table/types/table'
+import type { Config } from '../features/configs/types/config'
+import type { DBConfigInput } from '../features/connections/types/dbConfig'
+import type { TableMetadata } from '../features/tables/types/metadata'
+import type { Operation, TableRow } from '../features/tables/types/table'
 
 export const testDBConnectionRequest: RequestType<
   DBConfigInput,

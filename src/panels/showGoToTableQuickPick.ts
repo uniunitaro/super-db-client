@@ -1,5 +1,5 @@
 import { commands, window } from 'vscode'
-import { DB } from '../features/connection/models/connection'
+import { DB } from '../features/connections/services/connection'
 
 export const showGoToTableQuickPick = async () => {
   const db = DB.get()

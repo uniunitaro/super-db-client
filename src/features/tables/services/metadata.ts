@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import type { KyselyDB } from '../../connection/types/connection'
+import type { KyselyDB } from '../../connections/types/connection'
 import type { TableMetadata } from '../types/metadata'
 
 export const getTableMetadata = async ({

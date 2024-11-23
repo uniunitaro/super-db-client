@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
-import { DB } from '../features/connection/models/connection'
-import { getDBConfigs } from '../features/connection/models/dbConfig'
+import { DB } from '../features/connections/services/connection'
+import { getDBConfigs } from '../features/connections/services/dbConfig'
 
 export class ExplorerViewProvider
   implements vscode.TreeDataProvider<ExplorerItem>

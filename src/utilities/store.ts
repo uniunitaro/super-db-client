@@ -1,5 +1,5 @@
 import type { ExtensionContext } from 'vscode'
-import type { DBConfig } from '../features/connection/types/dbConfig'
+import type { DBConfig } from '../features/connections/types/dbConfig'
 
 type StoreType = {
   dbConfigs: DBConfig[]

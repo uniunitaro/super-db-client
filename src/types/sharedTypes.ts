@@ -1,4 +1,3 @@
-export * from '../features/connection/types/dbConfig'
-export * from '../features/table/types/metadata'
-export * from '../features/table/types/table'
-
+export * from '../features/connections/types/dbConfig'
+export * from '../features/tables/types/metadata'
+export * from '../features/tables/types/table'

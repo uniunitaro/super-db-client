@@ -1,5 +1,5 @@
 import { getErrorMessage } from '../../../utilities/getErrorMessage'
-import type { KyselyAnyDB } from '../../connection/types/connection'
+import type { KyselyAnyDB } from '../../connections/types/connection'
 import type { Operation, TableRow } from '../types/table'
 
 export const getRows = async ({
