@@ -41,6 +41,9 @@ export const saveChanges = async ({
       for (const operation of operations) {
         if (operation.type === 'edit') {
           const { primaryKeyValues, columnName, newValue } = operation
+          if (!primaryKeyValues.length) {
+            throw new Error('Tables without primary keys cannot be edited')
+          }
 
           let query = tx.updateTable(tableName).set(columnName, newValue)
 
@@ -51,6 +54,9 @@ export const saveChanges = async ({
           await query.execute()
         } else if (operation.type === 'delete') {
           const { primaryKeyValues } = operation
+          if (!primaryKeyValues.length) {
+            throw new Error('Tables without primary keys cannot be deleted')
+          }
 
           let query = tx.deleteFrom(tableName)
 
