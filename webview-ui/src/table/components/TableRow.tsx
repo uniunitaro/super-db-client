@@ -11,7 +11,7 @@ const TableRow: FC<{
   virtualRow: VirtualItem
   isCellSelected: boolean
   selectedCellRef: RefObject<HTMLDivElement | null>
-  inputRef: RefObject<HTMLInputElement | null>
+  inputRef: RefObject<HTMLTextAreaElement | null>
   selectedCell: SelectedCell | undefined
   editedCells: Cell[]
   deletedRowIndexes: number[]

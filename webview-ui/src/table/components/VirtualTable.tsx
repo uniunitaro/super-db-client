@@ -31,7 +31,7 @@ import TableRow from './TableRow'
 const VirtualTable: FC<{
   tableRef: RefObject<HTMLDivElement | null>
   selectedCellRef: RefObject<HTMLDivElement | null>
-  selectedCellInputRef: RefObject<HTMLInputElement | null>
+  selectedCellInputRef: RefObject<HTMLTextAreaElement | null>
   dbColumns: ColumnMetadata[]
   dbRows: TableRowWithType[]
   fontSize: number | undefined
@@ -81,7 +81,11 @@ const VirtualTable: FC<{
         ),
       [configFontSize],
     )
-    const rowHeight = fontSize * TABLE_LINE_HEIGHT + TABLE_ROW_PADDING_Y_PX * 2
+
+    // 高さが小数だと仮想化によるtransformでoutlineがぼやける（太く見える）ため、切り上げる
+    const rowHeight = Math.ceil(
+      fontSize * TABLE_LINE_HEIGHT + TABLE_ROW_PADDING_Y_PX * 2,
+    )
     const columnsWithWidth = useMemo(
       () =>
         getColumnsWithWidth({

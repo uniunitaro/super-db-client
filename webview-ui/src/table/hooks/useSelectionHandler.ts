@@ -89,7 +89,7 @@ export const useSelectionHandler = () => {
   )
 
   const selectedCellRef = useRef<HTMLDivElement>(null)
-  const selectedCellInputRef = useRef<HTMLInputElement>(null)
+  const selectedCellInputRef = useRef<HTMLTextAreaElement>(null)
 
   const [shouldShowInput, setShouldShowInput] = useState(false)
 

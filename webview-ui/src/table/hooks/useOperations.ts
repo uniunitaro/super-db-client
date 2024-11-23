@@ -15,7 +15,7 @@ export const useOperations = ({
   selectedCell: SelectedCell
   selectedRowIndexes: number[]
   shouldNotUpdateCellRef: RefObject<boolean>
-  selectedCellInputRef: RefObject<HTMLInputElement | null>
+  selectedCellInputRef: RefObject<HTMLTextAreaElement | null>
 }) => {
   const useTablePanelState = useVSCodeState('tablePanel')
   // 型引数なしだとnever[]に推論される

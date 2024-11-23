@@ -1,6 +1,6 @@
 import { serializeVSCodeContext } from '@/utilities/vscodeContext'
 import type { CellContext } from '@tanstack/react-table'
-import { type FC, type RefObject, memo } from 'react'
+import { type FC, type RefObject, memo, useCallback } from 'react'
 import { flushSync } from 'react-dom'
 import { css } from 'styled-system/css'
 import type { SetSelectedCell } from '../hooks/useSelectionHandler'
@@ -9,7 +9,7 @@ import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
 const TableCell: FC<
   CellContext<TableRowWithType, unknown> & {
     selectedCellRef: RefObject<HTMLDivElement | null>
-    inputRef: RefObject<HTMLInputElement | null>
+    inputRef: RefObject<HTMLTextAreaElement | null>
     selectedCell: SelectedCell | undefined
     editedCells: Cell[]
     deletedRowIndexes: number[]
@@ -86,6 +86,25 @@ const TableCell: FC<
       }
     }
 
+    const mergedInputRef = useCallback(
+      (node: HTMLTextAreaElement | null) => {
+        inputRef.current = node
+
+        const listener = (e: InputEvent) => {
+          if (e.inputType === 'insertLineBreak') {
+            e.preventDefault()
+          }
+        }
+
+        node?.addEventListener('beforeinput', listener)
+
+        return () => {
+          node?.removeEventListener('beforeinput', listener)
+        }
+      },
+      [inputRef],
+    )
+
     const nullAndEmptyColor =
       'color-mix(in srgb, transparent, currentColor 60%)'
 
@@ -134,8 +153,8 @@ const TableCell: FC<
         })}
       >
         {isSelected && shouldShowInput ? (
-          <input
-            ref={inputRef}
+          <textarea
+            ref={mergedInputRef}
             defaultValue={initialValue}
             // TODO: いまはplaceholderで表示しているが後々改修が必要そう
             placeholder={isNull ? 'NULL' : isEmpty ? 'EMPTY' : ''}
@@ -148,6 +167,11 @@ const TableCell: FC<
               backgroundColor: 'var(--vscode-input-background)',
               color: 'var(--vscode-input-foreground)',
               outline: '1px solid var(--vscode-input-border, transparent)',
+              resize: 'none',
+              whiteSpace: 'pre',
+              _scrollbar: {
+                display: 'none',
+              },
               _focus: {
                 outline: '1px solid var(--vscode-focusBorder) !important',
               },
@@ -167,8 +191,6 @@ const TableCell: FC<
         ) : (
           <div
             className={css({
-              display: 'flex',
-              alignItems: 'center',
               w: 'calc(100% + 8px)',
               h: 'full',
               mx: '-4px',
