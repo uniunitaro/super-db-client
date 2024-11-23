@@ -42,6 +42,11 @@ const TableCell: FC<
     const initialValue =
       value === null || value === undefined ? '' : String(value)
 
+    // 開業が存在する場合は一行目の内容+「...」を表示
+    const displayValue = initialValue.includes('\n')
+      ? `${initialValue.split('\n')[0]}...`
+      : initialValue
+
     const isSelected =
       selectedCell?.rowIndex === index && selectedCell?.columnId === id
     const isEdited = editedCells.some(
@@ -219,7 +224,7 @@ const TableCell: FC<
                   {isNull ? 'NULL' : 'EMPTY'}
                 </span>
               ) : (
-                <span>{initialValue}</span>
+                <span>{displayValue}</span>
               )}
             </div>
           </div>
