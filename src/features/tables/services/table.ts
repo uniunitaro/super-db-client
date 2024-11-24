@@ -1,6 +1,7 @@
 import { getErrorMessage } from '../../../utilities/getErrorMessage'
 import type { KyselyAnyDB } from '../../connections/types/connection'
 import type { Operation, TableRow } from '../types/table'
+import { getTableMetadata } from './metadata'
 
 export const getRows = async ({
   db,
@@ -24,19 +25,33 @@ export const getRows = async ({
   }
 
   const rows = await query.execute()
-  return rows
+
+  // blob型のデータをhex文字列に変換
+  return rows.map((row) => {
+    for (const key in row) {
+      if (row[key] instanceof Uint8Array) {
+        row[key] = Buffer.from(row[key]).toString('hex')
+      }
+    }
+
+    return row
+  })
 }
 
 export const saveChanges = async ({
   db,
+  schema,
   tableName,
   operations,
 }: {
   db: KyselyAnyDB
+  schema: string
   tableName: string
   operations: Operation[]
 }): Promise<{ error?: string }> => {
   try {
+    const { columns } = await getTableMetadata({ db, schema, tableName })
+
     await db.transaction().execute(async (tx) => {
       for (const operation of operations) {
         if (operation.type === 'edit') {
@@ -45,7 +60,18 @@ export const saveChanges = async ({
             throw new Error('Tables without primary keys cannot be edited')
           }
 
-          let query = tx.updateTable(tableName).set(columnName, newValue)
+          const column = columns.find((column) => column.name === columnName)
+          if (!column) {
+            throw new Error(`Column ${columnName} not found`)
+          }
+
+          // hex文字列をblob型のデータに変換
+          const valueForUpdate =
+            newValue && column.isBinaryType
+              ? Buffer.from(newValue, 'hex')
+              : newValue
+
+          let query = tx.updateTable(tableName).set(columnName, valueForUpdate)
 
           for (const { key, value } of primaryKeyValues) {
             query = query.where(key, '=', value)

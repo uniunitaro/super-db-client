@@ -53,6 +53,7 @@ export const getTableMetadata = async ({
       isNullable: row.IS_NULLABLE === 'YES',
       isTextType:
         row.DATA_TYPE.includes('char') || row.DATA_TYPE.includes('text'),
+      isBinaryType: row.DATA_TYPE.includes('blob'),
       default: row.COLUMN_DEFAULT,
       extra: row.EXTRA,
       comment: row.COLUMN_COMMENT,

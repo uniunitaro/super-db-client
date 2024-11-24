@@ -171,6 +171,7 @@ export class TablePanel extends BaseWebviewPanel {
 
           const { error } = await saveChanges({
             db,
+            schema: DB.database,
             tableName: this._tableName,
             operations,
           })

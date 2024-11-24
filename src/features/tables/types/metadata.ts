@@ -3,6 +3,7 @@ export type ColumnMetadata = {
   dataType: string
   isNullable: boolean
   isTextType: boolean
+  isBinaryType: boolean
   default: string | null
   extra: string
   comment: string
