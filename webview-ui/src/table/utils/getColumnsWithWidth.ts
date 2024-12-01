@@ -1,4 +1,5 @@
 import type { ColumnMetadata } from '@shared-types/sharedTypes'
+import { EMPTY_TEXT, NULL_TEXT } from '../constants/constants'
 import type { TableRowWithType } from '../types/table'
 
 export const getColumnsWithWidth = ({
@@ -21,7 +22,16 @@ export const getColumnsWithWidth = ({
     context.font = `${fontSize}px ${fontFamily}`
 
     const widths = rows.map((row) => {
-      const text = String(row.row[column.name])
+      const value = row.row[column.name]
+      const text =
+        value === undefined
+          ? ''
+          : value === null
+            ? NULL_TEXT
+            : value === ''
+              ? EMPTY_TEXT
+              : String(value)
+
       return context.measureText(text).width
     })
 

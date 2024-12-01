@@ -3,6 +3,7 @@ import type { CellContext } from '@tanstack/react-table'
 import { type FC, type RefObject, memo, useCallback } from 'react'
 import { flushSync } from 'react-dom'
 import { css } from 'styled-system/css'
+import { EMPTY_TEXT, NULL_TEXT } from '../constants/constants'
 import type { SetSelectedCell } from '../hooks/useSelectionHandler'
 import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
 
@@ -221,7 +222,7 @@ const TableCell: FC<
                     color: nullAndEmptyColor,
                   })}
                 >
-                  {isNull ? 'NULL' : 'EMPTY'}
+                  {isNull ? NULL_TEXT : EMPTY_TEXT}
                 </span>
               ) : (
                 <span>{displayValue}</span>
