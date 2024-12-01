@@ -2,7 +2,12 @@ import { useVSCodeState } from '@/hooks/useVSCodeState'
 import type { GetTableDataRequestResponse } from '@shared-types/message'
 import { type RefObject, useCallback, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
-import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
+import type {
+  Cell,
+  ClientOperation,
+  SelectedCell,
+  TableRowWithType,
+} from '../types/table'
 
 export const useOperations = ({
   tableData,
@@ -20,6 +25,15 @@ export const useOperations = ({
   const useTablePanelState = useVSCodeState('tablePanel')
   // 型引数なしだとnever[]に推論される
   const [operations, setOperations] = useTablePanelState('operations', [])
+  const [redoStack, setRedoStack] = useTablePanelState('redoStack', [])
+
+  const addOperations = useCallback(
+    (newOperations: ClientOperation[]) => {
+      setOperations([...operations, ...newOperations])
+      setRedoStack([])
+    },
+    [operations, setOperations, setRedoStack],
+  )
 
   // tableData.rowsとoperationsから、変更後のデータを作成する
   const updatedRows: TableRowWithType[] = useMemo(() => {
@@ -100,8 +114,7 @@ export const useOperations = ({
           value: String(targetRow[key]),
         }))
 
-        setOperations([
-          ...operations,
+        addOperations([
           {
             type: 'edit',
             primaryKeyValues,
@@ -110,8 +123,7 @@ export const useOperations = ({
           },
         ])
       } else if (selectedCell.type === 'inserted') {
-        setOperations([
-          ...operations,
+        addOperations([
           {
             type: 'editInserted',
             insertedRowUUID: selectedCell.rowUUID,
@@ -124,8 +136,7 @@ export const useOperations = ({
     [
       tableData,
       selectedCell,
-      operations,
-      setOperations,
+      addOperations,
       shouldNotUpdateCellRef,
       selectedCellInputRef,
     ],
@@ -152,19 +163,19 @@ export const useOperations = ({
       } as const
     })
 
-    // TODO: これだと後々undoを実装したときに一個ずつしか戻せない、、ぐええ
-    setOperations([...operations, ...deleteOperations])
-  }, [tableData, operations, setOperations, selectedCell, selectedRowIndexes])
+    // TODO: これだとundo時に一個ずつしか戻せない、、ぐええ
+    addOperations(deleteOperations)
+  }, [tableData, addOperations, selectedCell, selectedRowIndexes])
 
   const virtualTableTableRef = useRef<HTMLDivElement>(null)
   const handleRowInsert = useCallback(() => {
     const uuid = crypto.randomUUID()
     flushSync(() => {
-      setOperations([...operations, { type: 'insert', uuid }])
+      addOperations([{ type: 'insert', uuid }])
     })
 
     virtualTableTableRef.current?.scrollIntoView(false)
-  }, [operations, setOperations])
+  }, [addOperations])
 
   const editedCells: Cell[] = useMemo(() => {
     if (!tableData) return []
@@ -223,15 +234,38 @@ export const useOperations = ({
       })
   }, [operations, tableData])
 
+  const resetOperations = useCallback(() => {
+    setOperations([])
+    setRedoStack([])
+  }, [setOperations, setRedoStack])
+
+  const undoOperation = useCallback(() => {
+    const removedOperation = operations[operations.length - 1]
+    if (removedOperation) {
+      setOperations(operations.slice(0, -1))
+      setRedoStack([...redoStack, removedOperation])
+    }
+  }, [operations, redoStack, setOperations, setRedoStack])
+
+  const redoOperation = useCallback(() => {
+    const operationToRedo = redoStack[redoStack.length - 1]
+    if (operationToRedo) {
+      setOperations([...operations, operationToRedo])
+      setRedoStack(redoStack.slice(0, -1))
+    }
+  }, [operations, redoStack, setOperations, setRedoStack])
+
   return {
     operations,
     updatedRows,
     editedCells,
     deletedRowIndexes,
     virtualTableTableRef,
-    setOperations,
     handleCellEdit,
     handleRowDelete,
     handleRowInsert,
+    resetOperations,
+    undoOperation,
+    redoOperation,
   }
 }

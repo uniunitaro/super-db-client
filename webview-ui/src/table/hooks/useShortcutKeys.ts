@@ -7,6 +7,8 @@ export const useShortcutKeys = ({
   toggleSelectedCellInputFocus,
   exitSelectedCellInput,
   resetMultiSelection,
+  undoOperation,
+  redoOperation,
 }: {
   deleteRow: () => void
   moveSelectedCell: ({
@@ -19,6 +21,8 @@ export const useShortcutKeys = ({
   toggleSelectedCellInputFocus: () => void
   exitSelectedCellInput: () => void
   resetMultiSelection: () => void
+  undoOperation: () => void
+  redoOperation: () => void
 }) => {
   useHotkeys([Key.Backspace, Key.Delete], deleteRow)
 
@@ -61,7 +65,7 @@ export const useShortcutKeys = ({
   })
 
   useHotkeys(
-    [Key.Enter],
+    Key.Enter,
     (event) => {
       if (event.isComposing) {
         // IME入力中は無視
@@ -75,11 +79,14 @@ export const useShortcutKeys = ({
     },
   )
   useHotkeys(
-    [Key.Escape],
+    Key.Escape,
     () => {
       exitSelectedCellInput()
       resetMultiSelection()
     },
     { enableOnFormTags: true },
   )
+
+  useHotkeys('mod+z', undoOperation)
+  useHotkeys(['mod+shift+z', 'mod+y'], redoOperation)
 }

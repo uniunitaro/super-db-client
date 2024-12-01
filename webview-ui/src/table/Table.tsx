@@ -72,14 +72,6 @@ const Table: FC = () => {
       }),
     placeholderData: keepPreviousData,
   })
-  useEffect(() => {
-    if (!tableData) return
-
-    if (hasSavedTableChanges.current) {
-      setOperations([])
-      hasSavedTableChanges.current = false
-    }
-  }, [tableData])
 
   const {
     data: config,
@@ -141,10 +133,12 @@ const Table: FC = () => {
     editedCells,
     deletedRowIndexes,
     virtualTableTableRef,
-    setOperations,
     handleCellEdit,
     handleRowDelete,
     handleRowInsert,
+    resetOperations,
+    undoOperation,
+    redoOperation,
   } = useOperations({
     tableData,
     selectedCell,
@@ -166,6 +160,14 @@ const Table: FC = () => {
       hasSavedTableChanges.current = true
     },
   })
+  useEffect(() => {
+    if (!tableData) return
+
+    if (hasSavedTableChanges.current) {
+      resetOperations()
+      hasSavedTableChanges.current = false
+    }
+  }, [tableData, resetOperations])
 
   const handleSaveChanges = useCallback(() => {
     blurSelectedCellInput()
@@ -176,10 +178,10 @@ const Table: FC = () => {
     if (!tableData) return
 
     if (hasSavedTableChanges.current) {
-      setOperations([])
+      resetOperations()
       hasSavedTableChanges.current = false
     }
-  }, [tableData, setOperations])
+  }, [tableData, resetOperations])
 
   useEffect(() => {
     vscode.messenger.onRequest(commandRequest, (command) => {
@@ -219,6 +221,8 @@ const Table: FC = () => {
     toggleSelectedCellInputFocus,
     exitSelectedCellInput,
     resetMultiSelection,
+    undoOperation,
+    redoOperation,
   })
 
   return (

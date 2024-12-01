@@ -8,5 +8,6 @@ export type TablePanelState = {
   selectedCell?: SelectedCell
   selectedRowIndexes?: number[]
   operations?: ClientOperation[]
+  redoStack?: ClientOperation[]
   sort?: Sort
 }
