@@ -50,14 +50,8 @@ const TableRow: FC<{
             bgColor: 'var(--vscode-keybindingTable-rowsBackground)',
           },
           '&[data-selected=true]': {
-            bgColor: 'var(--vscode-list-activeSelectionBackground)',
-            color: 'var(--vscode-list-activeSelectionForeground)',
-            _focusWithin: {
-              outlineWidth: '1px',
-              outlineStyle: 'solid',
-              outlineColor: 'var(--vscode-list-focusOutline)',
-              outlineOffset: '-1px',
-            },
+            bgColor: 'var(--vscode-list-inactiveSelectionBackground)',
+            color: 'var(--vscode-list-inactiveSelectionForeground)',
           },
         })}
         style={{

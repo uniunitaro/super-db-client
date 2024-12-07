@@ -123,8 +123,6 @@ const TableCell: FC<
           display: 'flex',
           alignItems: 'center',
           h: 'full',
-          px: 'tableRowPaddingX',
-          py: 'tableRowPaddingY',
           '&[data-edited=true]': {
             backgroundColor:
               // すげえ、こんな機能あるんだな
@@ -165,14 +163,15 @@ const TableCell: FC<
             // TODO: いまはplaceholderで表示しているが後々改修が必要そう
             placeholder={isNull ? 'NULL' : isEmpty ? 'EMPTY' : ''}
             className={css({
-              w: 'calc(100% + 8px)',
+              w: 'full',
               h: 'full',
-              mx: '-4px',
-              px: '4px',
+              px: 'tableRowPaddingX',
+              py: 'tableRowPaddingY',
               rounded: '2px',
               backgroundColor: 'var(--vscode-input-background)',
               color: 'var(--vscode-input-foreground)',
-              outline: '1px solid var(--vscode-input-border, transparent)',
+              outline: '1px solid var(--vscode-focusBorder)',
+              outlineOffset: '-1px',
               resize: 'none',
               whiteSpace: 'pre',
               _scrollbar: {
@@ -180,6 +179,7 @@ const TableCell: FC<
               },
               _focus: {
                 outline: '1px solid var(--vscode-focusBorder) !important',
+                outlineOffset: '-1px !important',
               },
               _placeholder: {
                 color: nullAndEmptyColor,
@@ -197,18 +197,22 @@ const TableCell: FC<
         ) : (
           <div
             className={css({
-              w: 'calc(100% + 8px)',
+              w: 'full',
               h: 'full',
-              mx: '-4px',
-              px: '4px',
+              px: 'tableRowPaddingX',
+              py: 'tableRowPaddingY',
               rounded: '2px',
               '&[data-selected=true]': {
-                backgroundColor: 'var(--vscode-input-background)',
-                color: 'var(--vscode-input-foreground)',
-                outline: '1px solid var(--vscode-input-border, transparent)',
+                outline: '1px solid var(--vscode-focusBorder)',
+                outlineOffset: '-1px',
+                '&[data-changed=false]': {
+                  bgColor: 'var(--vscode-list-activeSelectionBackground)',
+                  color: 'var(--vscode-list-activeSelectionForeground)',
+                },
               },
             })}
             data-selected={isSelected}
+            data-changed={isEdited || isDeleted || isInserted}
           >
             <div
               className={css({

@@ -64,6 +64,8 @@ export default defineConfig({
     '--vscode-focusBorder': {},
     '--vscode-list-activeSelectionBackground': {},
     '--vscode-list-activeSelectionForeground': {},
+    '--vscode-list-inactiveSelectionBackground': {},
+    '--vscode-list-inactiveSelectionForeground': {},
     '--vscode-list-focusOutline': {},
     '--vscode-input-background': {},
     '--vscode-input-foreground': {},
