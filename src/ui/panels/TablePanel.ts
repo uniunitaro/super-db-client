@@ -7,10 +7,10 @@ import {
   window,
 } from 'vscode'
 import type { Messenger } from 'vscode-messenger'
-import { getConfig } from '../features/configs/services/config'
-import { DB } from '../features/connections/services/connection'
-import { getTableMetadata } from '../features/tables/services/metadata'
-import { getRows, saveChanges } from '../features/tables/services/table'
+import { getConfig } from '../../features/configs/services/config'
+import { DB } from '../../features/connections/services/connection'
+import { getTableMetadata } from '../../features/tables/services/metadata'
+import { getRows, saveChanges } from '../../features/tables/services/table'
 import {
   type Command,
   commandRequest,
@@ -18,8 +18,8 @@ import {
   getTableDataRequest,
   getTableInitialDataRequest,
   saveTableChangesRequest,
-} from '../types/message'
-import { getWebviewContent } from '../utilities/getWebviewContent'
+} from '../../types/message'
+import { getWebviewContent } from '../../utilities/getWebviewContent'
 import { BaseWebviewPanel } from './BaseWebviewPanel'
 
 export class TablePanel extends BaseWebviewPanel {

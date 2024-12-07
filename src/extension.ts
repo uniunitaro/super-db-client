@@ -1,13 +1,14 @@
 import { type ExtensionContext, commands, window } from 'vscode'
 import { Messenger } from 'vscode-messenger'
 import { deleteDBConfig } from './features/connections/services/dbConfig'
-import { ConnectionSettingPanel } from './panels/ConnectionSettingPanel'
+import { ConnectionSettingPanel } from './ui/panels/ConnectionSettingPanel'
+import { TablePanel } from './ui/panels/TablePanel'
 import {
   type ExplorerItem,
   ExplorerViewProvider,
-} from './panels/ExplorerViewProvider'
-import { TablePanel } from './panels/TablePanel'
-import { showGoToTableQuickPick } from './panels/showGoToTableQuickPick'
+} from './ui/sideBars/ExplorerViewProvider'
+import { showGoToTableQuickPick } from './ui/sideBars/showGoToTableQuickPick'
+import { createCurrentConnectionStatus } from './ui/statusBars/currentConnectionStatus'
 
 export function activate(context: ExtensionContext) {
   const messenger = new Messenger()
@@ -18,6 +19,8 @@ export function activate(context: ExtensionContext) {
   window.createTreeView('superDBClient.explorer', {
     treeDataProvider: explorerViewProvider,
   })
+
+  context.subscriptions.push(createCurrentConnectionStatus(context))
 
   context.subscriptions.push(
     commands.registerCommand('superDBClient.newConnection', () => {
@@ -90,7 +93,7 @@ export function activate(context: ExtensionContext) {
 
   context.subscriptions.push(
     commands.registerCommand('superDBClient.goToTable', () => {
-      showGoToTableQuickPick()
+      showGoToTableQuickPick(context)
     }),
   )
 

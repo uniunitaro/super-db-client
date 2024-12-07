@@ -8,17 +8,17 @@ import {
   window,
 } from 'vscode'
 import type { Messenger } from 'vscode-messenger'
-import { testConnection } from '../features/connections/services/connection'
+import { testConnection } from '../../features/connections/services/connection'
 import {
   createOrUpdateDBConfig,
   getDBConfigByUUID,
-} from '../features/connections/services/dbConfig'
+} from '../../features/connections/services/dbConfig'
 import {
   getConnectionSettingInitialDataRequest,
   saveDBConfigRequest,
   testDBConnectionRequest,
-} from '../types/message'
-import { getWebviewContent } from '../utilities/getWebviewContent'
+} from '../../types/message'
+import { getWebviewContent } from '../../utilities/getWebviewContent'
 import { BaseWebviewPanel } from './BaseWebviewPanel'
 
 export class ConnectionSettingPanel extends BaseWebviewPanel {

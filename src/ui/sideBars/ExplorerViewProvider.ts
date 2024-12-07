@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
-import { DB } from '../features/connections/services/connection'
-import { getDBConfigs } from '../features/connections/services/dbConfig'
+import { DB } from '../../features/connections/services/connection'
+import { getDBConfigs } from '../../features/connections/services/dbConfig'
+import { updateCurrentConnectionAndStatusBarItem } from '../statusBars/currentConnectionStatus'
 
 export class ExplorerViewProvider
   implements vscode.TreeDataProvider<ExplorerItem>
@@ -36,6 +37,7 @@ export class ExplorerViewProvider
   ): Promise<ExplorerItem[] | null | undefined> {
     if (element?.dbUUID) {
       DB.connect(this._context, element.dbUUID)
+      updateCurrentConnectionAndStatusBarItem(this._context, element.dbUUID)
 
       const db = DB.get()
       if (!db) return
@@ -62,7 +64,7 @@ export class ExplorerViewProvider
         new ExplorerItem({
           itemType: 'db',
           label: dbConfig.connectionName,
-          description: `${dbConfig.host}:${dbConfig.database}`,
+          description: `${dbConfig.host} : ${dbConfig.database}`,
           uuid: dbConfig.uuid,
           collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
         }),

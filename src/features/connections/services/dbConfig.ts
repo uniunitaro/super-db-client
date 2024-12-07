@@ -45,3 +45,21 @@ export const deleteDBConfig = async (
   )
   await setGlobalState(context, 'dbConfigs', updatedDBConfigs)
 }
+
+export const setCurrentConnection = (
+  context: ExtensionContext,
+  dbUUID: string,
+) => {
+  context.workspaceState.update('currentDBConfigUUID', dbUUID)
+}
+
+export const getCurrentConnection = (
+  context: ExtensionContext,
+): DBConfig | undefined => {
+  const dbConfigs = getDBConfigs(context)
+  const currentDBConfigUUID = context.workspaceState.get<string>(
+    'currentDBConfigUUID',
+  )
+
+  return dbConfigs.find((dbConfig) => dbConfig.uuid === currentDBConfigUUID)
+}
