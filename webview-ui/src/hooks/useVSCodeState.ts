@@ -1,3 +1,4 @@
+import type { ConnectionSettingPanelState } from '@/connection-setting/types/state'
 import type { TablePanelState } from '@/table/types/state'
 import { vscode } from '@/utilities/vscode'
 import type { PersistedClient } from '@tanstack/react-query-persist-client'
@@ -6,6 +7,7 @@ import { useCallback, useState } from 'react'
 // stateをnullableにしたい場合はundefinedではなくnullを使う
 export type VSCodeState = {
   tablePanel?: TablePanelState
+  connectionSettingPanel?: ConnectionSettingPanelState
   persistedClient?: {
     client?: PersistedClient
   }

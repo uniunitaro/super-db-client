@@ -5,8 +5,8 @@ import { serializeVSCodeContext } from '@/utilities/vscodeContext'
 import {
   commandRequest,
   getConfigRequest,
-  getInitialDataRequest,
   getTableDataRequest,
+  getTableInitialDataRequest,
   saveTableChangesRequest,
 } from '@shared-types/message'
 import {
@@ -88,9 +88,9 @@ const Table: FC = () => {
     isPending: isInitialDataPending,
     error: initialDataError,
   } = useQuery({
-    queryKey: ['getInitialData'],
+    queryKey: ['getTableInitialData'],
     queryFn: () =>
-      vscode.messenger.sendRequest(getInitialDataRequest, HOST_EXTENSION),
+      vscode.messenger.sendRequest(getTableInitialDataRequest, HOST_EXTENSION),
     // 毎回取得したいのでキャッシュしない
     staleTime: 0,
     gcTime: 0,

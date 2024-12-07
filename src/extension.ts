@@ -1,7 +1,11 @@
 import { type ExtensionContext, commands, window } from 'vscode'
 import { Messenger } from 'vscode-messenger'
+import { deleteDBConfig } from './features/connections/services/dbConfig'
 import { ConnectionSettingPanel } from './panels/ConnectionSettingPanel'
-import { ExplorerViewProvider } from './panels/ExplorerViewProvider'
+import {
+  type ExplorerItem,
+  ExplorerViewProvider,
+} from './panels/ExplorerViewProvider'
 import { TablePanel } from './panels/TablePanel'
 import { showGoToTableQuickPick } from './panels/showGoToTableQuickPick'
 
@@ -10,21 +14,50 @@ export function activate(context: ExtensionContext) {
 
   const tablePanels: TablePanel[] = []
 
-  // Create the show hello world command
-  const showHelloWorldCommand = commands.registerCommand(
-    'superDBClient.newConnection',
-    () => {
-      ConnectionSettingPanel.render(context, messenger)
-    },
-  )
-
-  // Add command to the extension context
-  context.subscriptions.push(showHelloWorldCommand)
-
   const explorerViewProvider = new ExplorerViewProvider(context)
   window.createTreeView('superDBClient.explorer', {
     treeDataProvider: explorerViewProvider,
   })
+
+  context.subscriptions.push(
+    commands.registerCommand('superDBClient.newConnection', () => {
+      ConnectionSettingPanel.render(context, messenger)
+    }),
+  )
+
+  context.subscriptions.push(
+    commands.registerCommand(
+      'superDBClient.editConnection',
+      (item?: ExplorerItem) => {
+        console.log(item)
+        const uuid = item?.dbUUID
+        if (!uuid) return
+
+        ConnectionSettingPanel.render(context, messenger, uuid)
+      },
+    ),
+  )
+
+  context.subscriptions.push(
+    commands.registerCommand(
+      'superDBClient.deleteConnection',
+      async (item?: ExplorerItem) => {
+        const uuid = item?.dbUUID
+        if (!uuid) return
+
+        const answer = await window.showWarningMessage(
+          'Are you sure you want to delete this database connection?',
+          { modal: true },
+          'Delete',
+        )
+
+        if (!answer) return
+
+        deleteDBConfig(context, uuid)
+        explorerViewProvider.refresh()
+      },
+    ),
+  )
 
   context.subscriptions.push(
     commands.registerCommand('superDBClient.refreshDatabases', () => {

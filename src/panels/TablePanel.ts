@@ -15,8 +15,8 @@ import {
   type Command,
   commandRequest,
   getConfigRequest,
-  getInitialDataRequest,
   getTableDataRequest,
+  getTableInitialDataRequest,
   saveTableChangesRequest,
 } from '../types/message'
 import { getWebviewContent } from '../utilities/getWebviewContent'
@@ -25,7 +25,6 @@ import { BaseWebviewPanel } from './BaseWebviewPanel'
 export class TablePanel extends BaseWebviewPanel {
   protected static currentPanel: TablePanel | undefined
   private readonly _tableName: string
-  private readonly _webviewId: string
   private _shouldRefresh = false
 
   private constructor(
@@ -35,9 +34,8 @@ export class TablePanel extends BaseWebviewPanel {
     tableName: string,
     webviewId: string,
   ) {
-    super(panel, context, messenger)
+    super(panel, context, messenger, webviewId)
     this._tableName = tableName
-    this._webviewId = webviewId
 
     this._panel.webview.html = getWebviewContent(
       this._panel.webview,
@@ -46,11 +44,6 @@ export class TablePanel extends BaseWebviewPanel {
     )
 
     this._setWebviewMessageListener(this._panel.webview)
-
-    this._panel.iconPath = {
-      light: Uri.joinPath(context.extensionUri, 'assets/database-light.svg'),
-      dark: Uri.joinPath(context.extensionUri, 'assets/database-dark.svg'),
-    }
   }
 
   public static render(
@@ -108,19 +101,12 @@ export class TablePanel extends BaseWebviewPanel {
   }
 
   public sendCommand(command: Command) {
-    this._messenger.sendRequest(
-      commandRequest,
-      {
-        type: 'webview',
-        webviewId: this._webviewId,
-      },
-      command,
-    )
+    this._sendRequest(commandRequest, command)
   }
 
   private _setWebviewMessageListener(webview: Webview) {
     this._disposables.push(
-      this._messenger.onRequest(
+      this._onRequest(
         getTableDataRequest,
         async ({ order, orderBy, limit, offset }) => {
           const db = DB.get()
@@ -150,54 +136,39 @@ export class TablePanel extends BaseWebviewPanel {
             rows,
           }
         },
-        { sender: { type: 'webview', webviewId: this._webviewId } },
       ),
     )
 
     this._disposables.push(
-      this._messenger.onRequest(getConfigRequest, async () => getConfig(), {
-        sender: { type: 'webview', webviewId: this._webviewId },
+      this._onRequest(getConfigRequest, async () => getConfig()),
+    )
+
+    this._disposables.push(
+      this._onRequest(saveTableChangesRequest, async ({ operations }) => {
+        const db = DB.get()
+        if (!db) {
+          throw new Error('DB not found')
+        }
+
+        const { error } = await saveChanges({
+          db,
+          schema: DB.database,
+          tableName: this._tableName,
+          operations,
+        })
+        if (error) {
+          window.showErrorMessage(error)
+          throw new Error(error)
+        }
       }),
     )
 
     this._disposables.push(
-      this._messenger.onRequest(
-        saveTableChangesRequest,
-        async ({ operations }) => {
-          const db = DB.get()
-          if (!db) {
-            throw new Error('DB not found')
-          }
-
-          const { error } = await saveChanges({
-            db,
-            schema: DB.database,
-            tableName: this._tableName,
-            operations,
-          })
-          if (error) {
-            window.showErrorMessage(error)
-            throw new Error(error)
-          }
-        },
-        {
-          sender: { type: 'webview', webviewId: this._webviewId },
-        },
-      ),
-    )
-
-    this._disposables.push(
-      this._messenger.onRequest(
-        getInitialDataRequest,
-        () => {
-          const shouldRefresh = this._shouldRefresh
-          this._shouldRefresh = false
-          return { shouldRefresh }
-        },
-        {
-          sender: { type: 'webview', webviewId: this._webviewId },
-        },
-      ),
+      this._onRequest(getTableInitialDataRequest, () => {
+        const shouldRefresh = this._shouldRefresh
+        this._shouldRefresh = false
+        return { shouldRefresh }
+      }),
     )
   }
 }

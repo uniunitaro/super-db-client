@@ -1,8 +1,18 @@
 import type { RequestType } from 'vscode-messenger-common'
 import type { Config } from '../features/configs/types/config'
-import type { DBConfigInput } from '../features/connections/types/dbConfig'
+import type {
+  DBConfig,
+  DBConfigInput,
+} from '../features/connections/types/dbConfig'
 import type { TableMetadata } from '../features/tables/types/metadata'
 import type { Operation, TableRow } from '../features/tables/types/table'
+
+export const getConnectionSettingInitialDataRequest: RequestType<
+  undefined,
+  DBConfig | undefined
+> = {
+  method: 'getConnectionSettingInitialData',
+}
 
 export const testDBConnectionRequest: RequestType<
   DBConfigInput,
@@ -42,11 +52,11 @@ export const saveTableChangesRequest: RequestType<
   method: 'saveTableChanges',
 }
 
-export const getInitialDataRequest: RequestType<
+export const getTableInitialDataRequest: RequestType<
   undefined,
   { shouldRefresh: boolean }
 > = {
-  method: 'getInitialData',
+  method: 'getTableInitialData',
 }
 
 export type Command =

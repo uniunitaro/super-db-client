@@ -8,4 +8,4 @@ export type DBConfig = {
   database: string
 }
 
-export type DBConfigInput = Omit<DBConfig, 'uuid'>
+export type DBConfigInput = Omit<DBConfig, 'uuid'> & { targetUUID?: string }

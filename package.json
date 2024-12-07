@@ -12,7 +12,20 @@
       {
         "command": "superDBClient.newConnection",
         "title": "New Connection",
-        "category": "Super DB Client"
+        "category": "Super DB Client",
+        "icon": "$(add)"
+      },
+      {
+        "command": "superDBClient.editConnection",
+        "title": "Edit Connection",
+        "category": "Super DB Client",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "superDBClient.deleteConnection",
+        "title": "Delete Connection",
+        "category": "Super DB Client",
+        "icon": "$(trash)"
       },
       {
         "command": "superDBClient.refreshDatabases",
@@ -87,12 +100,37 @@
     "menus": {
       "view/title": [
         {
+          "command": "superDBClient.newConnection",
+          "when": "view == superDBClient.explorer",
+          "group": "navigation@1"
+        },
+        {
           "command": "superDBClient.refreshDatabases",
           "when": "view == superDBClient.explorer",
-          "group": "navigation"
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "superDBClient.editConnection",
+          "when": "view == superDBClient.explorer && viewItem == db",
+          "group": "inline@1"
+        },
+        {
+          "command": "superDBClient.deleteConnection",
+          "when": "view == superDBClient.explorer && viewItem == db",
+          "group": "inline@2"
         }
       ],
       "commandPalette": [
+        {
+          "command": "superDBClient.editConnection",
+          "when": "false"
+        },
+        {
+          "command": "superDBClient.deleteConnection",
+          "when": "false"
+        },
         {
           "command": "superDBClient.saveTableChanges",
           "when": "activeWebviewPanelId =~ /superDBClient.table/"

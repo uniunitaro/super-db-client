@@ -44,6 +44,7 @@ export class ExplorerViewProvider
       return tables.map(
         (table) =>
           new ExplorerItem({
+            itemType: 'table',
             label: table.name,
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             command: {
@@ -59,6 +60,7 @@ export class ExplorerViewProvider
     return dbConfigs.map(
       (dbConfig) =>
         new ExplorerItem({
+          itemType: 'db',
           label: dbConfig.connectionName,
           description: `${dbConfig.host}:${dbConfig.database}`,
           uuid: dbConfig.uuid,
@@ -68,16 +70,19 @@ export class ExplorerViewProvider
   }
 }
 
-class ExplorerItem extends vscode.TreeItem {
+export class ExplorerItem extends vscode.TreeItem {
   dbUUID: string | undefined
+  itemType: 'db' | 'table'
 
   constructor({
+    itemType,
     label,
     description,
     uuid,
     collapsibleState,
     command,
   }: {
+    itemType: 'db' | 'table'
     label: string
     description?: string
     uuid?: string
@@ -88,5 +93,10 @@ class ExplorerItem extends vscode.TreeItem {
     this.description = description
     this.dbUUID = uuid
     this.command = command
+    this.itemType = itemType
+
+    if (itemType === 'db') {
+      this.contextValue = 'db'
+    }
   }
 }
