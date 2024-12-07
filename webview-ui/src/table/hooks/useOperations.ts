@@ -1,4 +1,5 @@
 import { useVSCodeState } from '@/hooks/useVSCodeState'
+import { assertNever } from '@/utilities/assertNever'
 import type { GetTableDataRequestResponse } from '@shared-types/message'
 import { type RefObject, useCallback, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
@@ -146,26 +147,30 @@ export const useOperations = ({
     if (!tableData) return
 
     const deleteOperations = selectedRowIndexes.map((rowIndex) => {
-      if (selectedCell.type === 'existing') {
-        const targetRow = tableData.rows[rowIndex]
+      const selectedRow = updatedRows[rowIndex]
+
+      if (selectedRow.type === 'existing') {
         const primaryKeys = tableData.tableMetadata.primaryKeyColumns
         const primaryKeyValues = primaryKeys.map((key) => ({
           key,
-          value: String(targetRow[key]),
+          value: String(selectedRow.row[key]),
         }))
 
         return { type: 'delete', primaryKeyValues } as const
       }
+      if (selectedRow.type === 'inserted') {
+        return {
+          type: 'deleteInserted',
+          insertedRowUUID: selectedRow.uuid,
+        } as const
+      }
 
-      return {
-        type: 'deleteInserted',
-        insertedRowUUID: selectedCell.rowUUID,
-      } as const
+      return assertNever(selectedRow)
     })
 
     // TODO: これだとundo時に一個ずつしか戻せない、、ぐええ
     addOperations(deleteOperations)
-  }, [tableData, addOperations, selectedCell, selectedRowIndexes])
+  }, [tableData, addOperations, selectedRowIndexes, updatedRows])
 
   const virtualTableTableRef = useRef<HTMLDivElement>(null)
   const handleRowInsert = useCallback(() => {
@@ -215,7 +220,7 @@ export const useOperations = ({
           }
         }
 
-        return []
+        return assertNever(operation)
       })
   }, [operations, tableData, updatedRows])
 
