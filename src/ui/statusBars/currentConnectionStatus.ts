@@ -4,10 +4,7 @@ import {
   type StatusBarItem,
   window,
 } from 'vscode'
-import {
-  getCurrentConnection,
-  setCurrentConnection,
-} from '../../features/connections/services/dbConfig'
+import { getCurrentConnection } from '../../features/connections/services/dbConfig'
 
 let _statusBarItem: StatusBarItem
 
@@ -29,12 +26,4 @@ export const updateCurrentConnectionStatus = (context: ExtensionContext) => {
   }
 
   _statusBarItem.show()
-}
-
-export const updateCurrentConnectionAndStatusBarItem = (
-  context: ExtensionContext,
-  uuid: string,
-) => {
-  setCurrentConnection(context, uuid)
-  updateCurrentConnectionStatus(context)
 }

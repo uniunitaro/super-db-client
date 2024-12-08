@@ -1,8 +1,8 @@
 import { type ExtensionContext, commands, window } from 'vscode'
 import { Messenger } from 'vscode-messenger'
 import { COMMANDS } from './constants/commands'
-import { VIEWS } from './constants/views'
 import { deleteDBConfig } from './features/connections/services/dbConfig'
+import { connectDB } from './features/connections/usecases/connectDB'
 import { ConnectionSettingPanel } from './ui/panels/ConnectionSettingPanel'
 import { TablePanel } from './ui/panels/TablePanel'
 import {
@@ -18,9 +18,6 @@ export function activate(context: ExtensionContext) {
   const tablePanels: TablePanel[] = []
 
   const explorerViewProvider = new ExplorerViewProvider(context)
-  window.createTreeView(VIEWS.EXPLORER, {
-    treeDataProvider: explorerViewProvider,
-  })
 
   context.subscriptions.push(createCurrentConnectionStatus(context))
 
@@ -71,26 +68,31 @@ export function activate(context: ExtensionContext) {
   )
 
   context.subscriptions.push(
-    commands.registerCommand(COMMANDS.OPEN_TABLE, (tableName: string) => {
-      // 同じパネルが開かれている場合は新たに開かず、既存のパネルをアクティブにする
-      const existingPanel = tablePanels.find(
-        (panel) => panel.getTableName() === tableName,
-      )
-      if (existingPanel) {
-        existingPanel.reveal()
-        return
-      }
+    commands.registerCommand(
+      COMMANDS.OPEN_TABLE,
+      (dbUUID: string, tableName: string) => {
+        connectDB(context, dbUUID)
 
-      const newPanel = TablePanel.render(context, messenger, tableName)
-      newPanel.onDidDispose(() => {
-        const index = tablePanels.indexOf(newPanel)
-        if (index !== -1) {
-          tablePanels.splice(index, 1)
+        // 同じパネルが開かれている場合は新たに開かず、既存のパネルをアクティブにする
+        const existingPanel = tablePanels.find(
+          (panel) => panel.getTableName() === tableName,
+        )
+        if (existingPanel) {
+          existingPanel.reveal()
+          return
         }
-      })
 
-      tablePanels.push(newPanel)
-    }),
+        const newPanel = TablePanel.render(context, messenger, tableName)
+        newPanel.onDidDispose(() => {
+          const index = tablePanels.indexOf(newPanel)
+          if (index !== -1) {
+            tablePanels.splice(index, 1)
+          }
+        })
+
+        tablePanels.push(newPanel)
+      },
+    ),
   )
 
   context.subscriptions.push(

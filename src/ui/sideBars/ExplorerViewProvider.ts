@@ -1,17 +1,14 @@
 import * as vscode from 'vscode'
 import { COMMANDS } from '../../constants/commands'
+import { VIEWS } from '../../constants/views'
 import { DB } from '../../features/connections/services/connection'
 import { getDBConfigs } from '../../features/connections/services/dbConfig'
-import { updateCurrentConnectionAndStatusBarItem } from '../statusBars/currentConnectionStatus'
+import { connectDB } from '../../features/connections/usecases/connectDB'
 
 export class ExplorerViewProvider
   implements vscode.TreeDataProvider<ExplorerItem>
 {
   private _context: vscode.ExtensionContext
-
-  constructor(context: vscode.ExtensionContext) {
-    this._context = context
-  }
 
   private _onDidChangeTreeData: vscode.EventEmitter<
     // biome-ignore lint/suspicious/noConfusingVoidType: This is a void type
@@ -22,6 +19,21 @@ export class ExplorerViewProvider
     // biome-ignore lint/suspicious/noConfusingVoidType: This is a void type
     ExplorerItem | undefined | null | void
   > = this._onDidChangeTreeData.event
+
+  private treeView: vscode.TreeView<ExplorerItem>
+
+  constructor(context: vscode.ExtensionContext) {
+    this._context = context
+    this.treeView = vscode.window.createTreeView(VIEWS.EXPLORER, {
+      treeDataProvider: this,
+    })
+
+    this.treeView.onDidExpandElement(async (e) => {
+      if (e.element.itemType === 'db' && e.element.dbUUID) {
+        connectDB(this._context, e.element.dbUUID)
+      }
+    })
+  }
 
   refresh(): void {
     this._onDidChangeTreeData.fire()
@@ -37,9 +49,6 @@ export class ExplorerViewProvider
     element?: ExplorerItem | undefined,
   ): Promise<ExplorerItem[] | null | undefined> {
     if (element?.dbUUID) {
-      DB.connect(this._context, element.dbUUID)
-      updateCurrentConnectionAndStatusBarItem(this._context, element.dbUUID)
-
       const db = DB.get()
       if (!db) return
 
@@ -53,7 +62,7 @@ export class ExplorerViewProvider
             command: {
               command: COMMANDS.OPEN_TABLE,
               title: 'Open Table',
-              arguments: [table.name],
+              arguments: [element.dbUUID, table.name],
             },
           }),
       )

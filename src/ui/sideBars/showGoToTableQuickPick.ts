@@ -2,6 +2,7 @@ import { type ExtensionContext, commands, window } from 'vscode'
 import { COMMANDS } from '../../constants/commands'
 import { DB } from '../../features/connections/services/connection'
 import { getCurrentConnection } from '../../features/connections/services/dbConfig'
+import { connectDB } from '../../features/connections/usecases/connectDB'
 
 export const showGoToTableQuickPick = async (context: ExtensionContext) => {
   const currentConnection = getCurrentConnection(context)
@@ -10,7 +11,7 @@ export const showGoToTableQuickPick = async (context: ExtensionContext) => {
     return
   }
 
-  DB.connect(context, currentConnection.uuid)
+  connectDB(context, currentConnection.uuid)
   const db = DB.get()
   if (!db) {
     window.showWarningMessage('No DB connection found')
