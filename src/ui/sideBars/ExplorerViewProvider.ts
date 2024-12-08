@@ -1,4 +1,5 @@
 import * as vscode from 'vscode'
+import { COMMANDS } from '../../constants/commands'
 import { DB } from '../../features/connections/services/connection'
 import { getDBConfigs } from '../../features/connections/services/dbConfig'
 import { updateCurrentConnectionAndStatusBarItem } from '../statusBars/currentConnectionStatus'
@@ -50,7 +51,7 @@ export class ExplorerViewProvider
             label: table.name,
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             command: {
-              command: 'superDBClient.openTable',
+              command: COMMANDS.OPEN_TABLE,
               title: 'Open Table',
               arguments: [table.name],
             },

@@ -1,4 +1,5 @@
 import { type ExtensionContext, commands, window } from 'vscode'
+import { COMMANDS } from '../../constants/commands'
 import { DB } from '../../features/connections/services/connection'
 import { getCurrentConnection } from '../../features/connections/services/dbConfig'
 
@@ -23,5 +24,5 @@ export const showGoToTableQuickPick = async (context: ExtensionContext) => {
   })
   if (!tableName) return
 
-  commands.executeCommand('superDBClient.openTable', tableName)
+  commands.executeCommand(COMMANDS.OPEN_TABLE, tableName)
 }

@@ -1,5 +1,7 @@
 import { type ExtensionContext, commands, window } from 'vscode'
 import { Messenger } from 'vscode-messenger'
+import { COMMANDS } from './constants/commands'
+import { VIEWS } from './constants/views'
 import { deleteDBConfig } from './features/connections/services/dbConfig'
 import { ConnectionSettingPanel } from './ui/panels/ConnectionSettingPanel'
 import { TablePanel } from './ui/panels/TablePanel'
@@ -16,21 +18,21 @@ export function activate(context: ExtensionContext) {
   const tablePanels: TablePanel[] = []
 
   const explorerViewProvider = new ExplorerViewProvider(context)
-  window.createTreeView('superDBClient.explorer', {
+  window.createTreeView(VIEWS.EXPLORER, {
     treeDataProvider: explorerViewProvider,
   })
 
   context.subscriptions.push(createCurrentConnectionStatus(context))
 
   context.subscriptions.push(
-    commands.registerCommand('superDBClient.newConnection', () => {
+    commands.registerCommand(COMMANDS.NEW_CONNECTION, () => {
       ConnectionSettingPanel.render(context, messenger)
     }),
   )
 
   context.subscriptions.push(
     commands.registerCommand(
-      'superDBClient.editConnection',
+      COMMANDS.EDIT_CONNECTION,
       (item?: ExplorerItem) => {
         console.log(item)
         const uuid = item?.dbUUID
@@ -43,7 +45,7 @@ export function activate(context: ExtensionContext) {
 
   context.subscriptions.push(
     commands.registerCommand(
-      'superDBClient.deleteConnection',
+      COMMANDS.DELETE_CONNECTION,
       async (item?: ExplorerItem) => {
         const uuid = item?.dbUUID
         if (!uuid) return
@@ -63,13 +65,13 @@ export function activate(context: ExtensionContext) {
   )
 
   context.subscriptions.push(
-    commands.registerCommand('superDBClient.refreshDatabases', () => {
+    commands.registerCommand(COMMANDS.REFRESH_DATABASES, () => {
       explorerViewProvider.refresh()
     }),
   )
 
   context.subscriptions.push(
-    commands.registerCommand('superDBClient.openTable', (tableName: string) => {
+    commands.registerCommand(COMMANDS.OPEN_TABLE, (tableName: string) => {
       // 同じパネルが開かれている場合は新たに開かず、既存のパネルをアクティブにする
       const existingPanel = tablePanels.find(
         (panel) => panel.getTableName() === tableName,
@@ -92,13 +94,13 @@ export function activate(context: ExtensionContext) {
   )
 
   context.subscriptions.push(
-    commands.registerCommand('superDBClient.goToTable', () => {
+    commands.registerCommand(COMMANDS.GO_TO_TABLE, () => {
       showGoToTableQuickPick(context)
     }),
   )
 
   context.subscriptions.push(
-    commands.registerCommand('superDBClient.saveTableChanges', () => {
+    commands.registerCommand(COMMANDS.SAVE_TABLE_CHANGES, () => {
       const activePanel = tablePanels.find((panel) => panel.isActive())
       if (activePanel) {
         activePanel.sendCommand('saveTableChanges')
@@ -107,7 +109,7 @@ export function activate(context: ExtensionContext) {
   )
 
   context.subscriptions.push(
-    commands.registerCommand('superDBClient.refreshTable', () => {
+    commands.registerCommand(COMMANDS.REFRESH_TABLE, () => {
       const activePanel = tablePanels.find((panel) => panel.isActive())
       if (activePanel) {
         activePanel.sendCommand('refreshTable')
@@ -116,7 +118,7 @@ export function activate(context: ExtensionContext) {
   )
 
   context.subscriptions.push(
-    commands.registerCommand('superDBClient.deleteRows', () => {
+    commands.registerCommand(COMMANDS.DELETE_ROWS, () => {
       const activePanel = tablePanels.find((panel) => panel.isActive())
       if (activePanel) {
         activePanel.sendCommand('deleteRows')
@@ -125,7 +127,7 @@ export function activate(context: ExtensionContext) {
   )
 
   context.subscriptions.push(
-    commands.registerCommand('superDBClient.setAsNull', () => {
+    commands.registerCommand(COMMANDS.SET_AS_NULL, () => {
       const activePanel = tablePanels.find((panel) => panel.isActive())
       if (activePanel) {
         activePanel.sendCommand('setAsNull')
@@ -134,7 +136,7 @@ export function activate(context: ExtensionContext) {
   )
 
   context.subscriptions.push(
-    commands.registerCommand('superDBClient.setAsEmpty', () => {
+    commands.registerCommand(COMMANDS.SET_AS_EMPTY, () => {
       const activePanel = tablePanels.find((panel) => panel.isActive())
       if (activePanel) {
         activePanel.sendCommand('setAsEmpty')

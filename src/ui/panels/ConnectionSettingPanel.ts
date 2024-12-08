@@ -8,6 +8,7 @@ import {
   window,
 } from 'vscode'
 import type { Messenger } from 'vscode-messenger'
+import { COMMANDS } from '../../constants/commands'
 import { testConnection } from '../../features/connections/services/connection'
 import {
   createOrUpdateDBConfig,
@@ -106,7 +107,7 @@ export class ConnectionSettingPanel extends BaseWebviewPanel {
         createOrUpdateDBConfig(context, dbConfigInput)
 
         window.showInformationMessage('Connection Saved!')
-        commands.executeCommand('superDBClient.refreshDatabases')
+        commands.executeCommand(COMMANDS.REFRESH_DATABASES)
       }),
     )
   }
