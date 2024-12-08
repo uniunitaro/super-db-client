@@ -1,30 +1,38 @@
-import * as vscode from 'vscode'
+import {
+  type Command,
+  type Event,
+  EventEmitter,
+  type ExtensionContext,
+  type TreeDataProvider,
+  TreeItem,
+  TreeItemCollapsibleState,
+  type TreeView,
+  window,
+} from 'vscode'
 import { COMMANDS } from '../../constants/commands'
 import { VIEWS } from '../../constants/views'
 import { DB } from '../../features/connections/services/connection'
 import { getDBConfigs } from '../../features/connections/services/dbConfig'
 import { connectDB } from '../../features/connections/usecases/connectDB'
 
-export class ExplorerViewProvider
-  implements vscode.TreeDataProvider<ExplorerItem>
-{
-  private _context: vscode.ExtensionContext
+export class ExplorerViewProvider implements TreeDataProvider<ExplorerItem> {
+  private _context: ExtensionContext
 
-  private _onDidChangeTreeData: vscode.EventEmitter<
+  private _onDidChangeTreeData: EventEmitter<
     // biome-ignore lint/suspicious/noConfusingVoidType: This is a void type
     ExplorerItem | undefined | null | void
     // biome-ignore lint/suspicious/noConfusingVoidType: This is a void type
-  > = new vscode.EventEmitter<ExplorerItem | undefined | null | void>()
-  readonly onDidChangeTreeData: vscode.Event<
+  > = new EventEmitter<ExplorerItem | undefined | null | void>()
+  readonly onDidChangeTreeData: Event<
     // biome-ignore lint/suspicious/noConfusingVoidType: This is a void type
     ExplorerItem | undefined | null | void
   > = this._onDidChangeTreeData.event
 
-  private treeView: vscode.TreeView<ExplorerItem>
+  private treeView: TreeView<ExplorerItem>
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: ExtensionContext) {
     this._context = context
-    this.treeView = vscode.window.createTreeView(VIEWS.EXPLORER, {
+    this.treeView = window.createTreeView(VIEWS.EXPLORER, {
       treeDataProvider: this,
     })
 
@@ -39,9 +47,7 @@ export class ExplorerViewProvider
     this._onDidChangeTreeData.fire()
   }
 
-  getTreeItem(
-    element: ExplorerItem,
-  ): vscode.TreeItem | Thenable<vscode.TreeItem> {
+  getTreeItem(element: ExplorerItem): TreeItem | Thenable<TreeItem> {
     return element
   }
 
@@ -58,7 +64,7 @@ export class ExplorerViewProvider
           new ExplorerItem({
             itemType: 'table',
             label: table.name,
-            collapsibleState: vscode.TreeItemCollapsibleState.None,
+            collapsibleState: TreeItemCollapsibleState.None,
             command: {
               command: COMMANDS.OPEN_TABLE,
               title: 'Open Table',
@@ -76,13 +82,13 @@ export class ExplorerViewProvider
           label: dbConfig.connectionName,
           description: `${dbConfig.host} : ${dbConfig.database}`,
           uuid: dbConfig.uuid,
-          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+          collapsibleState: TreeItemCollapsibleState.Collapsed,
         }),
     )
   }
 }
 
-export class ExplorerItem extends vscode.TreeItem {
+export class ExplorerItem extends TreeItem {
   dbUUID: string | undefined
   itemType: 'db' | 'table'
 
@@ -98,8 +104,8 @@ export class ExplorerItem extends vscode.TreeItem {
     label: string
     description?: string
     uuid?: string
-    collapsibleState: vscode.TreeItemCollapsibleState
-    command?: vscode.Command
+    collapsibleState: TreeItemCollapsibleState
+    command?: Command
   }) {
     super(label, collapsibleState)
     this.description = description
