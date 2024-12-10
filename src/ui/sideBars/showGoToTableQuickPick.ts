@@ -25,5 +25,9 @@ export const showGoToTableQuickPick = async (context: ExtensionContext) => {
   })
   if (!tableName) return
 
-  commands.executeCommand(COMMANDS.OPEN_TABLE, tableName)
+  commands.executeCommand(
+    COMMANDS.OPEN_TABLE,
+    currentConnection.uuid,
+    tableName,
+  )
 }
