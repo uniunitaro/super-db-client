@@ -30,7 +30,7 @@ export const useSelectionHandler = () => {
     [selectedCell.rowIndex],
   )
   // 複数選択の場合の基準となる行
-  const [originRowIndex, setOriginRowIndex] = useState(selectedCell.rowIndex)
+  const originRowIndexRef = useRef(selectedCell.rowIndex)
 
   const handleMultiSelect = useCallback(
     ({
@@ -45,35 +45,35 @@ export const useSelectionHandler = () => {
       if (isShiftPressed) {
         // 基準となる行から現在の行までの行を選択する
         const newSelectedRowIndexes = [
-          ...Array(Math.abs(nextRowIndex - originRowIndex) + 1),
-        ].map((_, i) => Math.min(originRowIndex, nextRowIndex) + i)
+          ...Array(Math.abs(nextRowIndex - originRowIndexRef.current) + 1),
+        ].map((_, i) => Math.min(originRowIndexRef.current, nextRowIndex) + i)
 
         setSelectedRowIndexes(newSelectedRowIndexes)
       } else if (isCtrlPressed) {
         // Ctrlが押されている場合は基準行を更新
-        setOriginRowIndex(nextRowIndex)
+        originRowIndexRef.current = nextRowIndex
 
-        if (selectedRowIndexes.includes(nextRowIndex)) {
-          // 既に選択されている行を選択解除
-          setSelectedRowIndexes(
-            selectedRowIndexes.filter((index) => index !== nextRowIndex),
-          )
-        } else {
-          setSelectedRowIndexes([...selectedRowIndexes, nextRowIndex])
-        }
+        setSelectedRowIndexes((prev) => {
+          if (prev.includes(nextRowIndex)) {
+            // 既に選択されている行を選択解除
+            return prev.filter((index) => index !== nextRowIndex)
+          }
+
+          return [...prev, nextRowIndex]
+        })
       } else {
         // Shift, Ctrlが押されていない場合は基準行を更新
-        setOriginRowIndex(nextRowIndex)
+        originRowIndexRef.current = nextRowIndex
 
         setSelectedRowIndexes([nextRowIndex])
       }
     },
-    [originRowIndex, selectedRowIndexes, setSelectedRowIndexes],
+    [setSelectedRowIndexes],
   )
 
   const resetMultiSelection = useCallback(() => {
     setSelectedRowIndexes([selectedCell.rowIndex])
-    setOriginRowIndex(selectedCell.rowIndex)
+    originRowIndexRef.current = selectedCell.rowIndex
   }, [selectedCell, setSelectedRowIndexes])
 
   const setSelectedCellAndRows = useCallback<SetSelectedCell>(

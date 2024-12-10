@@ -24,24 +24,43 @@ export const useVSCodeState = <P extends keyof VSCodeState>(panel: P) =>
       key: K,
       initialValue: T,
     ) => {
-      // 俺またはTypeScriptの敗北
+      type State = Required<Required<VSCodeState>[P]>[K]
+
       const vscodeStoredState = (
-        vscode.getState()?.[panel] as Required<VSCodeState>[P] | undefined
+        vscode.getState()?.[panel] satisfies
+          | Required<VSCodeState>[P]
+          | undefined
       )?.[key]
 
-      const [state, _setState] = useState<
-        Required<Required<VSCodeState>[P]>[K]
-      >(vscodeStoredState ?? initialValue)
+      const [state, _setState] = useState<State>(
+        vscodeStoredState ?? initialValue,
+      )
 
       const setState = useCallback(
-        (value: Required<Required<VSCodeState>[P]>[K]) => {
-          const currentState = vscode.getState()
-          vscode.setState({
-            ...currentState,
-            [panel]: currentState?.[panel]
-              ? { ...currentState[panel], [key]: value }
-              : { [key]: value },
-          })
+        (value: ((prevState: State) => State) | State) => {
+          const setVSCodeState = (value: State) => {
+            const currentState = vscode.getState()
+            vscode.setState({
+              ...currentState,
+              [panel]: currentState?.[panel]
+                ? { ...currentState[panel], [key]: value }
+                : { [key]: value },
+            })
+          }
+
+          // FIXME: typeof value === 'function'で型が正しく推論されないというかStateがFunctionな可能性があるからそれを考慮しなきゃいけないはずだが一旦無視、実用上は問題ない
+          if (value instanceof Function) {
+            _setState((prevState) => {
+              const newValue = value(prevState)
+
+              setVSCodeState(newValue)
+
+              return newValue
+            })
+            return
+          }
+
+          setVSCodeState(value)
           _setState(value)
         },
         [key, panel],
