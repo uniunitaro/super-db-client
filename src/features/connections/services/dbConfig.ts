@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto'
 import type { ExtensionContext } from 'vscode'
-import { getGlobalState, setGlobalState } from '../../../utilities/store'
+import {
+  getGlobalState,
+  getWorkspaceState,
+  setGlobalState,
+  setWorkspaceState,
+} from '../../../utilities/store'
 import type { DBConfig, DBConfigInput } from '../types/dbConfig'
 
 export const createOrUpdateDBConfig = async (
@@ -50,16 +55,14 @@ export const setCurrentConnection = (
   context: ExtensionContext,
   dbUUID: string,
 ) => {
-  context.workspaceState.update('currentDBConfigUUID', dbUUID)
+  setWorkspaceState(context, 'currentDBConfigUUID', dbUUID)
 }
 
 export const getCurrentConnection = (
   context: ExtensionContext,
 ): DBConfig | undefined => {
   const dbConfigs = getDBConfigs(context)
-  const currentDBConfigUUID = context.workspaceState.get<string>(
-    'currentDBConfigUUID',
-  )
+  const currentDBConfigUUID = getWorkspaceState(context, 'currentDBConfigUUID')
 
   return dbConfigs.find((dbConfig) => dbConfig.uuid === currentDBConfigUUID)
 }
