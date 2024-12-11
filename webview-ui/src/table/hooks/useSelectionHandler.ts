@@ -2,6 +2,7 @@ import { useVSCodeState } from '@/hooks/useVSCodeState'
 import type { ColumnMetadata } from '@shared-types/sharedTypes'
 import { useCallback, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
+import type { TableCellRef } from '../components/TableCell'
 import type { SelectedCell, TableRowWithType } from '../types/table'
 
 export type SetSelectedCell = (params: {
@@ -88,8 +89,7 @@ export const useSelectionHandler = () => {
     [setSelectedCell, handleMultiSelect],
   )
 
-  const selectedCellRef = useRef<HTMLDivElement>(null)
-  const selectedCellInputRef = useRef<HTMLTextAreaElement>(null)
+  const cellRef = useRef<TableCellRef>(null)
 
   const [shouldShowInput, setShouldShowInput] = useState(false)
 
@@ -128,10 +128,9 @@ export const useSelectionHandler = () => {
       const nextRow = rows[nextRowIndex]
       const nextColumn = columns[nextColumnIndex]
 
-      const isInputFocused =
-        selectedCellInputRef.current === document.activeElement
+      const isInputFocused = cellRef.current?.isInputFocused()
       if (isInputFocused) {
-        selectedCellInputRef.current?.blur()
+        cellRef.current?.blurInput()
         // blur時にinputが非表示になるが、移動先のセルでinputを表示したいのでtrueにする
         setShouldShowInput(true)
       }
@@ -163,9 +162,9 @@ export const useSelectionHandler = () => {
       })
 
       if (isInputFocused) {
-        selectedCellInputRef.current?.focus()
+        cellRef.current?.focusInput()
       } else {
-        selectedCellRef.current?.focus()
+        cellRef.current?.focusSelectedCell()
       }
     },
     [selectedCell, setSelectedCell, handleMultiSelect],
@@ -175,12 +174,12 @@ export const useSelectionHandler = () => {
     flushSync(() => {
       setShouldShowInput(true)
     })
-    selectedCellInputRef.current?.focus()
+    cellRef.current?.focusInput()
   }, [])
 
   const blurSelectedCellInput = useCallback(() => {
-    selectedCellInputRef.current?.blur()
-    selectedCellRef.current?.focus()
+    cellRef.current?.blurInput()
+    cellRef.current?.focusSelectedCell()
   }, [])
 
   const shouldNotUpdateCellRef = useRef(false)
@@ -190,7 +189,7 @@ export const useSelectionHandler = () => {
   }, [blurSelectedCellInput])
 
   const toggleSelectedCellInputFocus = useCallback(() => {
-    if (selectedCellInputRef.current === document.activeElement) {
+    if (cellRef.current?.isInputFocused()) {
       blurSelectedCellInput()
     } else {
       focusSelectedCellInput()
@@ -199,8 +198,7 @@ export const useSelectionHandler = () => {
 
   return {
     selectedCell,
-    selectedCellRef,
-    selectedCellInputRef,
+    cellRef,
     shouldNotUpdateCellRef,
     shouldShowInput,
     selectedRowIndexes,

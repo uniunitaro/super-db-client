@@ -26,12 +26,12 @@ import {
 import type { SetSelectedCell } from '../hooks/useSelectionHandler'
 import type { Cell, SelectedCell, Sort, TableRowWithType } from '../types/table'
 import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
+import type { TableCellRef } from './TableCell'
 import TableRow from './TableRow'
 
 const VirtualTable: FC<{
   tableRef: RefObject<HTMLDivElement | null>
-  selectedCellRef: RefObject<HTMLDivElement | null>
-  selectedCellInputRef: RefObject<HTMLTextAreaElement | null>
+  cellRef: RefObject<TableCellRef | null>
   dbColumns: ColumnMetadata[]
   dbRows: TableRowWithType[]
   fontSize: number | undefined
@@ -48,8 +48,7 @@ const VirtualTable: FC<{
 }> = memo(
   ({
     tableRef,
-    selectedCellRef,
-    selectedCellInputRef,
+    cellRef,
     dbColumns,
     dbRows,
     fontSize: configFontSize,
@@ -209,6 +208,10 @@ const VirtualTable: FC<{
           overflow: 'auto',
           '&::-webkit-scrollbar-button': { display: 'none' },
         })}
+        style={{
+          // stickyヘッダーの高さ分scrollPaddingTopを設定
+          scrollPaddingTop: `${rowHeight}px`,
+        }}
       >
         <div
           ref={tableRef}
@@ -288,8 +291,7 @@ const VirtualTable: FC<{
                     row={row}
                     virtualRow={virtualRow}
                     isCellSelected={isCellSelected}
-                    selectedCellRef={selectedCellRef}
-                    inputRef={selectedCellInputRef}
+                    cellRef={cellRef}
                     selectedCell={isCellSelected ? selectedCell : undefined}
                     editedCells={editedCells}
                     deletedRowIndexes={deletedRowIndexes}

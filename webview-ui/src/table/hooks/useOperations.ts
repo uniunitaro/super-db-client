@@ -3,6 +3,7 @@ import { assertNever } from '@/utilities/assertNever'
 import type { GetTableDataRequestResponse } from '@shared-types/message'
 import { type RefObject, useCallback, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
+import type { TableCellRef } from '../components/TableCell'
 import type {
   Cell,
   ClientOperation,
@@ -15,13 +16,13 @@ export const useOperations = ({
   selectedCell,
   selectedRowIndexes,
   shouldNotUpdateCellRef,
-  selectedCellInputRef,
+  cellRef,
 }: {
   tableData: GetTableDataRequestResponse | undefined
   selectedCell: SelectedCell
   selectedRowIndexes: number[]
   shouldNotUpdateCellRef: RefObject<boolean>
-  selectedCellInputRef: RefObject<HTMLTextAreaElement | null>
+  cellRef: RefObject<TableCellRef | null>
 }) => {
   const useTablePanelState = useVSCodeState('tablePanel')
   // 型引数なしだとnever[]に推論される
@@ -93,9 +94,7 @@ export const useOperations = ({
         const oldValue =
           tableData.rows[selectedCell.rowIndex][selectedCell.columnId]
 
-        if (selectedCellInputRef.current) {
-          selectedCellInputRef.current.value = String(oldValue)
-        }
+        cellRef?.current?.setInputValue(String(oldValue))
 
         return
       }
@@ -134,13 +133,7 @@ export const useOperations = ({
         ])
       }
     },
-    [
-      tableData,
-      selectedCell,
-      addOperations,
-      shouldNotUpdateCellRef,
-      selectedCellInputRef,
-    ],
+    [tableData, selectedCell, addOperations, shouldNotUpdateCellRef, cellRef],
   )
 
   const handleRowDelete = useCallback(() => {

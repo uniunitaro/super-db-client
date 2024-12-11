@@ -113,8 +113,7 @@ const Table: FC = () => {
 
   const {
     selectedCell,
-    selectedCellRef,
-    selectedCellInputRef,
+    cellRef,
     shouldNotUpdateCellRef,
     shouldShowInput,
     selectedRowIndexes,
@@ -143,7 +142,7 @@ const Table: FC = () => {
     tableData,
     selectedCell,
     selectedRowIndexes,
-    selectedCellInputRef,
+    cellRef,
     shouldNotUpdateCellRef,
   })
 
@@ -261,8 +260,7 @@ const Table: FC = () => {
           {tableData && config && (
             <VirtualTable
               tableRef={virtualTableTableRef}
-              selectedCellRef={selectedCellRef}
-              selectedCellInputRef={selectedCellInputRef}
+              cellRef={cellRef}
               dbColumns={tableData.tableMetadata.columns}
               dbRows={updatedRows}
               fontSize={config.fontSize}

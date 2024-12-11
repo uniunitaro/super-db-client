@@ -1,16 +1,30 @@
 import { serializeVSCodeContext } from '@/utilities/vscodeContext'
 import type { CellContext } from '@tanstack/react-table'
-import { type FC, type RefObject, memo, useCallback } from 'react'
+import {
+  type FC,
+  type RefObject,
+  memo,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+} from 'react'
 import { flushSync } from 'react-dom'
 import { css } from 'styled-system/css'
 import { EMPTY_TEXT, NULL_TEXT } from '../constants/constants'
 import type { SetSelectedCell } from '../hooks/useSelectionHandler'
 import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
 
+export type TableCellRef = {
+  focusInput: () => void
+  blurInput: () => void
+  isInputFocused: () => boolean
+  setInputValue: (value: string) => void
+  focusSelectedCell: () => void
+}
+
 const TableCell: FC<
   CellContext<TableRowWithType, unknown> & {
-    selectedCellRef: RefObject<HTMLDivElement | null>
-    inputRef: RefObject<HTMLTextAreaElement | null>
+    ref: RefObject<TableCellRef | null> | undefined
     selectedCell: SelectedCell | undefined
     editedCells: Cell[]
     deletedRowIndexes: number[]
@@ -25,8 +39,7 @@ const TableCell: FC<
     getValue,
     row: { index, original },
     column: { id, getSize, getIndex, columnDef },
-    selectedCellRef,
-    inputRef,
+    ref,
     selectedCell,
     editedCells,
     deletedRowIndexes,
@@ -36,6 +49,9 @@ const TableCell: FC<
     onCellEdit,
     onShouldShowInputChange,
   }) => {
+    const inputRef = useRef<HTMLTextAreaElement>(null)
+    const selectedCellRef = useRef<HTMLDivElement>(null)
+
     const value = getValue()
     const isNull = value === null
     const isEmpty = value === ''
@@ -43,7 +59,7 @@ const TableCell: FC<
     const initialValue =
       value === null || value === undefined ? '' : String(value)
 
-    // 開業が存在する場合は一行目の内容+「...」を表示
+    // 改行が存在する場合は一行目の内容+「...」を表示
     const displayValue = initialValue.includes('\n')
       ? `${initialValue.split('\n')[0]}...`
       : initialValue
@@ -59,6 +75,28 @@ const TableCell: FC<
     const canSetAsNull = !!columnDef.meta?.columnMetadata.isNullable && !isNull
     const canSetAsEmpty =
       !!columnDef.meta?.columnMetadata.isTextType && !isEmpty
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        focusInput: () => {
+          inputRef.current?.focus()
+        },
+        blurInput: () => {
+          inputRef.current?.blur()
+        },
+        isInputFocused: () => inputRef.current === document.activeElement,
+        setInputValue: (value: string) => {
+          if (!inputRef.current) return
+
+          inputRef.current.value = value
+        },
+        focusSelectedCell: () => {
+          selectedCellRef.current?.focus()
+        },
+      }),
+      [],
+    )
 
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
       if (isSelected) {
@@ -92,24 +130,21 @@ const TableCell: FC<
       }
     }
 
-    const mergedInputRef = useCallback(
-      (node: HTMLTextAreaElement | null) => {
-        inputRef.current = node
+    const mergedInputRef = useCallback((node: HTMLTextAreaElement | null) => {
+      inputRef.current = node
 
-        const listener = (e: InputEvent) => {
-          if (e.inputType === 'insertLineBreak') {
-            e.preventDefault()
-          }
+      const listener = (e: InputEvent) => {
+        if (e.inputType === 'insertLineBreak') {
+          e.preventDefault()
         }
+      }
 
-        node?.addEventListener('beforeinput', listener)
+      node?.addEventListener('beforeinput', listener)
 
-        return () => {
-          node?.removeEventListener('beforeinput', listener)
-        }
-      },
-      [inputRef],
-    )
+      return () => {
+        node?.removeEventListener('beforeinput', listener)
+      }
+    }, [])
 
     const nullAndEmptyColor =
       'color-mix(in srgb, transparent, currentColor 60%)'
