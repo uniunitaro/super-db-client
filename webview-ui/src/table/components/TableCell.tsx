@@ -80,7 +80,8 @@ const TableCell: FC<
       ref,
       () => ({
         focusInput: () => {
-          inputRef.current?.focus()
+          inputRef.current?.focus({ preventScroll: true })
+          inputRef.current?.scrollIntoView({ block: 'nearest' })
         },
         blurInput: () => {
           inputRef.current?.blur()
@@ -92,7 +93,8 @@ const TableCell: FC<
           inputRef.current.value = value
         },
         focusSelectedCell: () => {
-          selectedCellRef.current?.focus()
+          selectedCellRef.current?.focus({ preventScroll: true })
+          selectedCellRef.current?.scrollIntoView({ block: 'nearest' })
         },
       }),
       [],
