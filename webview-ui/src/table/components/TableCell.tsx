@@ -1,3 +1,4 @@
+import { getObjectKeys } from '@/utilities/getObjectKeys'
 import { serializeVSCodeContext } from '@/utilities/vscodeContext'
 import type { CellContext } from '@tanstack/react-table'
 import {
@@ -30,6 +31,8 @@ const TableCell: FC<
     deletedRowIndexes: number[]
     shouldShowInput: boolean
     isMultiSelected: boolean
+    cellWidth: number
+    isResizing: boolean
     onCellSelect: SetSelectedCell
     onCellEdit?: (newValue: string) => void
     onShouldShowInputChange: (shouldShowInput: boolean) => void
@@ -38,13 +41,14 @@ const TableCell: FC<
   ({
     getValue,
     row: { index, original },
-    column: { id, getSize, getIndex, columnDef },
+    column: { id, getIndex, columnDef },
     ref,
     selectedCell,
     editedCells,
     deletedRowIndexes,
     shouldShowInput,
     isMultiSelected,
+    cellWidth,
     onCellSelect,
     onCellEdit,
     onShouldShowInputChange,
@@ -177,7 +181,7 @@ const TableCell: FC<
             outline: 'none',
           },
         })}
-        style={{ width: getSize() }}
+        style={{ width: cellWidth }}
         tabIndex={isSelected ? 0 : -1}
         onClick={handleClick}
         // isSelectedのときにクリックしてしまうとinputの表示と競合してメニューがバグるので非選択のときだけセルを選択する
@@ -239,6 +243,8 @@ const TableCell: FC<
               px: 'tableRowPaddingX',
               py: 'tableRowPaddingY',
               rounded: '2px',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
               '&[data-selected=true]': {
                 outline: '1px solid var(--vscode-focusBorder)',
                 outlineOffset: '-1px',
@@ -251,29 +257,26 @@ const TableCell: FC<
             data-selected={isSelected}
             data-changed={isEdited || isDeleted || isInserted}
           >
-            <div
-              className={css({
-                textOverflow: 'ellipsis',
-                overflow: 'hidden',
-              })}
-            >
-              {isNull || isEmpty ? (
-                <span
-                  className={css({
-                    color: nullAndEmptyColor,
-                  })}
-                >
-                  {isNull ? NULL_TEXT : EMPTY_TEXT}
-                </span>
-              ) : (
-                <span>{displayValue}</span>
-              )}
-            </div>
+            {isNull || isEmpty ? (
+              <span
+                className={css({
+                  color: nullAndEmptyColor,
+                })}
+              >
+                {isNull ? NULL_TEXT : EMPTY_TEXT}
+              </span>
+            ) : (
+              <span>{displayValue}</span>
+            )}
           </div>
         )}
       </div>
     )
   },
+  (prev, next) =>
+    prev.isResizing
+      ? prev.cellWidth === next.cellWidth
+      : getObjectKeys(prev).every((key) => Object.is(prev[key], next[key])),
 )
 
 export default TableCell

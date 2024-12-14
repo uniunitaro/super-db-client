@@ -101,9 +101,10 @@ const VirtualTable: FC<{
       () =>
         columnsWithWidth.map((column) =>
           columnHelper.accessor(`row.${column.name}`, {
-            size: column.width + TABLE_ROW_PADDING_X_PX * 2,
-            maxSize: ROW_MAX_WIDTH,
-            // header: column.name,
+            size: Math.min(
+              column.width + TABLE_ROW_PADDING_X_PX * 2,
+              ROW_MAX_WIDTH,
+            ),
             id: column.name,
             meta: { columnMetadata: column },
           }),
@@ -113,7 +114,7 @@ const VirtualTable: FC<{
 
     const defaultColumn: Partial<ColumnDef<TableRowWithType>> = useMemo(
       () => ({
-        header: ({ header: { getSize, column } }) => {
+        header: ({ header: { column } }) => {
           const isSortedAsc =
             sort?.orderBy === column.id && sort.order === 'asc'
           const isSortedDesc =
@@ -122,8 +123,8 @@ const VirtualTable: FC<{
           return (
             <button
               type="button"
-              style={{ width: getSize() }}
               className={css({
+                w: 'full',
                 h: 'full',
                 px: 'tableRowPaddingX',
                 textOverflow: 'ellipsis',
@@ -156,8 +157,22 @@ const VirtualTable: FC<{
       data: dbRows,
       columns,
       defaultColumn,
+      columnResizeMode: 'onChange',
       getCoreRowModel: getCoreRowModel(),
     })
+
+    // biome-ignore lint/correctness/useExhaustiveDependencies: パフォーマンス向上のためルールを無視
+    const columnWidths = useMemo(() => {
+      const headers = table.getFlatHeaders()
+      const widths: { [key: string]: number } = {}
+      for (let i = 0; i < headers.length; i++) {
+        const header = headers[i]
+        widths[header.id] = header.getSize()
+      }
+      return widths
+    }, [table.getState().columnSizingInfo, table.getState().columnSizing])
+
+    const isResizing = !!table.getState().columnSizingInfo.isResizingColumn
 
     const { rows } = table.getRowModel()
 
@@ -207,11 +222,16 @@ const VirtualTable: FC<{
         className={css({
           overflow: 'auto',
           '&::-webkit-scrollbar-button': { display: 'none' },
+          '&[data-resizing=true] *': {
+            // リサイズ中はテーブル全体でew-resizeカーソルに変更
+            cursor: 'ew-resize!',
+          },
         })}
         style={{
           // stickyヘッダーの高さ分scrollPaddingTopを設定
           scrollPaddingTop: `${rowHeight}px`,
         }}
+        data-resizing={isResizing}
       >
         <div
           ref={tableRef}
@@ -255,56 +275,96 @@ const VirtualTable: FC<{
                 style={{ height: `${rowHeight}px` }}
               >
                 {headerGroup.headers.map((header) => (
-                  <div role="columnheader" key={header.id}>
+                  <div
+                    role="columnheader"
+                    key={header.id}
+                    className={css({
+                      pos: 'relative',
+                      _hover: {
+                        bgColor: 'var(--vscode-list-hoverBackground)',
+                        color: 'var(--vscode-list-hoverForeground)',
+                      },
+                    })}
+                    style={{
+                      width: columnWidths[header.id],
+                    }}
+                  >
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext(),
                     )}
+                    <div
+                      onDoubleClick={() => header.column.resetSize()}
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                      className={css({
+                        pos: 'absolute',
+                        top: 0,
+                        h: 'full',
+                        right: '-3px',
+                        width: '6px',
+                        px: '1px',
+                        bgClip: 'content-box',
+                        cursor: 'ew-resize',
+                        userSelect: 'none',
+                        touchAction: 'none',
+                        zIndex: 1,
+                        transition: 'background-color 0.2s',
+                        _hover: {
+                          bgColor: 'var(--vscode-focusBorder)',
+                          transition: 'background-color 0.2s 0.2s',
+                        },
+                        '&[data-resizing=true]': {
+                          bgColor: 'var(--vscode-focusBorder)',
+                        },
+                      })}
+                      data-resizing={header.column.getIsResizing()}
+                    />
                   </div>
                 ))}
               </div>
             ))}
           </div>
-          <div>
-            <div
-              role="rowgroup"
-              className={css({
-                display: 'grid',
-                pos: 'relative',
-                contain: 'strict',
-                transform: 'translate3d(0, 0, 0)',
-              })}
-              style={{ height: `${virtualizer.getTotalSize()}px` }}
-            >
-              {virtualizer.getVirtualItems().map((virtualRow) => {
-                const row = rows[virtualRow.index]
-                const isCellSelected = selectedCell?.rowIndex === row.index
-                const isRowSelected = selectedRowIndexes.some(
-                  (rowIndex) => rowIndex === row.index,
-                )
-                const isMultiSelected = selectedRowIndexes.length > 1
+          <div
+            role="rowgroup"
+            className={css({
+              display: 'grid',
+              pos: 'relative',
+              contain: 'strict',
+              transform: 'translate3d(0, 0, 0)',
+            })}
+            style={{ height: `${virtualizer.getTotalSize()}px` }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const row = rows[virtualRow.index]
+              const isCellSelected = selectedCell?.rowIndex === row.index
+              const isRowSelected = selectedRowIndexes.some(
+                (rowIndex) => rowIndex === row.index,
+              )
+              const isMultiSelected = selectedRowIndexes.length > 1
 
-                return (
-                  // 再レンダリング抑制のためにisCellSelectedによってpropsを渡すか切り替えている
-                  <TableRow
-                    key={row.id}
-                    row={row}
-                    virtualRow={virtualRow}
-                    isCellSelected={isCellSelected}
-                    cellRef={cellRef}
-                    selectedCell={isCellSelected ? selectedCell : undefined}
-                    editedCells={editedCells}
-                    deletedRowIndexes={deletedRowIndexes}
-                    isRowSelected={isRowSelected}
-                    isMultiSelected={isMultiSelected}
-                    shouldShowInput={isCellSelected ? shouldShowInput : false}
-                    onCellSelect={onCellSelect}
-                    onCellEdit={isCellSelected ? onCellEdit : undefined}
-                    onShouldShowInputChange={onShouldShowInputChange}
-                  />
-                )
-              })}
-            </div>
+              return (
+                // 再レンダリング抑制のためにisCellSelectedによってpropsを渡すか切り替えている
+                <TableRow
+                  key={row.id}
+                  row={row}
+                  virtualRow={virtualRow}
+                  columnWidths={columnWidths}
+                  isCellSelected={isCellSelected}
+                  cellRef={cellRef}
+                  selectedCell={isCellSelected ? selectedCell : undefined}
+                  editedCells={editedCells}
+                  deletedRowIndexes={deletedRowIndexes}
+                  isRowSelected={isRowSelected}
+                  isMultiSelected={isMultiSelected}
+                  shouldShowInput={isCellSelected ? shouldShowInput : false}
+                  isResizing={isResizing}
+                  onCellSelect={onCellSelect}
+                  onCellEdit={isCellSelected ? onCellEdit : undefined}
+                  onShouldShowInputChange={onShouldShowInputChange}
+                />
+              )
+            })}
           </div>
         </div>
       </div>

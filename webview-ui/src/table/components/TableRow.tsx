@@ -1,14 +1,17 @@
+import { getObjectKeys } from '@/utilities/getObjectKeys'
 import type { Row } from '@tanstack/react-table'
 import type { VirtualItem } from '@tanstack/react-virtual'
 import { type FC, type RefObject, memo } from 'react'
 import { css } from 'styled-system/css'
 import type { SetSelectedCell } from '../hooks/useSelectionHandler'
 import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
-import TableCell, { type TableCellRef } from './TableCell'
+import type { TableCellRef } from './TableCell'
+import TableCell from './TableCell'
 
 const TableRow: FC<{
   row: Row<TableRowWithType>
   virtualRow: VirtualItem
+  columnWidths: { [key: string]: number }
   isCellSelected: boolean
   cellRef: RefObject<TableCellRef | null>
   selectedCell: SelectedCell | undefined
@@ -17,6 +20,7 @@ const TableRow: FC<{
   isRowSelected: boolean
   isMultiSelected: boolean
   shouldShowInput: boolean
+  isResizing: boolean
   onCellSelect: SetSelectedCell
   onCellEdit?: (newValue: string) => void
   onShouldShowInputChange: (shouldShowInput: boolean) => void
@@ -24,6 +28,7 @@ const TableRow: FC<{
   ({
     row,
     virtualRow,
+    columnWidths,
     isCellSelected,
     cellRef,
     selectedCell,
@@ -32,6 +37,7 @@ const TableRow: FC<{
     isRowSelected,
     isMultiSelected,
     shouldShowInput,
+    isResizing,
     onCellSelect,
     onCellEdit,
     onShouldShowInputChange,
@@ -64,26 +70,34 @@ const TableRow: FC<{
           const isSelectedCell =
             selectedCell?.rowIndex === row.index &&
             selectedCell.columnId === cell.column.id
+
+          const cellWidth = columnWidths[cell.column.id]
           return (
-            <div key={cell.id}>
-              <TableCell
-                {...cell.getContext()}
-                ref={isSelectedCell ? cellRef : undefined}
-                selectedCell={selectedCell}
-                editedCells={editedCells}
-                deletedRowIndexes={deletedRowIndexes}
-                shouldShowInput={shouldShowInput}
-                isMultiSelected={isMultiSelected}
-                onCellSelect={onCellSelect}
-                onCellEdit={onCellEdit}
-                onShouldShowInputChange={onShouldShowInputChange}
-              />
-            </div>
+            <TableCell
+              key={cell.id}
+              {...cell.getContext()}
+              ref={isSelectedCell ? cellRef : undefined}
+              selectedCell={selectedCell}
+              editedCells={editedCells}
+              deletedRowIndexes={deletedRowIndexes}
+              shouldShowInput={shouldShowInput}
+              isMultiSelected={isMultiSelected}
+              cellWidth={cellWidth}
+              isResizing={isResizing}
+              onCellSelect={onCellSelect}
+              onCellEdit={onCellEdit}
+              onShouldShowInputChange={onShouldShowInputChange}
+            />
           )
         })}
       </div>
     )
   },
+  (prev, next) =>
+    !prev.isResizing &&
+    getObjectKeys(prev).every(
+      (key) => key === 'columnWidths' || Object.is(prev[key], next[key]),
+    ),
 )
 
 export default TableRow
