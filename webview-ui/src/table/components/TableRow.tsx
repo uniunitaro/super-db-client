@@ -95,9 +95,8 @@ const TableRow: FC<{
   },
   (prev, next) =>
     !prev.isResizing &&
-    getObjectKeys(prev).every(
-      (key) => key === 'columnWidths' || Object.is(prev[key], next[key]),
-    ),
+    !next.isResizing &&
+    getObjectKeys(prev).every((key) => Object.is(prev[key], next[key])),
 )
 
 export default TableRow

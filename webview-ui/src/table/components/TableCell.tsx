@@ -274,7 +274,7 @@ const TableCell: FC<
     )
   },
   (prev, next) =>
-    prev.isResizing
+    prev.isResizing && next.isResizing
       ? prev.cellWidth === next.cellWidth
       : getObjectKeys(prev).every((key) => Object.is(prev[key], next[key])),
 )
