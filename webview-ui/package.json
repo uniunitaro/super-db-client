@@ -24,14 +24,20 @@
   "devDependencies": {
     "@biomejs/biome": "1.8.2",
     "@pandacss/dev": "^0.39.1",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
     "@types/vscode-webview": "^1.57.5",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
     "@vitejs/plugin-react": "^4.2.1",
+    "jsdom": "^25.0.1",
     "typescript": "^5.7.2",
     "vite": "^5.2.13",
     "vite-plugin-static-copy": "^1.0.5",
-    "vite-tsconfig-paths": "^4.3.2"
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^2.1.8"
   }
 }

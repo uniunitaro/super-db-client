@@ -1,6 +1,6 @@
 import LinearProgress from '@/components/LinearProgress'
 import { useVSCodeState } from '@/hooks/useVSCodeState'
-import { vscode } from '@/utilities/vscode'
+import { messenger } from '@/utilities/messenger'
 import { serializeVSCodeContext } from '@/utilities/vscodeContext'
 import {
   commandRequest,
@@ -64,7 +64,7 @@ const Table: FC = () => {
   } = useQuery({
     queryKey: ['getTableData', limit, offset, sort],
     queryFn: () =>
-      vscode.messenger.sendRequest(getTableDataRequest, HOST_EXTENSION, {
+      messenger.sendRequest(getTableDataRequest, HOST_EXTENSION, {
         limit,
         offset,
         order: sort?.order,
@@ -79,8 +79,7 @@ const Table: FC = () => {
     error: configError,
   } = useQuery({
     queryKey: ['getConfig'],
-    queryFn: () =>
-      vscode.messenger.sendRequest(getConfigRequest, HOST_EXTENSION),
+    queryFn: () => messenger.sendRequest(getConfigRequest, HOST_EXTENSION),
   })
 
   const {
@@ -90,7 +89,7 @@ const Table: FC = () => {
   } = useQuery({
     queryKey: ['getTableInitialData'],
     queryFn: () =>
-      vscode.messenger.sendRequest(getTableInitialDataRequest, HOST_EXTENSION),
+      messenger.sendRequest(getTableInitialDataRequest, HOST_EXTENSION),
     // 毎回取得したいのでキャッシュしない
     staleTime: 0,
     gcTime: 0,
@@ -151,7 +150,7 @@ const Table: FC = () => {
   const { mutate: saveTableChanges } = useMutation({
     mutationKey: ['saveTableChanges'],
     mutationFn: async () =>
-      vscode.messenger.sendRequest(saveTableChangesRequest, HOST_EXTENSION, {
+      messenger.sendRequest(saveTableChangesRequest, HOST_EXTENSION, {
         operations: convertClientOperationToOperation(operations),
       }),
     onSuccess: () => {
@@ -183,7 +182,7 @@ const Table: FC = () => {
   }, [tableData, resetOperations])
 
   useEffect(() => {
-    vscode.messenger.onRequest(commandRequest, (command) => {
+    messenger.onRequest(commandRequest, (command) => {
       switch (command) {
         case 'saveTableChanges':
           handleSaveChanges()
@@ -202,7 +201,7 @@ const Table: FC = () => {
           break
       }
     })
-    vscode.messenger.start()
+    messenger.start()
   }, [handleSaveChanges, refetchTableData, handleRowDelete, handleCellEdit])
 
   useShortcutKeys({

@@ -1,4 +1,5 @@
 import { useVSCodeState } from '@/hooks/useVSCodeState'
+import { messenger } from '@/utilities/messenger'
 import {
   getConnectionSettingInitialDataRequest,
   saveDBConfigRequest,
@@ -12,7 +13,6 @@ import { container } from 'styled-system/patterns/container'
 import { grid } from 'styled-system/patterns/grid'
 import { stack } from 'styled-system/patterns/stack'
 import { HOST_EXTENSION } from 'vscode-messenger-common'
-import { vscode } from '../utilities/vscode'
 
 const ConnectionSetting: FC = () => {
   const useConnectionSettingPanelState = useVSCodeState(
@@ -36,7 +36,7 @@ const ConnectionSetting: FC = () => {
   } = useQuery({
     queryKey: ['getConnectionSettingInitialData'],
     queryFn: () =>
-      vscode.messenger.sendRequest(
+      messenger.sendRequest(
         getConnectionSettingInitialDataRequest,
         HOST_EXTENSION,
       ),
@@ -52,7 +52,7 @@ const ConnectionSetting: FC = () => {
   }, [dbConfig.targetUUID, initialData, setDBConfig])
 
   useEffect(() => {
-    vscode.messenger.start()
+    messenger.start()
   }, [])
 
   const handleChange = (
@@ -65,7 +65,7 @@ const ConnectionSetting: FC = () => {
   const handleClickSaveOrTest = (type: 'save' | 'test') => {
     const request =
       type === 'save' ? saveDBConfigRequest : testDBConnectionRequest
-    vscode.messenger.sendRequest(request, HOST_EXTENSION, {
+    messenger.sendRequest(request, HOST_EXTENSION, {
       ...dbConfig,
       port: Number(dbConfig.port),
     })

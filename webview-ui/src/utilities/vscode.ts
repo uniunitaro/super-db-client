@@ -1,5 +1,4 @@
 import type { VSCodeState } from '@/hooks/useVSCodeState'
-import { Messenger } from 'vscode-messenger-webview'
 import type { WebviewApi } from 'vscode-webview'
 
 /**
@@ -12,16 +11,13 @@ import type { WebviewApi } from 'vscode-webview'
  * enabled by acquireVsCodeApi.
  */
 class VSCodeAPIWrapper {
-  private readonly vsCodeApi: WebviewApi<unknown> | undefined
-  // @ts-expect-error
-  public messenger: Messenger
+  public vsCodeApi: WebviewApi<unknown> | undefined
 
   constructor() {
     // Check if the acquireVsCodeApi function exists in the current development
     // context (i.e. VS Code development window or web browser)
     if (typeof acquireVsCodeApi === 'function') {
       this.vsCodeApi = acquireVsCodeApi()
-      this.messenger = new Messenger(this.vsCodeApi)
     }
   }
 
