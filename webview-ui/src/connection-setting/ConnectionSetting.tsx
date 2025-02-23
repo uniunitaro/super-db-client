@@ -1,4 +1,5 @@
 import { useVSCodeState } from '@/hooks/useVSCodeState'
+import { assertNever } from '@/utilities/assertNever'
 import { messenger } from '@/utilities/messenger'
 import {
   getConnectionSettingInitialDataRequest,
@@ -7,12 +8,30 @@ import {
 } from '@shared-types/message'
 import type { DBConfigInput } from '@shared-types/sharedTypes'
 import { useQuery } from '@tanstack/react-query'
-import { VSCodeButton, VSCodeTextField } from '@vscode/webview-ui-toolkit/react'
+import {
+  VSCodeButton,
+  VSCodeDropdown,
+  VSCodeOption,
+  VSCodeTextField,
+} from '@vscode/webview-ui-toolkit/react'
 import { type ChangeEvent, type FC, useEffect } from 'react'
 import { container } from 'styled-system/patterns/container'
 import { grid } from 'styled-system/patterns/grid'
 import { stack } from 'styled-system/patterns/stack'
 import { HOST_EXTENSION } from 'vscode-messenger-common'
+import type { DBConfigInputForForm } from './types/state'
+
+const defaultDBConfig: DBConfigInputForForm = {
+  targetUUID: undefined,
+  connectionName: '',
+  type: 'mysql',
+  database: '',
+  host: '',
+  port: '',
+  user: '',
+  password: '',
+  filePath: '',
+}
 
 const ConnectionSetting: FC = () => {
   const useConnectionSettingPanelState = useVSCodeState(
@@ -20,13 +39,7 @@ const ConnectionSetting: FC = () => {
   )
 
   const [dbConfig, setDBConfig] = useConnectionSettingPanelState('config', {
-    targetUUID: undefined,
-    connectionName: '',
-    host: '',
-    port: '',
-    user: '',
-    password: '',
-    database: '',
+    ...defaultDBConfig,
   })
 
   const {
@@ -43,11 +56,23 @@ const ConnectionSetting: FC = () => {
   })
   useEffect(() => {
     if (initialData && dbConfig.targetUUID === undefined) {
-      setDBConfig({
-        ...initialData,
-        port: initialData.port.toString(),
-        targetUUID: initialData.uuid,
-      })
+      switch (initialData.type) {
+        case 'mysql':
+          setDBConfig({
+            ...defaultDBConfig,
+            ...initialData,
+            port: initialData.port.toString(),
+          })
+          break
+        case 'sqlite':
+          setDBConfig({
+            ...defaultDBConfig,
+            ...initialData,
+          })
+          break
+        default:
+          assertNever(initialData)
+      }
     }
   }, [dbConfig.targetUUID, initialData, setDBConfig])
 
@@ -56,8 +81,8 @@ const ConnectionSetting: FC = () => {
   }, [])
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement>,
-    key: keyof DBConfigInput,
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    key: keyof DBConfigInputForForm,
   ) => {
     setDBConfig({ ...dbConfig, [key]: e.target.value })
   }
@@ -65,10 +90,26 @@ const ConnectionSetting: FC = () => {
   const handleClickSaveOrTest = (type: 'save' | 'test') => {
     const request =
       type === 'save' ? saveDBConfigRequest : testDBConnectionRequest
-    messenger.sendRequest(request, HOST_EXTENSION, {
-      ...dbConfig,
-      port: Number(dbConfig.port),
-    })
+
+    const input: DBConfigInput = (() => {
+      switch (dbConfig.type) {
+        case 'mysql':
+          return {
+            ...dbConfig,
+            type: dbConfig.type,
+            port: Number(dbConfig.port),
+          }
+        case 'sqlite':
+          return {
+            ...dbConfig,
+            type: dbConfig.type,
+          }
+        default:
+          return assertNever(dbConfig.type)
+      }
+    })()
+
+    messenger.sendRequest(request, HOST_EXTENSION, input)
   }
 
   return (
@@ -81,6 +122,18 @@ const ConnectionSetting: FC = () => {
       >
         <div className={stack({ gap: '6' })}>
           <div className={stack({ gap: '2' })}>
+            <div className={stack({ gap: '0' })}>
+              <label>Database Type</label>
+              <VSCodeDropdown
+                value={dbConfig.type}
+                onChange={(e) =>
+                  handleChange(e as ChangeEvent<HTMLSelectElement>, 'type')
+                }
+              >
+                <VSCodeOption value="mysql">MySQL</VSCodeOption>
+                <VSCodeOption value="sqlite">SQLite</VSCodeOption>
+              </VSCodeDropdown>
+            </div>
             <VSCodeTextField
               value={dbConfig.connectionName}
               onInput={(e) =>
@@ -92,46 +145,59 @@ const ConnectionSetting: FC = () => {
             >
               Name
             </VSCodeTextField>
-            <VSCodeTextField
-              value={dbConfig.host}
-              onInput={(e) =>
-                handleChange(e as ChangeEvent<HTMLInputElement>, 'host')
-              }
-            >
-              Host
-            </VSCodeTextField>
-            <VSCodeTextField
-              value={dbConfig.port}
-              onInput={(e) =>
-                handleChange(e as ChangeEvent<HTMLInputElement>, 'port')
-              }
-            >
-              Port
-            </VSCodeTextField>
-            <VSCodeTextField
-              value={dbConfig.user}
-              onInput={(e) =>
-                handleChange(e as ChangeEvent<HTMLInputElement>, 'user')
-              }
-            >
-              User
-            </VSCodeTextField>
-            <VSCodeTextField
-              value={dbConfig.password}
-              onInput={(e) =>
-                handleChange(e as ChangeEvent<HTMLInputElement>, 'password')
-              }
-            >
-              Password
-            </VSCodeTextField>
-            <VSCodeTextField
-              value={dbConfig.database}
-              onInput={(e) =>
-                handleChange(e as ChangeEvent<HTMLInputElement>, 'database')
-              }
-            >
-              Database
-            </VSCodeTextField>
+            {dbConfig.type === 'mysql' ? (
+              <>
+                <VSCodeTextField
+                  value={dbConfig.host}
+                  onInput={(e) =>
+                    handleChange(e as ChangeEvent<HTMLInputElement>, 'host')
+                  }
+                >
+                  Host
+                </VSCodeTextField>
+                <VSCodeTextField
+                  value={dbConfig.port}
+                  onInput={(e) =>
+                    handleChange(e as ChangeEvent<HTMLInputElement>, 'port')
+                  }
+                >
+                  Port
+                </VSCodeTextField>
+                <VSCodeTextField
+                  value={dbConfig.user}
+                  onInput={(e) =>
+                    handleChange(e as ChangeEvent<HTMLInputElement>, 'user')
+                  }
+                >
+                  User
+                </VSCodeTextField>
+                <VSCodeTextField
+                  value={dbConfig.password}
+                  onInput={(e) =>
+                    handleChange(e as ChangeEvent<HTMLInputElement>, 'password')
+                  }
+                >
+                  Password
+                </VSCodeTextField>
+                <VSCodeTextField
+                  value={dbConfig.database}
+                  onInput={(e) =>
+                    handleChange(e as ChangeEvent<HTMLInputElement>, 'database')
+                  }
+                >
+                  Database
+                </VSCodeTextField>
+              </>
+            ) : (
+              <VSCodeTextField
+                value={dbConfig.filePath}
+                onInput={(e) =>
+                  handleChange(e as ChangeEvent<HTMLInputElement>, 'filePath')
+                }
+              >
+                File Path
+              </VSCodeTextField>
+            )}
           </div>
           <div className={grid({ columns: 2 })}>
             <VSCodeButton

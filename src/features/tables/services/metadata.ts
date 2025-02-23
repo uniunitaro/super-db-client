@@ -1,8 +1,11 @@
 import { sql } from 'kysely'
+import { ResultAsync } from 'neverthrow'
+import { tuple } from '../../../utilities/tuple'
 import type { KyselyDB } from '../../connections/types/connection'
+import { type DatabaseError, toDatabaseError } from '../../core/errors'
 import type { TableMetadata } from '../types/metadata'
 
-export const getTableMetadata = async ({
+export const getTableMetadata = ({
   db,
   schema,
   tableName,
@@ -10,44 +13,57 @@ export const getTableMetadata = async ({
   db: KyselyDB
   schema: string
   tableName: string
-}): Promise<TableMetadata> => {
-  const res = await sql<{
-    COLUMN_NAME: string
-    DATA_TYPE: string
-    IS_NULLABLE: string
-    COLUMN_DEFAULT: string | null
-    EXTRA: string
-    COLUMN_COMMENT: string
-  }>`
+}): ResultAsync<TableMetadata, DatabaseError> => {
+  const metadataRes = ResultAsync.fromPromise(
+    sql<{
+      COLUMN_NAME: string
+      DATA_TYPE: string
+      IS_NULLABLE: string
+      COLUMN_DEFAULT: string | null
+      EXTRA: string
+      COLUMN_COMMENT: string
+    }>`
     SELECT * 
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = ${schema}
     AND TABLE_NAME = ${tableName}
     ORDER BY ORDINAL_POSITION
-  `.execute(db)
+  `.execute(db),
+    toDatabaseError,
+  )
 
-  const tableRes = await sql<{ TABLE_ROWS: number }>`
+  const tableRowCountRes = ResultAsync.fromPromise(
+    sql<{ TABLE_ROWS: number }>`
     SELECT TABLE_ROWS
     FROM INFORMATION_SCHEMA.TABLES
     WHERE TABLE_SCHEMA = ${schema}
     AND TABLE_NAME = ${tableName}
-  `.execute(db)
+  `.execute(db),
+    toDatabaseError,
+  )
   // TODO: 総行数が閾値以下ならcountで取得する
 
-  const columnKeyRes = await sql<{
-    COLUMN_NAME: string
-    CONSTRAINT_NAME: string
-  }>`
+  const columnKeyRes = ResultAsync.fromPromise(
+    sql<{
+      COLUMN_NAME: string
+      CONSTRAINT_NAME: string
+    }>`
     SELECT COLUMN_NAME, CONSTRAINT_NAME
     FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
     WHERE TABLE_SCHEMA = ${schema}
     AND TABLE_NAME = ${tableName}
-  `.execute(db)
+  `.execute(db),
+    toDatabaseError,
+  )
 
-  return {
+  const res = ResultAsync.combine(
+    tuple(metadataRes, tableRowCountRes, columnKeyRes),
+  )
+
+  return res.map(([metadata, tableRowCount, columnKey]) => ({
     name: tableName,
-    totalRows: tableRes.rows[0].TABLE_ROWS,
-    columns: res.rows.map((row) => ({
+    totalRows: tableRowCount.rows[0].TABLE_ROWS,
+    columns: metadata.rows.map((row) => ({
       name: row.COLUMN_NAME,
       dataType: row.DATA_TYPE,
       isNullable: row.IS_NULLABLE === 'YES',
@@ -58,12 +74,12 @@ export const getTableMetadata = async ({
       extra: row.EXTRA,
       comment: row.COLUMN_COMMENT,
     })),
-    columnKeys: columnKeyRes.rows.map((row) => ({
+    columnKeys: columnKey.rows.map((row) => ({
       columnName: row.COLUMN_NAME,
       constraintName: row.CONSTRAINT_NAME,
     })),
-    primaryKeyColumns: columnKeyRes.rows
+    primaryKeyColumns: columnKey.rows
       .filter((row) => row.CONSTRAINT_NAME === 'PRIMARY')
       .map((row) => row.COLUMN_NAME),
-  }
+  }))
 }

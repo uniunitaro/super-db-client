@@ -20,9 +20,9 @@ export const updateCurrentConnectionStatus = (context: ExtensionContext) => {
   const currentConnection = getCurrentConnection(context)
 
   if (currentConnection) {
-    const { connectionName, host, database } = currentConnection
+    // const { connectionName, host, database } = currentConnection
     _statusBarItem.text = `$(database) ${currentConnection.connectionName}`
-    _statusBarItem.tooltip = `${connectionName} ${host} : ${database}`
+    // _statusBarItem.tooltip = `${connectionName} ${host} : ${database}`
   }
 
   _statusBarItem.show()

@@ -1,10 +1,18 @@
+import type { Result } from 'neverthrow'
 import type { ExtensionContext } from 'vscode'
 import { updateCurrentConnectionStatus } from '../../../ui/statusBars/currentConnectionStatus'
-import { DB } from '../services/connection'
+import type { DatabaseError } from '../../core/errors'
+import { connect } from '../services/connection'
 import { setCurrentConnection } from '../services/dbConfig'
+import type { KyselyDB } from '../types/connection'
 
-export const connectDB = (context: ExtensionContext, dbUUID: string) => {
-  DB.connect(context, dbUUID)
-  setCurrentConnection(context, dbUUID)
-  updateCurrentConnectionStatus(context)
+export const connectDB = (
+  context: ExtensionContext,
+  dbUUID: string,
+): Result<KyselyDB, DatabaseError> => {
+  return connect(context, dbUUID).map((db) => {
+    setCurrentConnection(context, dbUUID)
+    updateCurrentConnectionStatus(context)
+    return db
+  })
 }

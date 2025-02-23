@@ -11,9 +11,10 @@ import {
 } from 'vscode'
 import { COMMANDS } from '../../constants/commands'
 import { VIEWS } from '../../constants/views'
-import { DB } from '../../features/connections/services/connection'
+import { getDB } from '../../features/connections/services/connection'
 import { getDBConfigs } from '../../features/connections/services/dbConfig'
 import { connectDB } from '../../features/connections/usecases/connectDB'
+import { getTables } from '../../features/tables/services/table'
 
 export class ExplorerViewProvider implements TreeDataProvider<ExplorerItem> {
   private _context: ExtensionContext
@@ -38,7 +39,10 @@ export class ExplorerViewProvider implements TreeDataProvider<ExplorerItem> {
 
     this.treeView.onDidExpandElement(async (e) => {
       if (e.element.itemType === 'db' && e.element.dbUUID) {
-        connectDB(this._context, e.element.dbUUID)
+        const result = connectDB(this._context, e.element.dbUUID)
+        if (result.isErr()) {
+          window.showErrorMessage(result.error.message)
+        }
       }
     })
   }
@@ -55,11 +59,16 @@ export class ExplorerViewProvider implements TreeDataProvider<ExplorerItem> {
     element?: ExplorerItem | undefined,
   ): Promise<ExplorerItem[] | null | undefined> {
     if (element?.dbUUID) {
-      const db = DB.get()
+      const db = getDB()
       if (!db) return
 
-      const tables = await db.introspection.getTables()
-      return tables.map(
+      const tables = await getTables(db)
+      if (tables.isErr()) {
+        window.showErrorMessage(tables.error.message)
+        return []
+      }
+
+      return tables.value.map(
         (table) =>
           new ExplorerItem({
             itemType: 'table',
@@ -80,7 +89,7 @@ export class ExplorerViewProvider implements TreeDataProvider<ExplorerItem> {
         new ExplorerItem({
           itemType: 'db',
           label: dbConfig.connectionName,
-          description: `${dbConfig.host} : ${dbConfig.database}`,
+          // description: `${dbConfig.host} : ${dbConfig.database}`,
           uuid: dbConfig.uuid,
           collapsibleState: TreeItemCollapsibleState.Collapsed,
         }),

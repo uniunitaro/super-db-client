@@ -1,82 +1,114 @@
-import { Kysely, MysqlDialect, sql } from 'kysely'
+import { type Dialect, Kysely, MysqlDialect, sql } from 'kysely'
+import { NodeWasmDialect } from 'kysely-wasm'
 import { createPool } from 'mysql2'
+import { Result, ResultAsync, err } from 'neverthrow'
+import { Database } from 'node-sqlite3-wasm'
 import type { ExtensionContext } from 'vscode'
-import { getErrorMessage } from '../../../utilities/getErrorMessage'
+import { assertNever } from '../../../utilities/assertNever'
+import { DatabaseError, toDatabaseError } from '../../core/errors'
+import type { KyselyDB } from '../types/connection'
 import type { DBConfigInput } from '../types/dbConfig'
-import { getDBConfigs } from './dbConfig'
+import { getDBConfigByUUID } from './dbConfig'
 
-export class DB {
-  private static _db: Kysely<unknown> | undefined
-  public static database: string
+let db: KyselyDB | undefined
+let schema: string
 
-  private constructor(context: ExtensionContext, dbUUID: string) {
-    const dbConfig = getDBConfigs(context).find(
-      (dbConfig) => dbConfig.uuid === dbUUID,
-    )
-    if (!dbConfig) {
-      throw new Error('DB not found')
-    }
+const createKysely = (dialect: Dialect): Result<KyselyDB, DatabaseError> =>
+  Result.fromThrowable(
+    () => new Kysely({ dialect }),
+    (error) => toDatabaseError(error),
+  )()
 
-    const dialect = new MysqlDialect({
-      pool: createPool({
-        host: dbConfig.host,
-        port: dbConfig.port,
-        user: dbConfig.user,
-        password: dbConfig.password,
-        database: dbConfig.database,
-        typeCast: (field, next) => {
-          if (
-            field.type === 'DATE' ||
-            field.type === 'DATETIME' ||
-            field.type === 'TIMESTAMP'
-          ) {
-            // デフォルトはDate型で返るので文字列にする
-            return field.string()
-          }
-          return next()
-        },
-      }),
+const createDialect = (
+  config: DBConfigInput,
+  options?: { enableTypeCast?: boolean },
+): Result<Dialect, DatabaseError> =>
+  Result.fromThrowable(
+    () => {
+      switch (config.type) {
+        case 'mysql':
+          return new MysqlDialect({
+            pool: createPool({
+              host: config.host,
+              port: config.port,
+              user: config.user,
+              password: config.password,
+              database: config.database,
+              typeCast: (field, next) => {
+                if (!options?.enableTypeCast) return next()
+
+                if (
+                  field.type === 'DATE' ||
+                  field.type === 'DATETIME' ||
+                  field.type === 'TIMESTAMP'
+                ) {
+                  // デフォルトはDate型で返るので文字列にする
+                  return field.string()
+                }
+                return next()
+              },
+            }),
+          })
+        case 'sqlite':
+          return new NodeWasmDialect({
+            database: new Database(config.filePath, {
+              fileMustExist: true,
+            }),
+          })
+        default:
+          return assertNever(config)
+      }
+    },
+    (error) => toDatabaseError(error),
+  )()
+
+export const connect = (
+  context: ExtensionContext,
+  dbUUID: string,
+): Result<KyselyDB, DatabaseError> => {
+  const dbConfig = getDBConfigByUUID(context, dbUUID)
+  if (!dbConfig) {
+    return err(new DatabaseError('DB not found'))
+  }
+
+  return createDialect(dbConfig, { enableTypeCast: true })
+    .andThen(createKysely)
+    .map((kysely) => {
+      db = kysely
+
+      switch (dbConfig.type) {
+        case 'mysql':
+          schema = dbConfig.database
+          break
+        case 'sqlite':
+          schema = 'main'
+          break
+        default:
+          assertNever(dbConfig)
+      }
+
+      return db
     })
-
-    DB._db = new Kysely({
-      dialect,
-    })
-
-    DB.database = dbConfig.database
-  }
-
-  public static connect(context: ExtensionContext, dbUUID: string): DB {
-    return new DB(context, dbUUID)
-  }
-
-  public static get(): Kysely<unknown> | undefined {
-    return DB._db
-  }
 }
 
-export const testConnection = async (
+export const testConnection = (
   dbConfigInput: DBConfigInput,
-): Promise<{ error?: string }> => {
-  const dialect = new MysqlDialect({
-    pool: createPool({
-      host: dbConfigInput.host,
-      port: dbConfigInput.port,
-      user: dbConfigInput.user,
-      password: dbConfigInput.password,
-      database: dbConfigInput.database,
-    }),
-  })
+): ResultAsync<void, DatabaseError> => {
+  return createDialect(dbConfigInput)
+    .andThen(createKysely)
+    .asyncAndThen((db) =>
+      ResultAsync.fromPromise(
+        sql`SELECT 1`.execute(db).finally(() => db.destroy()),
+        toDatabaseError,
+      ),
+    )
+    .map(() => undefined)
+}
 
-  const db = new Kysely({
-    dialect,
-  })
+export const getDB = (): KyselyDB | undefined => {
+  return db
+}
 
-  try {
-    await sql`SELECT 1`.execute(db)
-    return {}
-  } catch (error) {
-    return { error: getErrorMessage(error) }
-  } finally {
-    await db.destroy()
-  }
+export const getSchema = (): string => {
+  return schema
 }

@@ -92,10 +92,10 @@ export class ConnectionSettingPanel extends BaseWebviewPanel {
 
     this._disposables.push(
       this._onRequest(testDBConnectionRequest, async (dbConfigInput) => {
-        const { error } = await testConnection(dbConfigInput)
-        if (error) {
-          window.showErrorMessage(error)
-          return { error }
+        const result = await testConnection(dbConfigInput)
+        if (result.isErr()) {
+          window.showErrorMessage(result.error.message)
+          return { error: result.error.message }
         }
 
         window.showInformationMessage('Connection Successful!')

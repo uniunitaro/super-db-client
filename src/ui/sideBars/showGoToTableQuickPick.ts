@@ -1,8 +1,8 @@
 import { type ExtensionContext, commands, window } from 'vscode'
 import { COMMANDS } from '../../constants/commands'
-import { DB } from '../../features/connections/services/connection'
 import { getCurrentConnection } from '../../features/connections/services/dbConfig'
 import { connectDB } from '../../features/connections/usecases/connectDB'
+import { getTables } from '../../features/tables/services/table'
 
 export const showGoToTableQuickPick = async (context: ExtensionContext) => {
   const currentConnection = getCurrentConnection(context)
@@ -11,16 +11,16 @@ export const showGoToTableQuickPick = async (context: ExtensionContext) => {
     return
   }
 
-  connectDB(context, currentConnection.uuid)
-  const db = DB.get()
-  if (!db) {
-    window.showWarningMessage('No DB connection found')
+  const tables = await connectDB(context, currentConnection.uuid)
+    .asyncAndThen(getTables)
+    .map((tables) => tables.map((table) => table.name))
+
+  if (tables.isErr()) {
+    window.showErrorMessage(tables.error.message)
     return
   }
 
-  const tables = (await db.introspection.getTables()).map((table) => table.name)
-
-  const tableName = await window.showQuickPick(tables, {
+  const tableName = await window.showQuickPick(tables.value, {
     placeHolder: 'Go to table',
   })
   if (!tableName) return

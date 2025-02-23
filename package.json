@@ -175,7 +175,10 @@
       "title": "Super DB Client",
       "properties": {
         "fontSize": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "default": null,
           "markdownDescription": "The font size for the Super DB Client. `null` means the editor font size is used."
         }
@@ -187,15 +190,18 @@
     "start:webview": "cd webview-ui && pnpm start",
     "build:webview": "cd webview-ui && pnpm build",
     "package": "vsce package --no-dependencies",
-    "vscode:prepublish": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify",
+    "vscode:prepublish": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify && cp ./node_modules/node-sqlite3-wasm/dist/node-sqlite3-wasm.wasm ./out/",
     "compile": "tsc -p ./",
-    "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify",
+    "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify && cp ./node_modules/node-sqlite3-wasm/dist/node-sqlite3-wasm.wasm ./out/",
     "pretest": "pnpm compile && pnpm lint",
     "lint": "eslint src --ext ts"
   },
   "dependencies": {
     "kysely": "^0.27.3",
+    "kysely-wasm": "^1.1.0",
     "mysql2": "^3.9.7",
+    "neverthrow": "^8.2.0",
+    "node-sqlite3-wasm": "^0.8.35",
     "vscode-messenger": "^0.4.5",
     "vscode-messenger-common": "^0.4.5"
   },

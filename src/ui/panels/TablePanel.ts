@@ -1,3 +1,4 @@
+import { ResultAsync } from 'neverthrow'
 import {
   type ExtensionContext,
   Uri,
@@ -8,7 +9,10 @@ import {
 } from 'vscode'
 import type { Messenger } from 'vscode-messenger'
 import { getConfig } from '../../features/configs/services/config'
-import { DB } from '../../features/connections/services/connection'
+import {
+  getDB,
+  getSchema,
+} from '../../features/connections/services/connection'
 import { getTableMetadata } from '../../features/tables/services/metadata'
 import { getRows, saveChanges } from '../../features/tables/services/table'
 import {
@@ -20,6 +24,7 @@ import {
   saveTableChangesRequest,
 } from '../../types/message'
 import { getWebviewContent } from '../../utilities/getWebviewContent'
+import { tuple } from '../../utilities/tuple'
 import { BaseWebviewPanel } from './BaseWebviewPanel'
 
 export class TablePanel extends BaseWebviewPanel {
@@ -108,20 +113,19 @@ export class TablePanel extends BaseWebviewPanel {
     this._disposables.push(
       this._onRequest(
         getTableDataRequest,
-        async ({ order, orderBy, limit, offset }) => {
-          const db = DB.get()
+        ({ order, orderBy, limit, offset }) => {
+          const db = getDB()
           if (!db) {
             throw new Error('DB not found')
           }
 
-          const tableMetadata = await getTableMetadata({
+          const tableMetadata = getTableMetadata({
             db,
-            schema: DB.database,
+            schema: getSchema(),
             tableName: this._tableName,
           })
-          console.log('tableMetadata', tableMetadata)
 
-          const rows = await getRows({
+          const rows = getRows({
             db,
             tableName: this._tableName,
             order,
@@ -129,12 +133,20 @@ export class TablePanel extends BaseWebviewPanel {
             limit,
             offset,
           })
-          console.log('rows', rows)
 
-          return {
-            tableMetadata,
-            rows,
-          }
+          const result = ResultAsync.combine(tuple(tableMetadata, rows)).map(
+            ([tableMetadata, rows]) => ({
+              tableMetadata,
+              rows,
+            }),
+          )
+          return result.match(
+            (result) => result,
+            (error) => {
+              window.showErrorMessage(error.message)
+              throw error
+            },
+          )
         },
       ),
     )
@@ -145,21 +157,24 @@ export class TablePanel extends BaseWebviewPanel {
 
     this._disposables.push(
       this._onRequest(saveTableChangesRequest, async ({ operations }) => {
-        const db = DB.get()
+        const db = getDB()
         if (!db) {
           throw new Error('DB not found')
         }
 
-        const { error } = await saveChanges({
+        const result = await saveChanges({
           db,
-          schema: DB.database,
+          schema: getSchema(),
           tableName: this._tableName,
           operations,
         })
-        if (error) {
-          window.showErrorMessage(error)
-          throw new Error(error)
-        }
+        return result.match(
+          (result) => result,
+          (error) => {
+            window.showErrorMessage(error.message)
+            throw error
+          },
+        )
       }),
     )
 

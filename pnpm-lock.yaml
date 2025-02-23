@@ -8,9 +8,18 @@ dependencies:
   kysely:
     specifier: ^0.27.3
     version: 0.27.3
+  kysely-wasm:
+    specifier: ^1.1.0
+    version: 1.1.0(kysely@0.27.3)
   mysql2:
     specifier: ^3.9.7
     version: 3.9.7
+  neverthrow:
+    specifier: ^8.2.0
+    version: 8.2.0
+  node-sqlite3-wasm:
+    specifier: ^0.8.35
+    version: 0.8.35
   vscode-messenger:
     specifier: ^0.4.5
     version: 0.4.5
@@ -360,6 +369,14 @@ packages:
     dev: true
     optional: true
 
+  /@rollup/rollup-linux-x64-gnu@4.34.8:
+    resolution: {integrity: sha512-8y7ED8gjxITUltTUEJLQdgpbPh1sUQ0kMTmufRF/Ns5tI9TNMNlhWtmPKKHCU0SilX+3MJkZ0zERYYGIVBYHIA==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
   /@tootallnate/once@1.1.2:
     resolution: {integrity: sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==}
     engines: {node: '>= 6'}
@@ -680,6 +697,23 @@ packages:
       '@pkgjs/parseargs': 0.11.0
     dev: true
 
+  /kysely-generic-sqlite@1.1.0(kysely@0.27.3):
+    resolution: {integrity: sha512-IUTzyDYRu/M8UhwLhArZD9fh98inOCM8zAgQF9ZUMmAhJg4WXLvqO5i9RXcubG6Qpk8Y3FMRfIk4ABkzto0MGw==}
+    peerDependencies:
+      kysely: '>=0.26'
+    dependencies:
+      kysely: 0.27.3
+    dev: false
+
+  /kysely-wasm@1.1.0(kysely@0.27.3):
+    resolution: {integrity: sha512-cpPIHIA5cIiqsRmner0nzKUsneuPtuCSsK8NV6p100xVesEJ4aDuIpokbXhKPA7TpbCPf/Nq85Me6/enydhvNQ==}
+    peerDependencies:
+      kysely: '>=0.26'
+    dependencies:
+      kysely: 0.27.3
+      kysely-generic-sqlite: 1.1.0(kysely@0.27.3)
+    dev: false
+
   /kysely@0.27.3:
     resolution: {integrity: sha512-lG03Ru+XyOJFsjH3OMY6R/9U38IjDPfnOfDgO3ynhbDr+Dz8fak+X6L62vqu3iybQnj+lG84OttBuU9KY3L9kA==}
     engines: {node: '>=14.0.0'}
@@ -760,6 +794,17 @@ packages:
     engines: {node: '>=12.0.0'}
     dependencies:
       lru-cache: 7.18.3
+    dev: false
+
+  /neverthrow@8.2.0:
+    resolution: {integrity: sha512-kOCT/1MCPAxY5iUV3wytNFUMUolzuwd/VF/1KCx7kf6CutrOsTie+84zTGTpgQycjvfLdBBdvBvFLqFD2c0wkQ==}
+    engines: {node: '>=18'}
+    optionalDependencies:
+      '@rollup/rollup-linux-x64-gnu': 4.34.8
+    dev: false
+
+  /node-sqlite3-wasm@0.8.35:
+    resolution: {integrity: sha512-LLB+myt7GDB4HTxIUdccD6CfOvmWfJLO3dvhy1OsauPrRyNOdKQhq0s1B72A0fzHcggKq7AkBo6qHMlJlNfXZg==}
     dev: false
 
   /once@1.4.0:
