@@ -62,12 +62,14 @@ const ConnectionSetting: FC = () => {
             ...defaultDBConfig,
             ...initialData,
             port: initialData.port.toString(),
+            targetUUID: initialData.uuid,
           })
           break
         case 'sqlite':
           setDBConfig({
             ...defaultDBConfig,
             ...initialData,
+            targetUUID: initialData.uuid,
           })
           break
         default:
