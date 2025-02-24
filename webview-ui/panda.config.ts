@@ -1,5 +1,6 @@
 import { defineConfig } from '@pandacss/dev'
 import {
+  CELL_BORDER_WIDTH,
   TABLE_LINE_HEIGHT,
   TABLE_ROW_PADDING_X_PX,
   TABLE_ROW_PADDING_Y_PX,
@@ -25,6 +26,9 @@ export default defineConfig({
         },
         lineHeights: {
           table: { value: `${TABLE_LINE_HEIGHT}` },
+        },
+        borderWidths: {
+          cellBorderWidth: { value: `${CELL_BORDER_WIDTH}px` },
         },
       },
       keyframes: {
@@ -69,6 +73,7 @@ export default defineConfig({
     '--vscode-list-hoverBackground': {},
     '--vscode-list-hoverForeground': {},
     '--vscode-list-focusOutline': {},
+    '--vscode-tree-tableColumnsBorder': {},
     '--vscode-input-background': {},
     '--vscode-input-foreground': {},
     '--vscode-input-border': {},
@@ -76,5 +81,6 @@ export default defineConfig({
     '--vscode-gitDecoration-modifiedResourceForeground': {},
     '--vscode-gitDecoration-deletedResourceForeground': {},
     '--vscode-progressBar-background': {},
+    '--vscode-sash-hoverBorder': {},
   },
 })

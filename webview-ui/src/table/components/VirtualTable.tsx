@@ -18,6 +18,7 @@ import {
 } from 'react'
 import { css } from 'styled-system/css'
 import {
+  CELL_BORDER_WIDTH,
   ROW_MAX_WIDTH,
   TABLE_LINE_HEIGHT,
   TABLE_ROW_PADDING_X_PX,
@@ -92,6 +93,7 @@ const VirtualTable: FC<{
           columns: dbColumns,
           fontFamily,
           fontSize,
+          borderWidth: CELL_BORDER_WIDTH,
         }),
       [dbColumns, dbRows, fontFamily, fontSize],
     )
@@ -133,6 +135,9 @@ const VirtualTable: FC<{
                 justifyContent: 'center',
                 alignItems: 'center',
                 fontWeight: 'bold',
+                borderRightWidth: 'cellBorderWidth',
+                borderRightStyle: 'solid',
+                borderRightColor: 'var(--vscode-tree-tableColumnsBorder)',
               })}
               onClick={() => onSortChange(column.id)}
             >
@@ -311,11 +316,11 @@ const VirtualTable: FC<{
                         zIndex: 1,
                         transition: 'background-color 0.2s',
                         _hover: {
-                          bgColor: 'var(--vscode-focusBorder)',
+                          bgColor: 'var(--vscode-sash-hoverBorder)',
                           transition: 'background-color 0.2s 0.2s',
                         },
                         '&[data-resizing=true]': {
-                          bgColor: 'var(--vscode-focusBorder)',
+                          bgColor: 'var(--vscode-sash-hoverBorder)',
                         },
                       })}
                       data-resizing={header.column.getIsResizing()}

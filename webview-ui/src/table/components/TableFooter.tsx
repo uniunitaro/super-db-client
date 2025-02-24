@@ -1,6 +1,6 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react'
 import type { FC } from 'react'
-import { css } from 'styled-system/css'
+import { css, cx } from 'styled-system/css'
 import { hstack } from 'styled-system/patterns/hstack'
 
 const TableFooter: FC<{
@@ -46,21 +46,21 @@ const TableFooter: FC<{
           disabled={isSaveDisabled}
           onClick={onSave}
         >
-          <div className={`${css({ px: '3' })} codicon codicon-save`} />
+          <div className={cx(css({ px: '3' }), 'codicon codicon-save')} />
         </VSCodeButton>
         <VSCodeButton
           appearance="icon"
           aria-label="Insert row"
           onClick={onInsert}
         >
-          <div className={`${css({ px: '3' })} codicon codicon-add`} />
+          <div className={cx(css({ px: '3' }), 'codicon codicon-add')} />
         </VSCodeButton>
         <VSCodeButton
           appearance="icon"
           aria-label="Refresh"
           onClick={onRefresh}
         >
-          <div className={`${css({ px: '3' })} codicon codicon-refresh`} />
+          <div className={cx(css({ px: '3' }), 'codicon codicon-refresh')} />
         </VSCodeButton>
       </div>
       <div>{isLoading ? 'Loading...' : rowCountText}</div>
@@ -71,7 +71,9 @@ const TableFooter: FC<{
           disabled={page === 1}
           onClick={() => onPageChange(page - 1)}
         >
-          <div className={`${css({ px: '3' })} codicon codicon-chevron-left`} />
+          <div
+            className={cx(css({ px: '3' }), 'codicon codicon-chevron-left')}
+          />
         </VSCodeButton>
         <span>{page}</span>
         <VSCodeButton
@@ -80,7 +82,7 @@ const TableFooter: FC<{
           onClick={() => onPageChange(page + 1)}
         >
           <div
-            className={`${css({ px: '3' })} codicon codicon-chevron-right`}
+            className={cx(css({ px: '3' }), 'codicon codicon-chevron-right')}
           />
         </VSCodeButton>
       </div>

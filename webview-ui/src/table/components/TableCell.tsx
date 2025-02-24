@@ -164,6 +164,9 @@ const TableCell: FC<
           display: 'flex',
           alignItems: 'center',
           h: 'full',
+          borderRightWidth: 'cellBorderWidth',
+          borderRightStyle: 'solid',
+          borderRightColor: 'var(--vscode-tree-tableColumnsBorder)',
           '&[data-edited=true]': {
             backgroundColor:
               // すげえ、こんな機能あるんだな

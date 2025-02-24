@@ -7,11 +7,13 @@ export const getColumnsWithWidth = ({
   columns,
   fontFamily,
   fontSize,
+  borderWidth,
 }: {
   rows: TableRowWithType[]
   columns: ColumnMetadata[]
   fontFamily: string
   fontSize: number
+  borderWidth: number
 }): (ColumnMetadata & { width: number })[] =>
   columns.map((column) => {
     const canvas = document.createElement('canvas')
@@ -32,7 +34,7 @@ export const getColumnsWithWidth = ({
               ? EMPTY_TEXT
               : String(value)
 
-      return context.measureText(text).width
+      return context.measureText(text).width + borderWidth
     })
 
     widths.push(context.measureText(column.name).width)
