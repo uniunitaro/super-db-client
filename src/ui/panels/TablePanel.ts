@@ -11,7 +11,7 @@ import type { Messenger } from 'vscode-messenger'
 import { getConfig } from '../../features/configs/services/config'
 import {
   getDB,
-  getSchema,
+  getDBInfo,
 } from '../../features/connections/services/connection'
 import { getTableMetadata } from '../../features/tables/services/metadata'
 import { getRows, saveChanges } from '../../features/tables/services/table'
@@ -119,9 +119,14 @@ export class TablePanel extends BaseWebviewPanel {
             throw new Error('DB not found')
           }
 
+          const dbInfo = getDBInfo()
+          if (!dbInfo) {
+            throw new Error('DB info not found')
+          }
+
           const tableMetadata = getTableMetadata({
             db,
-            schema: getSchema(),
+            dbInfo,
             tableName: this._tableName,
           })
 
@@ -143,6 +148,7 @@ export class TablePanel extends BaseWebviewPanel {
           return result.match(
             (result) => result,
             (error) => {
+              console.error(error)
               window.showErrorMessage(error.message)
               throw error
             },
@@ -162,9 +168,14 @@ export class TablePanel extends BaseWebviewPanel {
           throw new Error('DB not found')
         }
 
+        const dbInfo = getDBInfo()
+        if (!dbInfo) {
+          throw new Error('DB info not found')
+        }
+
         const result = await saveChanges({
           db,
-          schema: getSchema(),
+          dbInfo,
           tableName: this._tableName,
           operations,
         })

@@ -1,6 +1,6 @@
 import type { TableMetadata } from 'kysely'
 import { ResultAsync } from 'neverthrow'
-import type { KyselyAnyDB } from '../../connections/types/connection'
+import type { DBInfo, KyselyAnyDB } from '../../connections/types/connection'
 import type { DatabaseError } from '../../core/errors'
 import { toDatabaseError } from '../../core/errors'
 import type { Operation, TableRow } from '../types/table'
@@ -45,16 +45,16 @@ export const getRows = ({
 
 export const saveChanges = ({
   db,
-  schema,
+  dbInfo,
   tableName,
   operations,
 }: {
   db: KyselyAnyDB
-  schema: string
+  dbInfo: DBInfo
   tableName: string
   operations: Operation[]
 }): ResultAsync<void, DatabaseError> => {
-  return getTableMetadata({ db, schema, tableName }).andThen(({ columns }) =>
+  return getTableMetadata({ db, dbInfo, tableName }).andThen(({ columns }) =>
     ResultAsync.fromPromise(
       db.transaction().execute(async (tx) => {
         for (const operation of operations) {

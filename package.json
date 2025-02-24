@@ -175,10 +175,7 @@
       "title": "Super DB Client",
       "properties": {
         "fontSize": {
-          "type": [
-            "number",
-            "null"
-          ],
+          "type": ["number", "null"],
           "default": null,
           "markdownDescription": "The font size for the Super DB Client. `null` means the editor font size is used."
         }
@@ -192,7 +189,7 @@
     "package": "vsce package --no-dependencies",
     "vscode:prepublish": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify && cp ./node_modules/node-sqlite3-wasm/dist/node-sqlite3-wasm.wasm ./out/",
     "compile": "tsc -p ./",
-    "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify && cp ./node_modules/node-sqlite3-wasm/dist/node-sqlite3-wasm.wasm ./out/",
+    "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node && cp ./node_modules/node-sqlite3-wasm/dist/node-sqlite3-wasm.wasm ./out/",
     "pretest": "pnpm compile && pnpm lint",
     "lint": "eslint src --ext ts"
   },

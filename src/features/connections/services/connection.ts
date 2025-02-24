@@ -6,12 +6,12 @@ import { Database } from 'node-sqlite3-wasm'
 import type { ExtensionContext } from 'vscode'
 import { assertNever } from '../../../utilities/assertNever'
 import { DatabaseError, toDatabaseError } from '../../core/errors'
-import type { KyselyDB } from '../types/connection'
+import type { DBInfo, KyselyDB } from '../types/connection'
 import type { DBConfigInput } from '../types/dbConfig'
 import { getDBConfigByUUID } from './dbConfig'
 
-let db: KyselyDB | undefined
-let schema: string
+let _db: KyselyDB | undefined
+let _dbInfo: DBInfo | undefined
 
 const createKysely = (dialect: Dialect): Result<KyselyDB, DatabaseError> =>
   Result.fromThrowable(
@@ -74,20 +74,26 @@ export const connect = (
   return createDialect(dbConfig, { enableTypeCast: true })
     .andThen(createKysely)
     .map((kysely) => {
-      db = kysely
+      _db = kysely
 
       switch (dbConfig.type) {
         case 'mysql':
-          schema = dbConfig.database
+          _dbInfo = {
+            type: dbConfig.type,
+            schema: dbConfig.database,
+          }
           break
         case 'sqlite':
-          schema = 'main'
+          _dbInfo = {
+            type: dbConfig.type,
+            schema: 'main',
+          }
           break
         default:
           assertNever(dbConfig)
       }
 
-      return db
+      return _db
     })
 }
 
@@ -106,9 +112,9 @@ export const testConnection = (
 }
 
 export const getDB = (): KyselyDB | undefined => {
-  return db
+  return _db
 }
 
-export const getSchema = (): string => {
-  return schema
+export const getDBInfo = (): DBInfo | undefined => {
+  return _dbInfo
 }

@@ -1,19 +1,14 @@
 import { sql } from 'kysely'
 import { ResultAsync } from 'neverthrow'
-import { tuple } from '../../../utilities/tuple'
-import type { KyselyDB } from '../../connections/types/connection'
-import { type DatabaseError, toDatabaseError } from '../../core/errors'
-import type { TableMetadata } from '../types/metadata'
+import type { GetTableMetadata } from '.'
+import { tuple } from '../../../../utilities/tuple'
+import { toDatabaseError } from '../../../core/errors'
 
-export const getTableMetadata = ({
+export const getTableMetadataFromMySQL: GetTableMetadata = ({
   db,
-  schema,
+  dbInfo,
   tableName,
-}: {
-  db: KyselyDB
-  schema: string
-  tableName: string
-}): ResultAsync<TableMetadata, DatabaseError> => {
+}) => {
   const metadataRes = ResultAsync.fromPromise(
     sql<{
       COLUMN_NAME: string
@@ -23,22 +18,22 @@ export const getTableMetadata = ({
       EXTRA: string
       COLUMN_COMMENT: string
     }>`
-    SELECT * 
-    FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = ${schema}
-    AND TABLE_NAME = ${tableName}
-    ORDER BY ORDINAL_POSITION
-  `.execute(db),
+      SELECT * 
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = ${dbInfo.schema}
+      AND TABLE_NAME = ${tableName}
+      ORDER BY ORDINAL_POSITION
+    `.execute(db),
     toDatabaseError,
   )
 
   const tableRowCountRes = ResultAsync.fromPromise(
     sql<{ TABLE_ROWS: number }>`
-    SELECT TABLE_ROWS
-    FROM INFORMATION_SCHEMA.TABLES
-    WHERE TABLE_SCHEMA = ${schema}
-    AND TABLE_NAME = ${tableName}
-  `.execute(db),
+      SELECT TABLE_ROWS
+      FROM INFORMATION_SCHEMA.TABLES
+      WHERE TABLE_SCHEMA = ${dbInfo.schema}
+      AND TABLE_NAME = ${tableName}
+    `.execute(db),
     toDatabaseError,
   )
   // TODO: 総行数が閾値以下ならcountで取得する
@@ -48,11 +43,11 @@ export const getTableMetadata = ({
       COLUMN_NAME: string
       CONSTRAINT_NAME: string
     }>`
-    SELECT COLUMN_NAME, CONSTRAINT_NAME
-    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-    WHERE TABLE_SCHEMA = ${schema}
-    AND TABLE_NAME = ${tableName}
-  `.execute(db),
+      SELECT COLUMN_NAME, CONSTRAINT_NAME
+      FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+      WHERE TABLE_SCHEMA = ${dbInfo.schema}
+      AND TABLE_NAME = ${tableName}
+    `.execute(db),
     toDatabaseError,
   )
 
