@@ -7,3 +7,13 @@ export const toDatabaseError = (e: unknown): DatabaseError => {
 
   return new DatabaseError('An unexpected error occurred')
 }
+
+export class ValidationError extends Error {}
+
+export const toValidationError = (e: unknown): ValidationError => {
+  if (e instanceof Error) {
+    return new ValidationError(e.message, { cause: e })
+  }
+
+  return new ValidationError('An unexpected error occurred')
+}

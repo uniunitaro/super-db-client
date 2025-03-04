@@ -187,18 +187,18 @@
     "start:webview": "cd webview-ui && pnpm start",
     "build:webview": "cd webview-ui && pnpm build",
     "package": "vsce package --no-dependencies",
-    "vscode:prepublish": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify && cp ./node_modules/node-sqlite3-wasm/dist/node-sqlite3-wasm.wasm ./out/",
+    "vscode:prepublish": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
-    "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node && cp ./node_modules/node-sqlite3-wasm/dist/node-sqlite3-wasm.wasm ./out/",
+    "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
     "pretest": "pnpm compile && pnpm lint",
     "lint": "eslint src --ext ts"
   },
   "dependencies": {
+    "@junsiklee/vscode-sqlite3": "5.1.7-vscode.23",
     "kysely": "^0.27.3",
-    "kysely-wasm": "^1.1.0",
+    "kysely-generic-sqlite": "^1.1.0",
     "mysql2": "^3.9.7",
     "neverthrow": "^8.2.0",
-    "node-sqlite3-wasm": "^0.8.35",
     "vscode-messenger": "^0.4.5",
     "vscode-messenger-common": "^0.4.5"
   },
@@ -211,5 +211,10 @@
     "glob": "^10.3.15",
     "typescript": "^5.7.2",
     "vscode-test": "^1.6.1"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@junsiklee/vscode-sqlite3": "patches/@junsiklee__vscode-sqlite3.patch"
+    }
   }
 }

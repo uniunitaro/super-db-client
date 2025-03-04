@@ -1,11 +1,18 @@
+import { constants, accessSync } from 'node:fs'
+import sqlite3 from '@junsiklee/vscode-sqlite3'
 import { type Dialect, Kysely, MysqlDialect, sql } from 'kysely'
-import { NodeWasmDialect } from 'kysely-wasm'
+import { GenericSqliteDialect } from 'kysely-generic-sqlite'
 import { createPool } from 'mysql2'
-import { Result, ResultAsync, err } from 'neverthrow'
-import { Database } from 'node-sqlite3-wasm'
+import { Result, ResultAsync, err, ok } from 'neverthrow'
 import type { ExtensionContext } from 'vscode'
+import { createSqliteExecutor } from '../../../libs/kyselySqliteDialect'
 import { assertNever } from '../../../utilities/assertNever'
-import { DatabaseError, toDatabaseError } from '../../core/errors'
+import {
+  DatabaseError,
+  type ValidationError,
+  toDatabaseError,
+  toValidationError,
+} from '../../core/errors'
 import type { DBInfo, KyselyDB } from '../types/connection'
 import type { DBConfigInput } from '../types/dbConfig'
 import { getDBConfigByUUID } from './dbConfig'
@@ -50,11 +57,9 @@ const createDialect = (
             }),
           })
         case 'sqlite':
-          return new NodeWasmDialect({
-            database: new Database(config.filePath, {
-              fileMustExist: true,
-            }),
-          })
+          return new GenericSqliteDialect(() =>
+            createSqliteExecutor(new sqlite3.Database(config.filePath)),
+          )
         default:
           return assertNever(config)
       }
@@ -71,7 +76,13 @@ export const connect = (
     return err(new DatabaseError('DB not found'))
   }
 
-  return createDialect(dbConfig, { enableTypeCast: true })
+  const fileExists =
+    dbConfig.type === 'sqlite'
+      ? checkFileExists(dbConfig.filePath)
+      : ok(undefined)
+
+  return fileExists
+    .andThen(() => createDialect(dbConfig, { enableTypeCast: true }))
     .andThen(createKysely)
     .map((kysely) => {
       _db = kysely
@@ -99,8 +110,14 @@ export const connect = (
 
 export const testConnection = (
   dbConfigInput: DBConfigInput,
-): ResultAsync<void, DatabaseError> => {
-  return createDialect(dbConfigInput)
+): ResultAsync<void, DatabaseError | ValidationError> => {
+  const fileExists =
+    dbConfigInput.type === 'sqlite'
+      ? checkFileExists(dbConfigInput.filePath)
+      : ok(undefined)
+
+  return fileExists
+    .andThen(() => createDialect(dbConfigInput))
     .andThen(createKysely)
     .asyncAndThen((db) =>
       ResultAsync.fromPromise(
@@ -117,4 +134,11 @@ export const getDB = (): KyselyDB | undefined => {
 
 export const getDBInfo = (): DBInfo | undefined => {
   return _dbInfo
+}
+
+const checkFileExists = (filePath: string): Result<void, ValidationError> => {
+  return Result.fromThrowable(
+    () => accessSync(filePath, constants.F_OK),
+    () => toValidationError(new Error('ファイルが存在しません')),
+  )()
 }
