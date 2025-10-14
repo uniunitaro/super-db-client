@@ -7,6 +7,15 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      releaseBump:
+        description: 'Select release bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   build:
@@ -61,3 +70,59 @@ jobs:
           files: dist/*.vsix
           generate_release_notes: true
           fail_on_unmatched_files: true
+
+  manual-release:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.5.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: |
+          pnpm install
+          pnpm --dir webview-ui install
+
+      - name: Configure Git User
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump Version
+        run: pnpm version ${{ github.event.inputs.releaseBump }}
+
+      - name: Format and Lint
+        run: pnpm format-and-lint:fix
+
+      - name: Push Changes
+        run: |
+          git push origin HEAD
+          git push origin --tags
+
+      - name: Build Webview
+        run: pnpm run build:webview
+
+      - name: Package Extension
+        run: pnpm run package
+
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: super-db-client-vsix
+          path: '*.vsix'
+          if-no-files-found: error
