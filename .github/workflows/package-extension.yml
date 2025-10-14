@@ -52,7 +52,10 @@ jobs:
 
       - name: Determine Version
         id: version
-        run: echo "value=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Commit and Tag
         env:
