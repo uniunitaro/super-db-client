@@ -2,7 +2,7 @@
   "name": "super-db-client",
   "displayName": "Super DB Client",
   "description": "A super database client for VS Code",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.89.0"
   },
@@ -175,7 +175,10 @@
       "title": "Super DB Client",
       "properties": {
         "fontSize": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "default": null,
           "markdownDescription": "The font size for the Super DB Client. `null` means the editor font size is used."
         }
