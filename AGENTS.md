@@ -16,3 +16,6 @@
 
 ## コーディングスタイルと命名規約
 - React コンポーネントとクラスは PascalCase、関数とフックは camelCase、定数は UPPER_SNAKE_CASE。
+
+## GitHub Actionsでのパッケージリリース
+- `pnpm version patch` などでバージョンを更新して Git タグを作成し push すると自動でリリース処理が走る。
