@@ -1,11 +1,6 @@
 name: Package Extension
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - 'v*'
   workflow_dispatch:
     inputs:
       releaseBump:
@@ -18,61 +13,7 @@ on:
           - major
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.5.2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install Dependencies
-        run: |
-          pnpm install
-          pnpm --dir webview-ui install
-
-      - name: Build Webview
-        run: pnpm run build:webview
-
-      - name: Package Extension
-        run: pnpm run package
-
-      - name: Upload VSIX Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: super-db-client-vsix
-          path: '*.vsix'
-          if-no-files-found: error
-
-  release:
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: super-db-client-vsix
-          path: dist
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.vsix
-          generate_release_notes: true
-          fail_on_unmatched_files: true
-
   manual-release:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -104,15 +45,22 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Bump Version
-        run: pnpm version ${{ github.event.inputs.releaseBump }}
+        run: pnpm version ${{ github.event.inputs.releaseBump }} --no-git-tag-version
 
       - name: Format and Lint
         run: pnpm format-and-lint:fix
 
-      - name: Push Changes
+      - name: Determine Version
+        id: version
+        run: echo "value=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and Tag
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
         run: |
-          git push origin HEAD
-          git push origin --tags
+          git add .
+          git commit -m "release: v${VERSION}"
+          git tag "v${VERSION}"
 
       - name: Build Webview
         run: pnpm run build:webview
@@ -126,3 +74,20 @@ jobs:
           name: super-db-client-vsix
           path: '*.vsix'
           if-no-files-found: error
+
+      - name: Push Changes
+        run: |
+          git push origin HEAD
+          git push origin --tags
+# Keep push after packaging to ensure artifacts use local files before repository state moves forward.
+
+      - name: Create GitHub Release
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          files: '*.vsix'
+          generate_release_notes: true
+          fail_on_unmatched_files: true

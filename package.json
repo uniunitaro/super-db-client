@@ -175,10 +175,7 @@
       "title": "Super DB Client",
       "properties": {
         "fontSize": {
-          "type": [
-            "number",
-            "null"
-          ],
+          "type": ["number", "null"],
           "default": null,
           "markdownDescription": "The font size for the Super DB Client. `null` means the editor font size is used."
         }
