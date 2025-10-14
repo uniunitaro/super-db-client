@@ -186,12 +186,14 @@
     "install:all": "pnpm install && cd webview-ui && pnpm install",
     "start:webview": "cd webview-ui && pnpm start",
     "build:webview": "cd webview-ui && pnpm build",
+    "typecheck": "tsc --noEmit && cd webview-ui && tsc --noEmit",
+    "format-and-lint": "biome check .",
+    "format-and-lint:fix": "biome check . --write",
     "package": "vsce package --no-dependencies",
     "vscode:prepublish": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
     "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
-    "pretest": "pnpm compile && pnpm lint",
-    "lint": "eslint src --ext ts"
+    "pretest": "pnpm compile && pnpm format-and-lint"
   },
   "dependencies": {
     "@junsiklee/vscode-sqlite3": "5.1.7-vscode.23",
@@ -203,10 +205,11 @@
     "vscode-messenger-common": "^0.4.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.8.2",
+    "@biomejs/biome": "1.9.4",
     "@types/glob": "^8.1.0",
     "@types/node": "^20.12.12",
     "@types/vscode": "^1.89.0",
+    "@vscode/vsce": "^3.6.2",
     "esbuild": "^0.21.5",
     "glob": "^10.3.15",
     "typescript": "^5.7.2",

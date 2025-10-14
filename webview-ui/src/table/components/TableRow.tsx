@@ -43,8 +43,10 @@ const TableRow: FC<{
     onShouldShowInputChange,
   }) => {
     return (
+      // biome-ignore lint/a11y/useFocusableInteractive: TODO
       <div
         key={row.id}
+        // biome-ignore lint/a11y/useSemanticElements: ignore
         role="row"
         className={css({
           display: 'flex',

@@ -240,6 +240,7 @@ const VirtualTable: FC<{
       >
         <div
           ref={tableRef}
+          // biome-ignore lint/a11y/useSemanticElements: ignore
           role="grid"
           className={css({
             display: 'grid',
@@ -249,6 +250,7 @@ const VirtualTable: FC<{
           style={{ fontSize: `${fontSize}px` }}
         >
           <div
+            // biome-ignore lint/a11y/useSemanticElements: ignore
             role="rowgroup"
             className={css({
               display: 'grid',
@@ -270,7 +272,9 @@ const VirtualTable: FC<{
             })}
           >
             {table.getHeaderGroups().map((headerGroup) => (
+              // biome-ignore lint/a11y/useFocusableInteractive: TODO
               <div
+                // biome-ignore lint/a11y/useSemanticElements: ignore
                 role="row"
                 key={headerGroup.id}
                 className={css({
@@ -281,6 +285,7 @@ const VirtualTable: FC<{
               >
                 {headerGroup.headers.map((header) => (
                   <div
+                    // biome-ignore lint/a11y/useSemanticElements: ignore
                     role="columnheader"
                     key={header.id}
                     className={css({
@@ -331,6 +336,7 @@ const VirtualTable: FC<{
             ))}
           </div>
           <div
+            // biome-ignore lint/a11y/useSemanticElements: ignore
             role="rowgroup"
             className={css({
               display: 'grid',

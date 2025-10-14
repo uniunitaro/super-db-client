@@ -125,6 +125,7 @@ const ConnectionSetting: FC = () => {
         <div className={stack({ gap: '6' })}>
           <div className={stack({ gap: '2' })}>
             <div className={stack({ gap: '0' })}>
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: TODO */}
               <label>Database Type</label>
               <VSCodeDropdown
                 value={dbConfig.type}

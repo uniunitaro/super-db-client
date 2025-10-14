@@ -159,6 +159,7 @@ const TableCell: FC<
       // biome-ignore lint/a11y/useKeyWithClickEvents: テーブル側でキーボード操作を実装しているため
       <div
         ref={isSelected ? selectedCellRef : null}
+        // biome-ignore lint/a11y/useSemanticElements: TODO
         role="gridcell"
         className={css({
           display: 'flex',
