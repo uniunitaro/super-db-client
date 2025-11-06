@@ -19,6 +19,11 @@ export type ClientOperation =
       newValue: string | null
     }
   | {
+      type: 'duplicate'
+      uuid: string
+      values: Record<string, string | null>
+    }
+  | {
       type: 'editInserted'
       insertedRowUUID: string
       columnName: string

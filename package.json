@@ -49,6 +49,11 @@
         "category": "Super DB Client"
       },
       {
+        "command": "superDBClient.duplicateRow",
+        "title": "Duplicate",
+        "category": "Super DB Client"
+      },
+      {
         "command": "superDBClient.deleteRows",
         "title": "Delete Rows",
         "category": "Super DB Client"
@@ -77,6 +82,11 @@
       {
         "key": "ctrl+r",
         "command": "superDBClient.refreshTable",
+        "when": "activeWebviewPanelId =~ /superDBClient.table/"
+      },
+      {
+        "key": "ctrl+d",
+        "command": "superDBClient.duplicateRow",
         "when": "activeWebviewPanelId =~ /superDBClient.table/"
       }
     ],
@@ -165,9 +175,14 @@
           "group": "2@2"
         },
         {
+          "command": "superDBClient.duplicateRow",
+          "when": "webviewId =~ /superDBClient.table/ && webviewSection == 'row'",
+          "group": "3@1"
+        },
+        {
           "command": "superDBClient.deleteRows",
           "when": "webviewId =~ /superDBClient.table/ && webviewSection == 'row'",
-          "group": "3"
+          "group": "3@2"
         }
       ]
     },

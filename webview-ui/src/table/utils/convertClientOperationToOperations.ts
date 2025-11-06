@@ -9,6 +9,7 @@ export const convertClientOperationToOperation = (
   const operationsWithoutInserts = operations.filter(
     (operation) =>
       operation.type !== 'insert' &&
+      operation.type !== 'duplicate' &&
       operation.type !== 'editInserted' &&
       operation.type !== 'deleteInserted',
   )
@@ -46,14 +47,32 @@ const reduceOperations = <T extends ClientOperation>(operations: T[]): T[] =>
 const getInsertOperations = (
   operations: ClientOperation[],
 ): Extract<Operation, { type: 'insert' }>[] => {
-  const insertedRows: (Extract<ClientOperation, { type: 'insert' }> & {
-    row: TableRow
-  })[] = operations
-    .filter((operation) => operation.type === 'insert')
-    .map((operation) => ({
-      ...operation,
-      row: {},
-    }))
+  type TemporaryInsertedRow =
+    | (Extract<ClientOperation, { type: 'insert' }> & {
+        row: TableRow
+      })
+    | (Extract<ClientOperation, { type: 'duplicate' }> & {
+        row: TableRow
+      })
+
+  const insertedRows: TemporaryInsertedRow[] = operations
+    .filter(
+      (operation) =>
+        operation.type === 'insert' || operation.type === 'duplicate',
+    )
+    .map((operation) => {
+      if (operation.type === 'duplicate') {
+        return {
+          ...operation,
+          row: structuredClone(operation.values),
+        }
+      }
+
+      return {
+        ...operation,
+        row: {},
+      }
+    })
 
   for (const operation of operations) {
     if (operation.type === 'editInserted') {
@@ -76,5 +95,5 @@ const getInsertOperations = (
     }
   }
 
-  return insertedRows
+  return insertedRows.map(({ row }) => ({ type: 'insert', row }))
 }

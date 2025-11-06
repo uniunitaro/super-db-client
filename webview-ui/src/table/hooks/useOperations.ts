@@ -49,6 +49,13 @@ export const useOperations = ({
       if (operation.type === 'insert') {
         newRows.push({ type: 'inserted', uuid: operation.uuid, row: {} })
       }
+      if (operation.type === 'duplicate') {
+        newRows.push({
+          type: 'inserted',
+          uuid: operation.uuid,
+          row: structuredClone(operation.values),
+        })
+      }
       if (operation.type === 'edit') {
         const targetRow = newRows.find(
           (row) =>
@@ -175,6 +182,58 @@ export const useOperations = ({
     virtualTableTableRef.current?.scrollIntoView(false)
   }, [addOperations])
 
+  const handleRowDuplicate = useCallback(() => {
+    if (!tableData) return
+
+    const primaryKeyColumns = new Set(tableData.tableMetadata.primaryKeyColumns)
+    const columnsToCopy = tableData.tableMetadata.columns.filter(
+      (column) => !primaryKeyColumns.has(column.name),
+    )
+
+    const sortedRowIndexes = [...selectedRowIndexes].sort((a, b) => a - b)
+
+    const operationsToAdd = sortedRowIndexes.flatMap((rowIndex) => {
+      const rowToDuplicate = updatedRows[rowIndex]
+      if (!rowToDuplicate) return []
+
+      const uuid = crypto.randomUUID()
+
+      const values = columnsToCopy.reduce<Record<string, string | null>>(
+        (acc, column) => {
+          const value = rowToDuplicate.row[column.name]
+
+          if (value === undefined) return acc
+
+          acc[column.name] =
+            value === null
+              ? null
+              : typeof value === 'string'
+                ? value
+                : String(value)
+
+          return acc
+        },
+        {},
+      )
+
+      const operation: ClientOperation = {
+        type: 'duplicate',
+        uuid,
+        values,
+      }
+
+      return [operation]
+    })
+
+    if (!operationsToAdd.length) return
+
+    flushSync(() => {
+      addOperations(operationsToAdd)
+    })
+
+    virtualTableTableRef.current?.scrollIntoView(false)
+  }, [tableData, selectedRowIndexes, updatedRows, addOperations])
+
   const editedCells: Cell[] = useMemo(() => {
     if (!tableData) return []
 
@@ -262,6 +321,7 @@ export const useOperations = ({
     handleCellEdit,
     handleRowDelete,
     handleRowInsert,
+    handleRowDuplicate,
     resetOperations,
     undoOperation,
     redoOperation,

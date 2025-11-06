@@ -1,5 +1,6 @@
 import LinearProgress from '@/components/LinearProgress'
 import { useVSCodeState } from '@/hooks/useVSCodeState'
+import { assertNever } from '@/utilities/assertNever'
 import { messenger } from '@/utilities/messenger'
 import { serializeVSCodeContext } from '@/utilities/vscodeContext'
 import {
@@ -134,6 +135,7 @@ const Table: FC = () => {
     handleCellEdit,
     handleRowDelete,
     handleRowInsert,
+    handleRowDuplicate,
     resetOperations,
     undoOperation,
     redoOperation,
@@ -190,6 +192,9 @@ const Table: FC = () => {
         case 'refreshTable':
           refetchTableData()
           break
+        case 'duplicateRow':
+          handleRowDuplicate()
+          break
         case 'deleteRows':
           handleRowDelete()
           break
@@ -199,10 +204,18 @@ const Table: FC = () => {
         case 'setAsEmpty':
           handleCellEdit('')
           break
+        default:
+          assertNever(command)
       }
     })
     messenger.start()
-  }, [handleSaveChanges, refetchTableData, handleRowDelete, handleCellEdit])
+  }, [
+    handleSaveChanges,
+    refetchTableData,
+    handleRowDuplicate,
+    handleRowDelete,
+    handleCellEdit,
+  ])
 
   useShortcutKeys({
     deleteRow: handleRowDelete,

@@ -120,6 +120,15 @@ export function activate(context: ExtensionContext) {
   )
 
   context.subscriptions.push(
+    commands.registerCommand(COMMANDS.DUPLICATE_ROW, () => {
+      const activePanel = tablePanels.find((panel) => panel.isActive())
+      if (activePanel) {
+        activePanel.sendCommand('duplicateRow')
+      }
+    }),
+  )
+
+  context.subscriptions.push(
     commands.registerCommand(COMMANDS.DELETE_ROWS, () => {
       const activePanel = tablePanels.find((panel) => panel.isActive())
       if (activePanel) {

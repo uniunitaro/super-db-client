@@ -62,6 +62,7 @@ export const getTableInitialDataRequest: RequestType<
 export type Command =
   | 'saveTableChanges'
   | 'refreshTable'
+  | 'duplicateRow'
   | 'deleteRows'
   | 'setAsNull'
   | 'setAsEmpty'

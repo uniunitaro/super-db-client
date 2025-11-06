@@ -7,6 +7,7 @@ export const COMMANDS = {
   GO_TO_TABLE: 'superDBClient.goToTable',
   SAVE_TABLE_CHANGES: 'superDBClient.saveTableChanges',
   REFRESH_TABLE: 'superDBClient.refreshTable',
+  DUPLICATE_ROW: 'superDBClient.duplicateRow',
   DELETE_ROWS: 'superDBClient.deleteRows',
   SET_AS_NULL: 'superDBClient.setAsNull',
   SET_AS_EMPTY: 'superDBClient.setAsEmpty',
