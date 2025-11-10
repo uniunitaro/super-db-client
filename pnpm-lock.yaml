@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@junsiklee/vscode-sqlite3':
-    hash: 26db31223c108ce286b153bd43f20d7edd2c5fc033fb671620a887412d0a184d
+    hash: f2434f7e2a133920254fa1ed63a4cebcbeef84c9a8bad329560936953510f8e3
     path: patches/@junsiklee__vscode-sqlite3.patch
 
 importers:
@@ -15,7 +15,7 @@ importers:
     dependencies:
       '@junsiklee/vscode-sqlite3':
         specifier: 5.1.7-vscode.23
-        version: 5.1.7-vscode.23(patch_hash=26db31223c108ce286b153bd43f20d7edd2c5fc033fb671620a887412d0a184d)
+        version: 5.1.7-vscode.23(patch_hash=f2434f7e2a133920254fa1ed63a4cebcbeef84c9a8bad329560936953510f8e3)
       kysely:
         specifier: ^0.27.3
         version: 0.27.6
@@ -2084,7 +2084,7 @@ snapshots:
       wrap-ansi: 8.1.0
       wrap-ansi-cjs: wrap-ansi@7.0.0
 
-  '@junsiklee/vscode-sqlite3@5.1.7-vscode.23(patch_hash=26db31223c108ce286b153bd43f20d7edd2c5fc033fb671620a887412d0a184d)':
+  '@junsiklee/vscode-sqlite3@5.1.7-vscode.23(patch_hash=f2434f7e2a133920254fa1ed63a4cebcbeef84c9a8bad329560936953510f8e3)':
     dependencies:
       bindings: 1.5.0
       node-addon-api: 7.1.1

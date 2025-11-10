@@ -1,8 +1,8 @@
 diff --git a/lib/sqlite3-binding.js b/lib/sqlite3-binding.js
-index 03ef5eb873579c1f6b5820c83deb801db4628b92..e425f33910dbc25740cdad708f6cd0d76348d4cd 100644
+index 03ef5eb873579c1f6b5820c83deb801db4628b92..e75ddb6b216d98198d5a1a439362182a64c7aeda 100644
 --- a/lib/sqlite3-binding.js
 +++ b/lib/sqlite3-binding.js
-@@ -1,41 +1,56 @@
+@@ -1,41 +1,60 @@
  //module.exports = require('bindings')('node_sqlite3.node');
  
 -const path = require('path');
@@ -18,16 +18,17 @@ index 03ef5eb873579c1f6b5820c83deb801db4628b92..e425f33910dbc25740cdad708f6cd0d7
 -    ? path.resolve(__dirname, path.normalize("..\\build_node\\"))
 -    : path.resolve(__dirname, path.normalize("..\\node_modules\\@junsiklee\\vscode-sqlite3\\build_node\\"));
 +if (process.platform === 'win32') {
-+  const module_path = path
-+    .resolve(__dirname)
-+    .includes(path.normalize('@junsiklee\\vscode-sqlite3'))
-+    ? path.resolve(__dirname, path.normalize('..\\build_node\\'))
-+    : path.resolve(
-+        __dirname,
-+        path.normalize(
-+          '..\\node_modules\\@junsiklee\\vscode-sqlite3\\build_node\\',
-+        ),
-+      )
++  // const module_path = path
++  //   .resolve(__dirname)
++  //   .includes(path.normalize('@junsiklee\\vscode-sqlite3'))
++  //   ? path.resolve(__dirname, path.normalize('..\\build_node\\'))
++  //   : path.resolve(
++  //       __dirname,
++  //       path.normalize(
++  //         '..\\node_modules\\@junsiklee\\vscode-sqlite3\\build_node\\',
++  //       ),
++  //     )
++  const module_path = path.resolve(__dirname, '..', 'binaries')
  
 -	bindings_options = {
 -		bindings: 'node_sqlite3_win32_x64.node',
@@ -44,14 +45,14 @@ index 03ef5eb873579c1f6b5820c83deb801db4628b92..e425f33910dbc25740cdad708f6cd0d7
 +    module_root: module_path,
 +  }
 +} else if (process.platform === 'darwin') {
-+  const module_path = path
-+    .resolve(__dirname)
-+    .includes(path.normalize('@junsiklee/vscode-sqlite3'))
-+    ? path.resolve(__dirname, path.normalize('../build_node/'))
-+    : path.resolve(
-+        __dirname,
-+        path.normalize('../node_modules/@junsiklee/vscode-sqlite3/build_node/'),
-+      )
++  // const module_path = path
++  //   .resolve(__dirname)
++  //   .includes(path.normalize('@junsiklee/vscode-sqlite3'))
++  //   ? path.resolve(__dirname, path.normalize('../build_node/'))
++  //   : path.resolve(
++  //       __dirname,
++  //       path.normalize('../node_modules/@junsiklee/vscode-sqlite3/build_node/'),
++  //     )
  
 -	bindings_options = {
 -		bindings: (os.arch()==='x64')?'node_sqlite3_drawin_x64.node':'node_sqlite3_drawin_arm64.node',
@@ -63,6 +64,8 @@ index 03ef5eb873579c1f6b5820c83deb801db4628b92..e425f33910dbc25740cdad708f6cd0d7
 -	const module_path = path.resolve(__dirname).includes(path.normalize("@junsiklee/vscode-sqlite3"))
 -    ? path.resolve(__dirname, path.normalize("../build_node/"))
 -    : path.resolve(__dirname, path.normalize("../node_modules/@junsiklee/vscode-sqlite3/build_node/"));
++  const module_path = path.resolve(__dirname, '..', 'binaries')
++
 +  bindings_options = {
 +    bindings:
 +      os.arch() === 'x64'
@@ -71,19 +74,20 @@ index 03ef5eb873579c1f6b5820c83deb801db4628b92..e425f33910dbc25740cdad708f6cd0d7
 +    module_root: module_path,
 +  }
 +} else if (process.platform === 'linux') {
-+  const module_path = path
-+    .resolve(__dirname)
-+    .includes(path.normalize('@junsiklee/vscode-sqlite3'))
-+    ? path.resolve(__dirname, path.normalize('../build_node/'))
-+    : path.resolve(
-+        __dirname,
-+        path.normalize('../node_modules/@junsiklee/vscode-sqlite3/build_node/'),
-+      )
++  // const module_path = path
++  //   .resolve(__dirname)
++  //   .includes(path.normalize('@junsiklee/vscode-sqlite3'))
++  //   ? path.resolve(__dirname, path.normalize('../build_node/'))
++  //   : path.resolve(
++  //       __dirname,
++  //       path.normalize('../node_modules/@junsiklee/vscode-sqlite3/build_node/'),
++  //     )
  
 -	bindings_options = {
 -		bindings: 'node_sqlite3_linux_x64.node',
 -		module_root: module_path,
 -	};
++  const module_path = path.resolve(__dirname, '..', 'binaries')
 +  bindings_options = {
 +    bindings: 'node_sqlite3_linux_x64.node',
 +    module_root: module_path,
