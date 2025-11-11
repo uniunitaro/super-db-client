@@ -37,6 +37,7 @@ const createDefaultDBConfig = (): DBConfigInputForForm => ({
   targetUUID: undefined,
   connectionName: '',
   type: 'mysql',
+  writeMode: 'allow',
   database: '',
   host: '',
   port: '',
@@ -184,6 +185,7 @@ const ConnectionSetting: FC = () => {
             port: initialData.port.toString(),
             targetUUID: initialData.uuid,
             ssh: convertSSHConfigToForm(initialData.ssh),
+            writeMode: initialData.writeMode,
           })
           break
         case 'sqlite':
@@ -192,6 +194,7 @@ const ConnectionSetting: FC = () => {
             ...initialData,
             targetUUID: initialData.uuid,
             ssh: convertSSHConfigToForm(initialData.ssh),
+            writeMode: initialData.writeMode,
           })
           break
         default:
@@ -245,6 +248,7 @@ const ConnectionSetting: FC = () => {
             targetUUID: dbConfig.targetUUID,
             connectionName: dbConfig.connectionName,
             type: 'mysql',
+            writeMode: dbConfig.writeMode,
             database: dbConfig.database,
             host: dbConfig.host,
             port: Number(dbConfig.port),
@@ -257,6 +261,7 @@ const ConnectionSetting: FC = () => {
             targetUUID: dbConfig.targetUUID,
             connectionName: dbConfig.connectionName,
             type: 'sqlite',
+            writeMode: dbConfig.writeMode,
             filePath: dbConfig.filePath,
             ssh: convertSSHFormToInput(dbConfig.ssh),
           }
@@ -302,6 +307,20 @@ const ConnectionSetting: FC = () => {
             >
               Name
             </VSCodeTextField>
+            <div className={stack({ gap: '0' })}>
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: TODO */}
+              <label>Write Mode</label>
+              <VSCodeDropdown
+                value={dbConfig.writeMode}
+                onChange={(e) =>
+                  handleChange(e as ChangeEvent<HTMLSelectElement>, 'writeMode')
+                }
+              >
+                <VSCodeOption value="allow">Allow writes</VSCodeOption>
+                <VSCodeOption value="warn">Warn before writes</VSCodeOption>
+                <VSCodeOption value="disable">Disable writes</VSCodeOption>
+              </VSCodeDropdown>
+            </div>
             {dbConfig.type === 'mysql' ? (
               <>
                 <VSCodeTextField

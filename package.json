@@ -217,6 +217,7 @@
     "mysql2": "^3.9.7",
     "neverthrow": "^8.2.0",
     "ssh2": "^1.17.0",
+    "valibot": "^1.1.0",
     "vscode-messenger": "^0.4.5",
     "vscode-messenger-common": "^0.4.5"
   },

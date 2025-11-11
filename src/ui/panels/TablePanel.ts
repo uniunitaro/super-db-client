@@ -13,8 +13,10 @@ import {
   getDB,
   getDBInfo,
 } from '../../features/connections/services/connection'
+import { getCurrentConnection } from '../../features/connections/services/dbConfig'
 import { getTableMetadata } from '../../features/tables/services/metadata'
 import { getRows, saveChanges } from '../../features/tables/services/table'
+import type { Operation } from '../../features/tables/types/table'
 import {
   type Command,
   commandRequest,
@@ -173,6 +175,11 @@ export class TablePanel extends BaseWebviewPanel {
           throw new Error('DB info not found')
         }
 
+        const canWrite = await this._ensureWritePermission(operations)
+        if (!canWrite) {
+          return
+        }
+
         const result = await saveChanges({
           db,
           dbInfo,
@@ -196,5 +203,42 @@ export class TablePanel extends BaseWebviewPanel {
         return { shouldRefresh }
       }),
     )
+  }
+
+  private async _ensureWritePermission(
+    operations: Operation[],
+  ): Promise<boolean> {
+    if (!operations.length) {
+      return true
+    }
+
+    const dbConfig = await getCurrentConnection(this._context)
+    const writeMode = dbConfig?.writeMode ?? 'allow'
+
+    if (writeMode === 'disable') {
+      window.showErrorMessage(
+        `${
+          dbConfig?.connectionName ?? 'This connection'
+        } is read-only. Update the connection settings to enable writes.`,
+      )
+      return false
+    }
+
+    if (writeMode === 'warn') {
+      const answer = await window.showWarningMessage(
+        `${
+          dbConfig?.connectionName ?? 'This connection'
+        } requires confirmation before writing. Continue?`,
+        { modal: true },
+        'Write',
+      )
+
+      if (answer !== 'Write') {
+        window.showInformationMessage('Write operations were cancelled.')
+        return false
+      }
+    }
+
+    return true
   }
 }

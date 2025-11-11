@@ -1,66 +1,17 @@
+import type { InferInput, InferOutput } from 'valibot'
 import type { StrictOmit } from '../../../utilities/typeUtils'
+import type * as Schema from '../services/dbConfigSchema'
 
-export type DBType = 'mysql' | 'sqlite'
+type SSHSchemaOutput = InferOutput<typeof Schema.sshSchema>
+export type SSHPasswordConfig = InferOutput<typeof Schema.sshPasswordSchema>
+export type SSHPrivateKeyConfig = InferOutput<typeof Schema.sshPrivateKeySchema>
+export type SSHConfig = Exclude<SSHSchemaOutput, undefined>
+export type SSHAuthMethod = Extract<SSHConfig, { enabled: true }>['authMethod']
 
-export type BaseDBConfig = {
-  uuid: string
-  connectionName: string
-  type: DBType
-  ssh?: SSHConfig
-}
+export type DBConfig = InferOutput<typeof Schema.persistedDBConfigSchema>
+export type DBType = DBConfig['type']
 
-export type SSHAuthMethod = 'password' | 'privateKey'
-
-type SSHBaseConfig = {
-  enabled: true
-  host: string
-  port: number
-  username: string
-}
-
-export type SSHPasswordConfig = SSHBaseConfig & {
-  authMethod: 'password'
-  password: string
-}
-
-export type SSHPrivateKeyConfig = SSHBaseConfig & {
-  authMethod: 'privateKey'
-  privateKeyPath: string
-  passphrase?: string
-}
-
-export type SSHDisabledConfig = {
-  enabled: false
-  host?: string
-  port?: number
-  username?: string
-  authMethod?: SSHAuthMethod
-  password?: string
-  privateKeyPath?: string
-  passphrase?: string
-}
-
-export type SSHConfig =
-  | SSHPasswordConfig
-  | SSHPrivateKeyConfig
-  | SSHDisabledConfig
-
-export type MySQLDBConfig = BaseDBConfig & {
-  type: 'mysql'
-  host: string
-  port: number
-  user: string
-  password: string
-  database: string
-}
-
-export type SQLiteDBConfig = BaseDBConfig & {
-  type: 'sqlite'
-  filePath: string
-}
-
-export type DBConfig = MySQLDBConfig | SQLiteDBConfig
-
-export type DBConfigInput = StrictOmit<DBConfig, 'uuid'> & {
+type DBConfigSchemaInput = InferInput<typeof Schema.persistedDBConfigSchema>
+export type DBConfigInput = StrictOmit<DBConfigSchemaInput, 'uuid'> & {
   targetUUID?: string
 }
