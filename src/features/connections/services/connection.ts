@@ -87,7 +87,7 @@ export const connect = (
 ): ResultAsync<KyselyDB, DatabaseError> => {
   return getDBConfig(context, dbUUID)
     .andThen(ensureSQLiteFileExists)
-    .asyncAndThen((dbConfig) =>
+    .andThen((dbConfig) =>
       prepareConnectionConfig(dbConfig, {
         persistentKey: dbUUID,
       }).map((prepared) => ({ dbConfig, preparedConfig: prepared.config })),
@@ -182,13 +182,17 @@ const checkFileExists = (filePath: string): Result<void, ValidationError> => {
 const getDBConfig = (
   context: ExtensionContext,
   dbUUID: string,
-): Result<DBConfig, DatabaseError> => {
-  const dbConfig = getDBConfigByUUID(context, dbUUID)
-  if (!dbConfig) {
-    return err(new DatabaseError('DB not found'))
-  }
-  return ok(dbConfig)
-}
+): ResultAsync<DBConfig, DatabaseError> =>
+  ResultAsync.fromPromise(
+    (async () => {
+      const dbConfig = await getDBConfigByUUID(context, dbUUID)
+      if (!dbConfig) {
+        throw new Error('DB not found')
+      }
+      return dbConfig
+    })(),
+    toDatabaseError,
+  )
 
 const ensureSQLiteFileExists = (
   dbConfig: DBConfig,

@@ -80,12 +80,15 @@ export class ConnectionSettingPanel extends BaseWebviewPanel {
     messenger: Messenger,
   ) {
     this._disposables.push(
-      this._onRequest(getConnectionSettingInitialDataRequest, () => {
+      this._onRequest(getConnectionSettingInitialDataRequest, async () => {
         if (!this._targetDBConfigUUID) {
           return undefined
         }
 
-        const dbConfig = getDBConfigByUUID(context, this._targetDBConfigUUID)
+        const dbConfig = await getDBConfigByUUID(
+          context,
+          this._targetDBConfigUUID,
+        )
         return dbConfig
       }),
     )
@@ -104,8 +107,8 @@ export class ConnectionSettingPanel extends BaseWebviewPanel {
     )
 
     this._disposables.push(
-      this._onRequest(saveDBConfigRequest, (dbConfigInput) => {
-        createOrUpdateDBConfig(context, dbConfigInput)
+      this._onRequest(saveDBConfigRequest, async (dbConfigInput) => {
+        await createOrUpdateDBConfig(context, dbConfigInput)
 
         window.showInformationMessage('Connection Saved!')
         commands.executeCommand(COMMANDS.REFRESH_DATABASES)

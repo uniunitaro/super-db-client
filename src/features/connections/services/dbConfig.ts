@@ -2,17 +2,43 @@ import { randomUUID } from 'node:crypto'
 import type { ExtensionContext } from 'vscode'
 import {
   getGlobalState,
+  getSecretState,
   getWorkspaceState,
   setGlobalState,
+  setSecretState,
   setWorkspaceState,
 } from '../../../utilities/store'
 import type { DBConfig, DBConfigInput } from '../types/dbConfig'
+
+const SECRET_DB_CONFIGS_KEY = 'dbConfigs'
+
+const loadDBConfigsFromSecret = async (
+  context: ExtensionContext,
+): Promise<DBConfig[]> => {
+  const secretDBConfigs = await getSecretState(context, SECRET_DB_CONFIGS_KEY)
+  if (secretDBConfigs !== undefined) {
+    return secretDBConfigs
+  }
+
+  const legacyDBConfigs = getGlobalState(context, 'dbConfigs') ?? []
+  if (legacyDBConfigs.length > 0) {
+    await setSecretState(context, SECRET_DB_CONFIGS_KEY, legacyDBConfigs)
+    await setGlobalState(context, 'dbConfigs', undefined)
+  }
+
+  return legacyDBConfigs
+}
+
+const persistDBConfigsToSecret = (
+  context: ExtensionContext,
+  dbConfigs: DBConfig[],
+) => setSecretState(context, SECRET_DB_CONFIGS_KEY, dbConfigs)
 
 export const createOrUpdateDBConfig = async (
   context: ExtensionContext,
   dbConfigInput: DBConfigInput,
 ) => {
-  const currentDBConfigs = getGlobalState(context, 'dbConfigs') ?? []
+  const currentDBConfigs = await loadDBConfigsFromSecret(context)
 
   if (dbConfigInput.targetUUID) {
     const updatedDBConfigs = currentDBConfigs.map((config) =>
@@ -20,35 +46,35 @@ export const createOrUpdateDBConfig = async (
         ? { ...dbConfigInput, uuid: dbConfigInput.targetUUID }
         : config,
     )
-    await setGlobalState(context, 'dbConfigs', updatedDBConfigs)
+    await persistDBConfigsToSecret(context, updatedDBConfigs)
   } else {
     const dbConfig = { ...dbConfigInput, uuid: randomUUID() }
-    await setGlobalState(context, 'dbConfigs', [...currentDBConfigs, dbConfig])
+    await persistDBConfigsToSecret(context, [...currentDBConfigs, dbConfig])
   }
 
-  console.log('DB Configurations:', getGlobalState(context, 'dbConfigs'))
+  console.log('DB Configurations:', await loadDBConfigsFromSecret(context))
 }
 
-export const getDBConfigs = (context: ExtensionContext): DBConfig[] => {
-  return getGlobalState(context, 'dbConfigs') ?? []
-}
+export const getDBConfigs = (context: ExtensionContext): Promise<DBConfig[]> =>
+  loadDBConfigsFromSecret(context)
 
-export const getDBConfigByUUID = (
+export const getDBConfigByUUID = async (
   context: ExtensionContext,
   uuid: string,
-): DBConfig | undefined => {
-  return getDBConfigs(context).find((config) => config.uuid === uuid)
+): Promise<DBConfig | undefined> => {
+  const dbConfigs = await getDBConfigs(context)
+  return dbConfigs.find((config) => config.uuid === uuid)
 }
 
 export const deleteDBConfig = async (
   context: ExtensionContext,
   uuid: string,
 ) => {
-  const currentDBConfigs = getGlobalState(context, 'dbConfigs') ?? []
+  const currentDBConfigs = await loadDBConfigsFromSecret(context)
   const updatedDBConfigs = currentDBConfigs.filter(
     (config) => config.uuid !== uuid,
   )
-  await setGlobalState(context, 'dbConfigs', updatedDBConfigs)
+  await persistDBConfigsToSecret(context, updatedDBConfigs)
 }
 
 export const setCurrentConnection = (
@@ -58,10 +84,10 @@ export const setCurrentConnection = (
   setWorkspaceState(context, 'currentDBConfigUUID', dbUUID)
 }
 
-export const getCurrentConnection = (
+export const getCurrentConnection = async (
   context: ExtensionContext,
-): DBConfig | undefined => {
-  const dbConfigs = getDBConfigs(context)
+): Promise<DBConfig | undefined> => {
+  const dbConfigs = await getDBConfigs(context)
   const currentDBConfigUUID = getWorkspaceState(context, 'currentDBConfigUUID')
 
   return dbConfigs.find((dbConfig) => dbConfig.uuid === currentDBConfigUUID)

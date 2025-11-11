@@ -83,7 +83,7 @@ export class ExplorerViewProvider implements TreeDataProvider<ExplorerItem> {
       )
     }
 
-    const dbConfigs = getDBConfigs(this._context)
+    const dbConfigs = await getDBConfigs(this._context)
     return dbConfigs.map(
       (dbConfig) =>
         new ExplorerItem({

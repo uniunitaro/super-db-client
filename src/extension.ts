@@ -55,7 +55,7 @@ export function activate(context: ExtensionContext) {
 
         if (!answer) return
 
-        deleteDBConfig(context, uuid)
+        await deleteDBConfig(context, uuid)
         explorerViewProvider.refresh()
       },
     ),
