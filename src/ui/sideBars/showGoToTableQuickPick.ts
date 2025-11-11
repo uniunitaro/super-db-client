@@ -11,16 +11,16 @@ export const showGoToTableQuickPick = async (context: ExtensionContext) => {
     return
   }
 
-  const tables = await connectDB(context, currentConnection.uuid)
-    .asyncAndThen(getTables)
+  const tablesResult = await connectDB(context, currentConnection.uuid)
+    .andThen(getTables)
     .map((tables) => tables.map((table) => table.name))
 
-  if (tables.isErr()) {
-    window.showErrorMessage(tables.error.message)
+  if (tablesResult.isErr()) {
+    window.showErrorMessage(tablesResult.error.message)
     return
   }
 
-  const tableName = await window.showQuickPick(tables.value, {
+  const tableName = await window.showQuickPick(tablesResult.value, {
     placeHolder: 'Go to table',
   })
   if (!tableName) return

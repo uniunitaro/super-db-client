@@ -94,6 +94,7 @@ export class ConnectionSettingPanel extends BaseWebviewPanel {
       this._onRequest(testDBConnectionRequest, async (dbConfigInput) => {
         const result = await testConnection(dbConfigInput)
         if (result.isErr()) {
+          console.log(result.error)
           window.showErrorMessage(result.error.message)
           return { error: result.error.message }
         }

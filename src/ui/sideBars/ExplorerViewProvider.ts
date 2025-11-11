@@ -39,7 +39,7 @@ export class ExplorerViewProvider implements TreeDataProvider<ExplorerItem> {
 
     this.treeView.onDidExpandElement(async (e) => {
       if (e.element.itemType === 'db' && e.element.dbUUID) {
-        const result = connectDB(this._context, e.element.dbUUID)
+        const result = await connectDB(this._context, e.element.dbUUID)
         if (result.isErr()) {
           window.showErrorMessage(result.error.message)
         }

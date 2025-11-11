@@ -205,9 +205,9 @@
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
     "package": "vsce package --no-dependencies",
-    "vscode:prepublish": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node --minify",
+    "vscode:prepublish": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --external:cpu-features --external:*.node --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
-    "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "watch": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --external:cpu-features --external:*.node --format=cjs --platform=node",
     "pretest": "pnpm compile && pnpm format-and-lint"
   },
   "dependencies": {
@@ -216,6 +216,7 @@
     "kysely-generic-sqlite": "^1.1.0",
     "mysql2": "^3.9.7",
     "neverthrow": "^8.2.0",
+    "ssh2": "^1.17.0",
     "vscode-messenger": "^0.4.5",
     "vscode-messenger-common": "^0.4.5"
   },
@@ -223,6 +224,7 @@
     "@biomejs/biome": "1.9.4",
     "@types/glob": "^8.1.0",
     "@types/node": "^20.12.12",
+    "@types/ssh2": "^1.15.5",
     "@types/vscode": "^1.89.0",
     "@vscode/vsce": "^3.6.2",
     "esbuild": "^0.21.5",
