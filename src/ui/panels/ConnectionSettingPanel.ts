@@ -85,11 +85,15 @@ export class ConnectionSettingPanel extends BaseWebviewPanel {
           return undefined
         }
 
-        const dbConfig = await getDBConfigByUUID(
+        const dbConfigResult = await getDBConfigByUUID(
           context,
           this._targetDBConfigUUID,
         )
-        return dbConfig
+        if (dbConfigResult.isErr()) {
+          window.showErrorMessage(dbConfigResult.error.message)
+          return undefined
+        }
+        return dbConfigResult.value
       }),
     )
 
@@ -108,7 +112,11 @@ export class ConnectionSettingPanel extends BaseWebviewPanel {
 
     this._disposables.push(
       this._onRequest(saveDBConfigRequest, async (dbConfigInput) => {
-        await createOrUpdateDBConfig(context, dbConfigInput)
+        const result = await createOrUpdateDBConfig(context, dbConfigInput)
+        if (result.isErr()) {
+          window.showErrorMessage(result.error.message)
+          return
+        }
 
         window.showInformationMessage('Connection Saved!')
         commands.executeCommand(COMMANDS.REFRESH_DATABASES)

@@ -5,7 +5,13 @@ import { connectDB } from '../../features/connections/usecases/connectDB'
 import { getTables } from '../../features/tables/services/table'
 
 export const showGoToTableQuickPick = async (context: ExtensionContext) => {
-  const currentConnection = await getCurrentConnection(context)
+  const currentConnectionResult = await getCurrentConnection(context)
+  if (currentConnectionResult.isErr()) {
+    window.showErrorMessage(currentConnectionResult.error.message)
+    return
+  }
+
+  const currentConnection = currentConnectionResult.value
   if (!currentConnection) {
     window.showWarningMessage('No DB connection found')
     return

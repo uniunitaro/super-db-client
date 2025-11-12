@@ -1,3 +1,4 @@
+import { type Result, err, ok } from 'neverthrow'
 import {
   type InferOutput,
   array,
@@ -10,6 +11,7 @@ import {
   string,
   union,
 } from 'valibot'
+import { ValidationError } from '../../core/errors'
 
 export const writeModeSchema = fallback(
   optional(
@@ -87,25 +89,33 @@ export type PersistedDBConfig = InferOutput<typeof persistedDBConfigSchema>
 
 export const parsePersistedDBConfigs = (
   value: unknown,
-): PersistedDBConfig[] => {
+): Result<PersistedDBConfig[], ValidationError> => {
   const result = safeParse(persistedDBConfigsSchema, value)
   if (result.success) {
-    return result.output
+    return ok(result.output)
   }
 
-  console.error('Failed to parse DB configurations from storage', result.issues)
-  return []
+  return err(
+    new ValidationError(
+      `Failed to parse DB configurations from storage: ${formatIssues(result.issues)}`,
+    ),
+  )
 }
 
-export const normalizeDBConfig = (value: unknown): PersistedDBConfig => {
+export const normalizeDBConfig = (
+  value: unknown,
+): Result<PersistedDBConfig, ValidationError> => {
   const result = safeParse(persistedDBConfigSchema, value)
   if (result.success) {
-    return result.output
+    return ok(result.output)
   }
 
-  const messages = result.issues
-    .map((issue) => issue.message ?? 'Unknown validation error')
-    .join(', ')
-
-  throw new Error(`Invalid DB configuration: ${messages}`)
+  return err(
+    new ValidationError(
+      `Invalid DB configuration: ${formatIssues(result.issues)}`,
+    ),
+  )
 }
+
+const formatIssues = (issues: Array<{ message?: string }>): string =>
+  issues.map((issue) => issue.message ?? 'Unknown validation error').join(', ')

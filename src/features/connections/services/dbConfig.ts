@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { type ResultAsync, errAsync, okAsync } from 'neverthrow'
 import type { ExtensionContext } from 'vscode'
 import {
   getGlobalState,
@@ -8,94 +9,127 @@ import {
   setSecretState,
   setWorkspaceState,
 } from '../../../utilities/store'
+import {
+  type StoreError,
+  type ValidationError,
+  toValidationError,
+} from '../../core/errors'
 import type { DBConfig, DBConfigInput } from '../types/dbConfig'
 import { normalizeDBConfig, parsePersistedDBConfigs } from './dbConfigSchema'
 
 const SECRET_DB_CONFIGS_KEY = 'dbConfigs'
 
-const loadDBConfigsFromSecret = async (
+const loadDBConfigsFromSecret = (
   context: ExtensionContext,
-): Promise<DBConfig[]> => {
-  const secretDBConfigs = await getSecretState(context, SECRET_DB_CONFIGS_KEY)
-  if (secretDBConfigs !== undefined) {
-    return parsePersistedDBConfigs(secretDBConfigs)
-  }
+): ResultAsync<DBConfig[], ValidationError | StoreError> => {
+  return getSecretState(context, SECRET_DB_CONFIGS_KEY).andThen(
+    (secretDBConfigs) => {
+      if (secretDBConfigs !== undefined) {
+        return parsePersistedDBConfigs(secretDBConfigs).asyncAndThen(
+          (configs) => okAsync(configs),
+        )
+      }
 
-  const legacyDBConfigs = getGlobalState(context, 'dbConfigs')
-  if (Array.isArray(legacyDBConfigs) && legacyDBConfigs.length > 0) {
-    const normalizedLegacy = parsePersistedDBConfigs(legacyDBConfigs)
-    await setSecretState(context, SECRET_DB_CONFIGS_KEY, normalizedLegacy)
-    await setGlobalState(context, 'dbConfigs', undefined)
-    return normalizedLegacy
-  }
+      const legacyDBConfigs = getGlobalState(context, 'dbConfigs')
+      if (Array.isArray(legacyDBConfigs) && legacyDBConfigs.length > 0) {
+        const normalizedLegacyResult = parsePersistedDBConfigs(legacyDBConfigs)
+        if (normalizedLegacyResult.isErr()) {
+          return errAsync(normalizedLegacyResult.error)
+        }
+        const normalizedLegacy = normalizedLegacyResult.value
 
-  return []
+        return persistDBConfigsToSecret(context, normalizedLegacy)
+          .andThen(() => setGlobalState(context, 'dbConfigs', undefined))
+          .map(() => normalizedLegacy)
+      }
+
+      return okAsync([])
+    },
+  )
 }
 
 const persistDBConfigsToSecret = (
   context: ExtensionContext,
   dbConfigs: DBConfig[],
-) => setSecretState(context, SECRET_DB_CONFIGS_KEY, dbConfigs)
+): ResultAsync<void, ValidationError> =>
+  setSecretState(context, SECRET_DB_CONFIGS_KEY, dbConfigs).mapErr(
+    toValidationError,
+  )
 
-export const createOrUpdateDBConfig = async (
+export const createOrUpdateDBConfig = (
   context: ExtensionContext,
   dbConfigInput: DBConfigInput,
-) => {
-  const currentDBConfigs = await loadDBConfigsFromSecret(context)
+): ResultAsync<void, ValidationError | StoreError> => {
   const { targetUUID, ...configWithoutTarget } = dbConfigInput
 
-  if (targetUUID) {
-    const updatedDBConfigs = currentDBConfigs.map((config) =>
-      config.uuid === targetUUID
-        ? normalizeDBConfig({ ...configWithoutTarget, uuid: targetUUID })
-        : config,
-    )
-    await persistDBConfigsToSecret(context, updatedDBConfigs)
-  } else {
-    const dbConfig = normalizeDBConfig({
-      ...configWithoutTarget,
-      uuid: randomUUID(),
-    })
-    await persistDBConfigsToSecret(context, [...currentDBConfigs, dbConfig])
-  }
+  return loadDBConfigsFromSecret(context)
+    .andThen((currentDBConfigs) => {
+      if (targetUUID) {
+        return normalizeDBConfig({
+          ...configWithoutTarget,
+          uuid: targetUUID,
+        }).asyncAndThen((normalizedConfig) => {
+          const updatedDBConfigs = currentDBConfigs.map((config) =>
+            config.uuid === targetUUID ? normalizedConfig : config,
+          )
+          return persistDBConfigsToSecret(context, updatedDBConfigs)
+        })
+      }
 
-  console.log('DB Configurations:', await loadDBConfigsFromSecret(context))
+      return normalizeDBConfig({
+        ...configWithoutTarget,
+        uuid: randomUUID(),
+      }).asyncAndThen((normalizedConfig) =>
+        persistDBConfigsToSecret(context, [
+          ...currentDBConfigs,
+          normalizedConfig,
+        ]),
+      )
+    })
+    .andThen(() =>
+      loadDBConfigsFromSecret(context).map((dbConfigs) => {
+        console.log('DB Configurations:', dbConfigs)
+      }),
+    )
 }
 
-export const getDBConfigs = (context: ExtensionContext): Promise<DBConfig[]> =>
+export const getDBConfigs = (
+  context: ExtensionContext,
+): ResultAsync<DBConfig[], ValidationError | StoreError> =>
   loadDBConfigsFromSecret(context)
 
-export const getDBConfigByUUID = async (
+export const getDBConfigByUUID = (
   context: ExtensionContext,
   uuid: string,
-): Promise<DBConfig | undefined> => {
-  const dbConfigs = await getDBConfigs(context)
-  return dbConfigs.find((config) => config.uuid === uuid)
-}
-
-export const deleteDBConfig = async (
-  context: ExtensionContext,
-  uuid: string,
-) => {
-  const currentDBConfigs = await loadDBConfigsFromSecret(context)
-  const updatedDBConfigs = currentDBConfigs.filter(
-    (config) => config.uuid !== uuid,
+): ResultAsync<DBConfig | undefined, ValidationError | StoreError> =>
+  getDBConfigs(context).map((dbConfigs) =>
+    dbConfigs.find((config) => config.uuid === uuid),
   )
-  await persistDBConfigsToSecret(context, updatedDBConfigs)
-}
+
+export const deleteDBConfig = (
+  context: ExtensionContext,
+  uuid: string,
+): ResultAsync<void, ValidationError | StoreError> =>
+  loadDBConfigsFromSecret(context).andThen((currentDBConfigs) => {
+    const updatedDBConfigs = currentDBConfigs.filter(
+      (config) => config.uuid !== uuid,
+    )
+    return persistDBConfigsToSecret(context, updatedDBConfigs)
+  })
 
 export const setCurrentConnection = (
   context: ExtensionContext,
   dbUUID: string,
-) => {
+): ResultAsync<void, StoreError> =>
   setWorkspaceState(context, 'currentDBConfigUUID', dbUUID)
-}
 
-export const getCurrentConnection = async (
+export const getCurrentConnection = (
   context: ExtensionContext,
-): Promise<DBConfig | undefined> => {
-  const dbConfigs = await getDBConfigs(context)
+): ResultAsync<DBConfig | undefined, ValidationError | StoreError> => {
   const currentDBConfigUUID = getWorkspaceState(context, 'currentDBConfigUUID')
+  if (!currentDBConfigUUID) {
+    return okAsync(undefined)
+  }
 
-  return dbConfigs.find((dbConfig) => dbConfig.uuid === currentDBConfigUUID)
+  return getDBConfigByUUID(context, currentDBConfigUUID)
 }

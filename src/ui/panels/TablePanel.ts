@@ -212,7 +212,12 @@ export class TablePanel extends BaseWebviewPanel {
       return true
     }
 
-    const dbConfig = await getCurrentConnection(this._context)
+    const dbConfigResult = await getCurrentConnection(this._context)
+    if (dbConfigResult.isErr()) {
+      window.showErrorMessage(dbConfigResult.error.message)
+      return false
+    }
+    const dbConfig = dbConfigResult.value
     const writeMode = dbConfig?.writeMode ?? 'allow'
 
     if (writeMode === 'disable') {

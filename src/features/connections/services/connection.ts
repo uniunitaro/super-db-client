@@ -9,6 +9,7 @@ import { createSqliteExecutor } from '../../../libs/kyselySqliteDialect'
 import { assertNever } from '../../../utilities/assertNever'
 import {
   DatabaseError,
+  type StoreError,
   type ValidationError,
   toDatabaseError,
   toValidationError,
@@ -84,7 +85,7 @@ const createDialect = (
 export const connect = (
   context: ExtensionContext,
   dbUUID: string,
-): ResultAsync<KyselyDB, DatabaseError> => {
+): ResultAsync<KyselyDB, DatabaseError | ValidationError | StoreError> => {
   return getDBConfig(context, dbUUID)
     .andThen(ensureSQLiteFileExists)
     .andThen((dbConfig) =>
@@ -182,17 +183,13 @@ const checkFileExists = (filePath: string): Result<void, ValidationError> => {
 const getDBConfig = (
   context: ExtensionContext,
   dbUUID: string,
-): ResultAsync<DBConfig, DatabaseError> =>
-  ResultAsync.fromPromise(
-    (async () => {
-      const dbConfig = await getDBConfigByUUID(context, dbUUID)
-      if (!dbConfig) {
-        throw new Error('DB not found')
-      }
-      return dbConfig
-    })(),
-    toDatabaseError,
-  )
+): ResultAsync<DBConfig, DatabaseError | ValidationError | StoreError> =>
+  getDBConfigByUUID(context, dbUUID).andThen((dbConfig) => {
+    if (!dbConfig) {
+      return errAsync(new DatabaseError('DB not found'))
+    }
+    return okAsync(dbConfig)
+  })
 
 const ensureSQLiteFileExists = (
   dbConfig: DBConfig,

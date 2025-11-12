@@ -19,7 +19,12 @@ export const createCurrentConnectionStatus = (context: ExtensionContext) => {
 export const updateCurrentConnectionStatus = async (
   context: ExtensionContext,
 ) => {
-  const currentConnection = await getCurrentConnection(context)
+  const currentConnectionResult = await getCurrentConnection(context)
+  if (currentConnectionResult.isErr()) {
+    window.showErrorMessage(currentConnectionResult.error.message)
+    return
+  }
+  const currentConnection = currentConnectionResult.value
 
   if (currentConnection) {
     // const { connectionName, host, database } = currentConnection

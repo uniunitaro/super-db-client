@@ -55,7 +55,11 @@ export function activate(context: ExtensionContext) {
 
         if (!answer) return
 
-        await deleteDBConfig(context, uuid)
+        const result = await deleteDBConfig(context, uuid)
+        if (result.isErr()) {
+          window.showErrorMessage(result.error.message)
+          return
+        }
         explorerViewProvider.refresh()
       },
     ),
