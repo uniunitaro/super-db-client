@@ -30,7 +30,7 @@ import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
 import type { TableCellRef } from './TableCell'
 import TableRow from './TableRow'
 
-const VirtualTable: FC<{
+const VirtualizedTable: FC<{
   tableRef: RefObject<HTMLDivElement | null>
   cellRef: RefObject<TableCellRef | null>
   dbColumns: ColumnMetadata[]
@@ -383,4 +383,4 @@ const VirtualTable: FC<{
   },
 )
 
-export default VirtualTable
+export default VirtualizedTable

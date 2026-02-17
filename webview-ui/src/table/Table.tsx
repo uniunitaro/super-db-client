@@ -21,7 +21,7 @@ import { createPortal } from 'react-dom'
 import { css } from 'styled-system/css'
 import { HOST_EXTENSION } from 'vscode-messenger-common'
 import TableFooter from './components/TableFooter'
-import VirtualTable from './components/VirtualTable'
+import VirtualizedTable from './components/VirtualizedTable'
 import { useOperations } from './hooks/useOperations'
 import { useSelectionHandler } from './hooks/useSelectionHandler'
 import { useShortcutKeys } from './hooks/useShortcutKeys'
@@ -131,7 +131,7 @@ const Table: FC = () => {
     updatedRows,
     editedCells,
     deletedRowIndexes,
-    virtualTableTableRef,
+    virtualizedTableTableRef,
     handleCellEdit,
     handleRowDelete,
     handleRowInsert,
@@ -270,8 +270,8 @@ const Table: FC = () => {
       >
         <div className={css({ display: 'grid' })}>
           {tableData && config && (
-            <VirtualTable
-              tableRef={virtualTableTableRef}
+            <VirtualizedTable
+              tableRef={virtualizedTableTableRef}
               cellRef={cellRef}
               dbColumns={tableData.tableMetadata.columns}
               dbRows={updatedRows}

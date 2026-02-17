@@ -172,14 +172,14 @@ export const useOperations = ({
     addOperations(deleteOperations)
   }, [tableData, addOperations, selectedRowIndexes, updatedRows])
 
-  const virtualTableTableRef = useRef<HTMLDivElement>(null)
+  const virtualizedTableTableRef = useRef<HTMLDivElement>(null)
   const handleRowInsert = useCallback(() => {
     const uuid = crypto.randomUUID()
     flushSync(() => {
       addOperations([{ type: 'insert', uuid }])
     })
 
-    virtualTableTableRef.current?.scrollIntoView(false)
+    virtualizedTableTableRef.current?.scrollIntoView(false)
   }, [addOperations])
 
   const handleRowDuplicate = useCallback(() => {
@@ -231,7 +231,7 @@ export const useOperations = ({
       addOperations(operationsToAdd)
     })
 
-    virtualTableTableRef.current?.scrollIntoView(false)
+    virtualizedTableTableRef.current?.scrollIntoView(false)
   }, [tableData, selectedRowIndexes, updatedRows, addOperations])
 
   const editedCells: Cell[] = useMemo(() => {
@@ -317,7 +317,7 @@ export const useOperations = ({
     updatedRows,
     editedCells,
     deletedRowIndexes,
-    virtualTableTableRef,
+    virtualizedTableTableRef,
     handleCellEdit,
     handleRowDelete,
     handleRowInsert,
