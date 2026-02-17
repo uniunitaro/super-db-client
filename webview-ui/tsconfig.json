@@ -17,9 +17,9 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@shared-types/*": ["../src/types/*"]
-    },
-    "baseUrl": "."
+      "@shared-types/*": ["../src/types/*"],
+      "*": ["./*"]
+    }
   },
   "include": ["./src", "../src/types", "./vitest.setup.ts"]
 }
