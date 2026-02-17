@@ -30,6 +30,9 @@ export default defineConfig({
         borderWidths: {
           cellBorderWidth: { value: `${CELL_BORDER_WIDTH}px` },
         },
+        zIndex: {
+          tableFilterBar: { value: 2 },
+        },
       },
       keyframes: {
         progress: {

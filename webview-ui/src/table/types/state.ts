@@ -1,3 +1,5 @@
+import type { FilterCondition } from '@shared-types/sharedTypes'
+import type { EditableFilterCondition } from '../model/filter'
 import type { ClientOperation, SelectedCell, Sort } from './table'
 
 export type TablePanelState = {
@@ -10,4 +12,6 @@ export type TablePanelState = {
   operations?: ClientOperation[]
   redoStack?: ClientOperation[]
   sort?: Sort
+  filters?: EditableFilterCondition[]
+  appliedFilters?: FilterCondition[]
 }

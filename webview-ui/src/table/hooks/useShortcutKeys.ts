@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Key } from 'ts-key-enum'
 
@@ -24,9 +25,12 @@ export const useShortcutKeys = ({
   undoOperation: () => void
   redoOperation: () => void
 }) => {
-  useHotkeys([Key.Backspace, Key.Delete], deleteRow)
+  const deleteRowRef = useHotkeys<HTMLDivElement>(
+    [Key.Backspace, Key.Delete],
+    deleteRow,
+  )
 
-  useHotkeys(
+  const upDownRef = useHotkeys<HTMLDivElement>(
     [
       Key.ArrowUp,
       Key.ArrowDown,
@@ -54,17 +58,20 @@ export const useShortcutKeys = ({
     { enableOnFormTags: true },
   )
 
-  useHotkeys([Key.ArrowLeft, Key.ArrowRight], (event, handler) => {
-    // デフォルトのスクロール動作を無効化
-    event.preventDefault()
+  const leftRightRef = useHotkeys<HTMLDivElement>(
+    [Key.ArrowLeft, Key.ArrowRight],
+    (event, handler) => {
+      // デフォルトのスクロール動作を無効化
+      event.preventDefault()
 
-    moveSelectedCell({
-      direction: handler.keys?.includes('left') ? 'left' : 'right',
-      isShiftPressed: false,
-    })
-  })
+      moveSelectedCell({
+        direction: handler.keys?.includes('left') ? 'left' : 'right',
+        isShiftPressed: false,
+      })
+    },
+  )
 
-  useHotkeys(
+  const enterRef = useHotkeys<HTMLDivElement>(
     Key.Enter,
     (event) => {
       if (event.isComposing) {
@@ -78,7 +85,8 @@ export const useShortcutKeys = ({
       enableOnFormTags: true,
     },
   )
-  useHotkeys(
+
+  const escapeRef = useHotkeys<HTMLDivElement>(
     Key.Escape,
     () => {
       exitSelectedCellInput()
@@ -89,4 +97,19 @@ export const useShortcutKeys = ({
 
   useHotkeys('mod+z', undoOperation)
   useHotkeys(['mod+shift+z', 'mod+y'], redoOperation)
+
+  const tableHotkeysRef = useCallback(
+    (instance: HTMLDivElement | null) => {
+      deleteRowRef(instance)
+      upDownRef(instance)
+      leftRightRef(instance)
+      enterRef(instance)
+      escapeRef(instance)
+    },
+    [deleteRowRef, enterRef, escapeRef, leftRightRef, upDownRef],
+  )
+
+  return {
+    tableHotkeysRef,
+  }
 }

@@ -23,21 +23,20 @@
     "vscode-messenger-webview": "^0.4.5"
   },
   "devDependencies": {
+    "@vitest/browser-playwright": "^4.0.18",
     "@biomejs/biome": "1.9.4",
     "@pandacss/dev": "^0.39.1",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.1.0",
-    "@testing-library/user-event": "^14.5.2",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
     "@types/vscode-webview": "^1.57.5",
     "@typescript/native-preview": "7.0.0-dev.20260217.1",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^5.1.4",
     "jsdom": "^25.0.1",
-    "vite": "^5.2.13",
-    "vite-plugin-static-copy": "^1.0.5",
-    "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "^2.1.8"
+    "playwright": "^1.55.1",
+    "vite": "^7.3.1",
+    "vite-plugin-static-copy": "^3.2.0",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest-browser-react": "^2.0.5",
+    "vitest": "^4.0.18"
   }
 }

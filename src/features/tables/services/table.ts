@@ -1,9 +1,9 @@
-import type { TableMetadata } from 'kysely'
+import { type TableMetadata, sql } from 'kysely'
 import { ResultAsync } from 'neverthrow'
 import type { DBInfo, KyselyAnyDB } from '../../connections/types/connection'
 import type { DatabaseError } from '../../core/errors'
 import { toDatabaseError } from '../../core/errors'
-import type { Operation, TableRow } from '../types/table'
+import type { FilterCondition, Operation, TableRow } from '../types/table'
 import { getTableMetadata } from './metadata'
 
 export const getRows = ({
@@ -13,6 +13,7 @@ export const getRows = ({
   orderBy,
   limit,
   offset,
+  filters,
 }: {
   db: KyselyAnyDB
   tableName: string
@@ -20,12 +21,67 @@ export const getRows = ({
   orderBy?: string
   limit: number
   offset: number
+  filters?: FilterCondition[]
 }): ResultAsync<TableRow[], DatabaseError> => {
-  let query = db.selectFrom(tableName).selectAll().limit(limit).offset(offset)
+  let query = db.selectFrom(tableName).selectAll()
+
+  if (filters?.length) {
+    for (const filter of filters) {
+      if (filter.operator === 'IS NULL') {
+        query = query.where(sql<boolean>`${sql.ref(filter.column)} is null`)
+        continue
+      }
+
+      if (filter.operator === 'IS NOT NULL') {
+        query = query.where(sql<boolean>`${sql.ref(filter.column)} is not null`)
+        continue
+      }
+
+      if (filter.operator === 'IN') {
+        if (!filter.value) {
+          continue
+        }
+
+        const values = filter.value
+          .split(',')
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0)
+
+        if (!values.length) {
+          continue
+        }
+
+        query = query.where(
+          sql<boolean>`${sql.ref(filter.column)} in (${sql.join(values)})`,
+        )
+        continue
+      }
+
+      if (filter.operator === 'BETWEEN') {
+        if (filter.value === undefined || filter.valueTo === undefined) {
+          continue
+        }
+
+        query = query.where(
+          sql<boolean>`${sql.ref(filter.column)} between ${filter.value} and ${filter.valueTo}`,
+        )
+        continue
+      }
+
+      if (filter.value === undefined) {
+        continue
+      }
+
+      const operator = filter.operator === 'LIKE' ? 'like' : filter.operator
+      query = query.where(filter.column, operator, filter.value)
+    }
+  }
 
   if (order && orderBy) {
     query = query.orderBy(orderBy, order)
   }
+
+  query = query.limit(limit).offset(offset)
 
   return ResultAsync.fromPromise(query.execute(), toDatabaseError).map(
     (rows) => {

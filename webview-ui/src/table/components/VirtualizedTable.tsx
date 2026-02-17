@@ -10,8 +10,10 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
   type FC,
+  type RefCallback,
   type RefObject,
   memo,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -42,6 +44,7 @@ const VirtualizedTable: FC<{
   selectedRowIndexes: number[]
   sort: Sort
   shouldShowInput: boolean
+  hotkeysRef: RefCallback<HTMLDivElement>
   onCellSelect: SetSelectedCell
   onCellEdit: (newValue: string) => void
   onSortChange: (columnId: string) => void
@@ -59,6 +62,7 @@ const VirtualizedTable: FC<{
     selectedRowIndexes,
     sort,
     shouldShowInput,
+    hotkeysRef,
     onCellSelect,
     onCellEdit,
     onSortChange,
@@ -182,6 +186,14 @@ const VirtualizedTable: FC<{
     const { rows } = table.getRowModel()
 
     const parentRef = useRef<HTMLDivElement>(null)
+    const mergedParentRef = useCallback(
+      (instance: HTMLDivElement | null) => {
+        parentRef.current = instance
+        hotkeysRef(instance)
+      },
+      [hotkeysRef],
+    )
+
     const virtualizer = useVirtualizer({
       count: rows.length,
       getScrollElement: () => parentRef.current,
@@ -223,7 +235,7 @@ const VirtualizedTable: FC<{
 
     return (
       <div
-        ref={parentRef}
+        ref={mergedParentRef}
         className={css({
           overflow: 'auto',
           '&::-webkit-scrollbar-button': { display: 'none' },

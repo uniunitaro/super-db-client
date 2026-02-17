@@ -1,10 +1,4 @@
-import '@testing-library/jest-dom/vitest'
-import { cleanup } from '@testing-library/react'
-import { afterEach, vi } from 'vitest'
-
-afterEach(() => {
-  cleanup()
-})
+import { vi } from 'vitest'
 
 window.matchMedia = vi.fn().mockImplementation((query) => ({
   matches: false,

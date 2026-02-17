@@ -10,6 +10,7 @@ import {
   getTableInitialDataRequest,
   saveTableChangesRequest,
 } from '@shared-types/message'
+import type { FilterCondition } from '@shared-types/sharedTypes'
 import {
   keepPreviousData,
   useMutation,
@@ -20,11 +21,17 @@ import { type FC, useCallback, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { css } from 'styled-system/css'
 import { HOST_EXTENSION } from 'vscode-messenger-common'
+import TableFilterBar from './components/TableFilterBar'
 import TableFooter from './components/TableFooter'
 import VirtualizedTable from './components/VirtualizedTable'
 import { useOperations } from './hooks/useOperations'
 import { useSelectionHandler } from './hooks/useSelectionHandler'
 import { useShortcutKeys } from './hooks/useShortcutKeys'
+import {
+  type EditableFilterCondition,
+  createEmptyEditableFilterCondition,
+  toFilterConditions,
+} from './model/filter'
 import { convertClientOperationToOperation } from './utils/convertClientOperationToOperations'
 
 const Table: FC = () => {
@@ -33,6 +40,21 @@ const Table: FC = () => {
   const [limit, setLimit] = useTablePanelState('limit', 300)
   const [offset, setOffset] = useTablePanelState('offset', 0)
   const [sort, setSort] = useTablePanelState('sort', null)
+  const [filters, setFilters] = useTablePanelState('filters', [
+    createEmptyEditableFilterCondition(),
+  ])
+  const [appliedFilters, setAppliedFilters] = useTablePanelState(
+    'appliedFilters',
+    [] as FilterCondition[],
+  )
+  const handleApplyFilters = useCallback(
+    (nextFilters?: EditableFilterCondition[]) => {
+      setAppliedFilters(toFilterConditions(nextFilters ?? filters))
+      setOffset(0)
+    },
+    [filters, setAppliedFilters, setOffset],
+  )
+
   const handleSortChange = useCallback(
     (columnId: string) => {
       if (sort?.orderBy === columnId) {
@@ -63,13 +85,14 @@ const Table: FC = () => {
     error: tableDataError,
     refetch: refetchTableData,
   } = useQuery({
-    queryKey: ['getTableData', limit, offset, sort],
+    queryKey: ['getTableData', limit, offset, sort, appliedFilters],
     queryFn: () =>
       messenger.sendRequest(getTableDataRequest, HOST_EXTENSION, {
         limit,
         offset,
         order: sort?.order,
         orderBy: sort?.orderBy,
+        filters: appliedFilters,
       }),
     placeholderData: keepPreviousData,
   })
@@ -217,7 +240,7 @@ const Table: FC = () => {
     handleCellEdit,
   ])
 
-  useShortcutKeys({
+  const { tableHotkeysRef } = useShortcutKeys({
     deleteRow: handleRowDelete,
     moveSelectedCell: useCallback(
       ({ direction, isShiftPressed }) =>
@@ -263,12 +286,18 @@ const Table: FC = () => {
         className={css({
           color: 'var(--vscode-foreground)',
           display: 'grid',
-          gridTemplateColumns: '1',
-          gridTemplateRows: '1',
+          gridTemplateRows: 'auto 1fr auto',
           h: '100vh',
         })}
       >
-        <div className={css({ display: 'grid' })}>
+        <TableFilterBar
+          columns={tableData?.tableMetadata.columns ?? []}
+          filters={filters}
+          onFiltersChange={setFilters}
+          onApply={handleApplyFilters}
+        />
+
+        <div className={css({ display: 'grid', minH: 0 })}>
           {tableData && config && (
             <VirtualizedTable
               tableRef={virtualizedTableTableRef}
@@ -282,6 +311,7 @@ const Table: FC = () => {
               selectedRowIndexes={selectedRowIndexes}
               sort={sort}
               shouldShowInput={shouldShowInput}
+              hotkeysRef={tableHotkeysRef}
               onCellSelect={setSelectedCell}
               onCellEdit={handleCellEdit}
               onSortChange={handleSortChange}
@@ -289,6 +319,7 @@ const Table: FC = () => {
             />
           )}
         </div>
+
         <TableFooter
           isLoading={!tableData || !config}
           totalCount={tableData?.tableMetadata.totalRows ?? 0}

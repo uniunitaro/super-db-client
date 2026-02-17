@@ -1,4 +1,3 @@
-import { ResultAsync } from 'neverthrow'
 import {
   type ExtensionContext,
   Uri,
@@ -16,7 +15,11 @@ import {
 import { getCurrentConnection } from '../../features/connections/services/dbConfig'
 import { getTableMetadata } from '../../features/tables/services/metadata'
 import { getRows, saveChanges } from '../../features/tables/services/table'
-import type { Operation } from '../../features/tables/types/table'
+import {
+  FILTER_OPERATORS,
+  type FilterCondition,
+  type Operation,
+} from '../../features/tables/types/table'
 import {
   type Command,
   commandRequest,
@@ -26,8 +29,63 @@ import {
   saveTableChangesRequest,
 } from '../../types/message'
 import { getWebviewContent } from '../../utilities/getWebviewContent'
-import { tuple } from '../../utilities/tuple'
 import { BaseWebviewPanel } from './BaseWebviewPanel'
+
+const sanitizeFilters = (
+  filters: FilterCondition[] | undefined,
+  allowedColumns: Set<string>,
+): FilterCondition[] => {
+  if (!filters?.length) {
+    return []
+  }
+
+  const allowedOperators = new Set(FILTER_OPERATORS)
+  const sanitizedFilters: FilterCondition[] = []
+
+  for (const filter of filters) {
+    if (!allowedColumns.has(filter.column)) {
+      continue
+    }
+
+    if (!allowedOperators.has(filter.operator)) {
+      continue
+    }
+
+    if (filter.operator === 'IS NULL' || filter.operator === 'IS NOT NULL') {
+      sanitizedFilters.push({
+        column: filter.column,
+        operator: filter.operator,
+      })
+      continue
+    }
+
+    if (filter.operator === 'BETWEEN') {
+      if (filter.value === undefined || filter.valueTo === undefined) {
+        continue
+      }
+
+      sanitizedFilters.push({
+        column: filter.column,
+        operator: filter.operator,
+        value: filter.value,
+        valueTo: filter.valueTo,
+      })
+      continue
+    }
+
+    if (filter.value === undefined) {
+      continue
+    }
+
+    sanitizedFilters.push({
+      column: filter.column,
+      operator: filter.operator,
+      value: filter.value,
+    })
+  }
+
+  return sanitizedFilters
+}
 
 export class TablePanel extends BaseWebviewPanel {
   protected static currentPanel: TablePanel | undefined
@@ -115,7 +173,7 @@ export class TablePanel extends BaseWebviewPanel {
     this._disposables.push(
       this._onRequest(
         getTableDataRequest,
-        ({ order, orderBy, limit, offset }) => {
+        ({ order, orderBy, limit, offset, filters }) => {
           const db = getDB()
           if (!db) {
             throw new Error('DB not found')
@@ -132,21 +190,25 @@ export class TablePanel extends BaseWebviewPanel {
             tableName: this._tableName,
           })
 
-          const rows = getRows({
-            db,
-            tableName: this._tableName,
-            order,
-            orderBy,
-            limit,
-            offset,
-          })
+          const result = tableMetadata.andThen((tableMetadata) => {
+            const sanitizedFilters = sanitizeFilters(
+              filters,
+              new Set(tableMetadata.columns.map((column) => column.name)),
+            )
 
-          const result = ResultAsync.combine(tuple(tableMetadata, rows)).map(
-            ([tableMetadata, rows]) => ({
+            return getRows({
+              db,
+              tableName: this._tableName,
+              order,
+              orderBy,
+              limit,
+              offset,
+              filters: sanitizedFilters,
+            }).map((rows) => ({
               tableMetadata,
               rows,
-            }),
-          )
+            }))
+          })
           return result.match(
             (result) => result,
             (error) => {

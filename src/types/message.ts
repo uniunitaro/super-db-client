@@ -5,7 +5,11 @@ import type {
   DBConfigInput,
 } from '../features/connections/types/dbConfig'
 import type { TableMetadata } from '../features/tables/types/metadata'
-import type { Operation, TableRow } from '../features/tables/types/table'
+import type {
+  FilterCondition,
+  Operation,
+  TableRow,
+} from '../features/tables/types/table'
 
 export const getConnectionSettingInitialDataRequest: RequestType<
   undefined,
@@ -35,6 +39,7 @@ export const getTableDataRequest: RequestType<
     orderBy?: string
     limit: number
     offset: number
+    filters?: FilterCondition[]
   },
   GetTableDataRequestResponse
 > = {

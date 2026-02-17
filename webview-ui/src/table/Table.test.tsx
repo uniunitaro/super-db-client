@@ -1,8 +1,8 @@
 import { type MockResponses, mockSendRequest } from '@/mocks/messenger'
-import { renderWithQueryClient } from '@/utilities/renderWithQueryClient'
-import { screen, waitFor, within } from '@testing-library/react'
-import { userEvent } from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, expect, test, vi } from 'vitest'
+import { render } from 'vitest-browser-react'
+import { page } from 'vitest/browser'
 import { messenger } from '../utilities/messenger'
 import Table from './Table'
 
@@ -14,17 +14,17 @@ vi.mock('../utilities/messenger', () => ({
   },
 }))
 
-// TanStack VirtualはgetBoundingClientRectで高さが存在しない場合に列をレンダリングしないため、getBoundingClientRectをモックする
-Element.prototype.getBoundingClientRect = vi.fn().mockImplementation(() => ({
-  width: 100,
-  height: 100,
-  top: 0,
-  left: 0,
-  bottom: 0,
-  right: 0,
-}))
-
 const mockedMessenger = vi.mocked(messenger)
+
+const renderTable = () => {
+  const queryClient = new QueryClient()
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <Table />
+    </QueryClientProvider>,
+  )
+}
 
 const defaultColumn = {
   name: 'id',
@@ -38,6 +38,31 @@ const defaultColumn = {
 }
 
 describe('Table', () => {
+  test('条件を追加するとフィルター行が増える', async () => {
+    mockedMessenger.sendRequest.mockImplementation(
+      mockSendRequest({
+        getTableData: {
+          rows: [{ id: 100 }],
+          tableMetadata: {
+            columns: [{ ...defaultColumn, name: 'id' }],
+            columnKeys: [],
+            name: 'test',
+            primaryKeyColumns: ['id'],
+            totalRows: 1,
+          },
+        },
+      }),
+    )
+
+    renderTable()
+
+    await page.getByRole('button', { name: 'Add condition' }).click()
+
+    await expect
+      .poll(() => page.getByRole('button', { name: 'Remove' }).length)
+      .toBe(2)
+  })
+
   test('テーブルデータを表示できる', async () => {
     mockedMessenger.sendRequest.mockImplementation(
       mockSendRequest({
@@ -54,11 +79,9 @@ describe('Table', () => {
       }),
     )
 
-    renderWithQueryClient(<Table />)
+    renderTable()
 
-    await waitFor(async () =>
-      expect(await screen.findByText('100')).toBeInTheDocument(),
-    )
+    await expect.element(page.getByText('100')).toBeInTheDocument()
   })
 
   test('列のヘッダーをクリックするとソートが切り替わる', async () => {
@@ -93,10 +116,10 @@ describe('Table', () => {
       }),
     )
 
-    renderWithQueryClient(<Table />)
+    renderTable()
 
-    const [header, firstRow, secondRow] = await screen.findAllByRole('row')
-    await waitFor(() => expect(firstRow).toHaveTextContent('100'))
+    const rows = page.getByRole('row')
+    await expect.element(rows.nth(1)).toHaveTextContent('100')
 
     mockedMessenger.sendRequest.mockImplementation(
       mockSendRequest({
@@ -104,14 +127,11 @@ describe('Table', () => {
       }),
     )
 
-    const idHeader = within(header).getByRole('button', { name: 'id' })
-    userEvent.click(idHeader)
+    await page.getByRole('button', { name: 'id' }).click()
 
-    await waitFor(() => {
-      expect(firstRow).toHaveTextContent('101')
-      expect(firstRow).toHaveTextContent('test2')
-      expect(secondRow).toHaveTextContent('100')
-      expect(secondRow).toHaveTextContent('test')
-    })
+    await expect.element(rows.nth(1)).toHaveTextContent('101')
+    await expect.element(rows.nth(1)).toHaveTextContent('test2')
+    await expect.element(rows.nth(2)).toHaveTextContent('100')
+    await expect.element(rows.nth(2)).toHaveTextContent('test')
   })
 })
