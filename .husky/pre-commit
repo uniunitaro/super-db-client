@@ -1,0 +1,1 @@
+pnpm typecheck && pnpm format-and-lint && pnpm test
