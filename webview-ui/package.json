@@ -14,7 +14,7 @@
     "@tanstack/react-query-persist-client": "^5.62.3",
     "@tanstack/react-table": "^8.20.5",
     "@tanstack/react-virtual": "^3.11.1",
-    "@vscode/webview-ui-toolkit": "^1.4.0",
+    "@vscode-elements/react-elements": "^2.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hotkeys-hook": "^4.5.0",

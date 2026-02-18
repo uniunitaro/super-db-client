@@ -16,13 +16,15 @@ vi.mock('../utilities/messenger', () => ({
 
 const mockedMessenger = vi.mocked(messenger)
 
-const renderTable = () => {
+const renderTable = ({ width }: { width?: number } = {}) => {
   const queryClient = new QueryClient()
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      <Table />
-    </QueryClientProvider>,
+    <div style={width ? { width: `${width}px` } : undefined}>
+      <QueryClientProvider client={queryClient}>
+        <Table />
+      </QueryClientProvider>
+    </div>,
   )
 }
 
@@ -133,5 +135,42 @@ describe('Table', () => {
     await expect.element(rows.nth(1)).toHaveTextContent('test2')
     await expect.element(rows.nth(2)).toHaveTextContent('100')
     await expect.element(rows.nth(2)).toHaveTextContent('test')
+  })
+
+  test('画面幅600pxでは横スクロールが発生しない', async () => {
+    mockedMessenger.sendRequest.mockImplementation(
+      mockSendRequest({
+        getTableData: {
+          rows: [{ id: 100 }],
+          tableMetadata: {
+            columns: [{ ...defaultColumn, name: 'id' }],
+            columnKeys: [],
+            name: 'test',
+            primaryKeyColumns: ['id'],
+            totalRows: 1,
+          },
+        },
+      }),
+    )
+
+    const { container } = await renderTable({ width: 600 })
+
+    await expect
+      .poll(() => page.getByRole('button', { name: 'Add condition' }).length)
+      .toBe(1)
+
+    const viewport = container.firstElementChild
+
+    expect(viewport).not.toBeNull()
+
+    await expect
+      .poll(() => {
+        if (!viewport) {
+          return false
+        }
+
+        return viewport.scrollWidth <= viewport.clientWidth
+      })
+      .toBe(true)
   })
 })

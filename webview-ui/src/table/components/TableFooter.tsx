@@ -1,4 +1,7 @@
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react'
+import {
+  VscodeButton,
+  VscodeToolbarButton,
+} from '@vscode-elements/react-elements'
 import type { FC } from 'react'
 import { css, cx } from 'styled-system/css'
 import { hstack } from 'styled-system/patterns/hstack'
@@ -40,33 +43,23 @@ const TableFooter: FC<{
       })}
     >
       <div className={hstack({ gap: '2' })}>
-        <VSCodeButton
-          appearance="icon"
+        <VscodeToolbarButton
           aria-label="Save changes"
           disabled={isSaveDisabled}
           onClick={onSave}
         >
           <div className={cx(css({ px: '3' }), 'codicon codicon-save')} />
-        </VSCodeButton>
-        <VSCodeButton
-          appearance="icon"
-          aria-label="Insert row"
-          onClick={onInsert}
-        >
+        </VscodeToolbarButton>
+        <VscodeToolbarButton aria-label="Insert row" onClick={onInsert}>
           <div className={cx(css({ px: '3' }), 'codicon codicon-add')} />
-        </VSCodeButton>
-        <VSCodeButton
-          appearance="icon"
-          aria-label="Refresh"
-          onClick={onRefresh}
-        >
+        </VscodeToolbarButton>
+        <VscodeToolbarButton aria-label="Refresh" onClick={onRefresh}>
           <div className={cx(css({ px: '3' }), 'codicon codicon-refresh')} />
-        </VSCodeButton>
+        </VscodeToolbarButton>
       </div>
       <div>{isLoading ? 'Loading...' : rowCountText}</div>
       <div className={hstack({ gap: '4' })}>
-        <VSCodeButton
-          appearance="icon"
+        <VscodeToolbarButton
           aria-label="Previous page"
           disabled={page === 1}
           onClick={() => onPageChange(page - 1)}
@@ -74,17 +67,16 @@ const TableFooter: FC<{
           <div
             className={cx(css({ px: '3' }), 'codicon codicon-chevron-left')}
           />
-        </VSCodeButton>
+        </VscodeToolbarButton>
         <span>{page}</span>
-        <VSCodeButton
-          appearance="icon"
+        <VscodeToolbarButton
           aria-label="Next page"
           onClick={() => onPageChange(page + 1)}
         >
           <div
             className={cx(css({ px: '3' }), 'codicon codicon-chevron-right')}
           />
-        </VSCodeButton>
+        </VscodeToolbarButton>
       </div>
     </div>
   )

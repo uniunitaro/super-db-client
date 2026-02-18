@@ -17,6 +17,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
+import { VscodeProgressBar } from '@vscode-elements/react-elements'
 import { type FC, useCallback, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { css } from 'styled-system/css'
@@ -276,7 +277,7 @@ const Table: FC = () => {
             <div
               className={css({ pos: 'fixed', top: 0, w: 'full', zIndex: 1 })}
             >
-              <LinearProgress />
+              <VscodeProgressBar />
             </div>,
             document.body,
           )}

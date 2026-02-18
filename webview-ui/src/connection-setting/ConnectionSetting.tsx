@@ -2,6 +2,10 @@ import { useVSCodeState } from '@/hooks/useVSCodeState'
 import { assertNever } from '@/utilities/assertNever'
 import { messenger } from '@/utilities/messenger'
 import {
+  readEventTargetChecked,
+  readEventTargetValue,
+} from '@/utilities/readEventTarget'
+import {
   getConnectionSettingInitialDataRequest,
   saveDBConfigRequest,
   testDBConnectionRequest,
@@ -9,13 +13,15 @@ import {
 import type { DBConfigInput } from '@shared-types/sharedTypes'
 import { useQuery } from '@tanstack/react-query'
 import {
-  VSCodeButton,
-  VSCodeCheckbox,
-  VSCodeDropdown,
-  VSCodeOption,
-  VSCodeTextField,
-} from '@vscode/webview-ui-toolkit/react'
-import { type ChangeEvent, type FC, useEffect } from 'react'
+  VscodeButton,
+  VscodeCheckbox,
+  VscodeFormGroup,
+  VscodeLabel,
+  VscodeOption,
+  VscodeSingleSelect,
+  VscodeTextfield,
+} from '@vscode-elements/react-elements'
+import { type ComponentProps, type FC, useEffect } from 'react'
 import { container } from 'styled-system/patterns/container'
 import { grid } from 'styled-system/patterns/grid'
 import { stack } from 'styled-system/patterns/stack'
@@ -152,6 +158,22 @@ const convertSSHFormToInput = (
   }
 }
 
+type LabeledTextFieldProps = {
+  id: string
+  label: string
+} & Omit<ComponentProps<typeof VscodeTextfield>, 'children' | 'id'>
+
+const LabeledTextField: FC<LabeledTextFieldProps> = ({
+  id,
+  label,
+  ...props
+}) => (
+  <VscodeFormGroup variant="vertical">
+    <VscodeLabel htmlFor={id}>{label}</VscodeLabel>
+    <VscodeTextfield id={id} {...props} />
+  </VscodeFormGroup>
+)
+
 const ConnectionSetting: FC = () => {
   const useConnectionSettingPanelState = useVSCodeState(
     'connectionSettingPanel',
@@ -207,22 +229,16 @@ const ConnectionSetting: FC = () => {
     messenger.start()
   }, [])
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-    key: keyof DBConfigInputForForm,
-  ) => {
-    setDBConfig({ ...dbConfig, [key]: e.target.value })
+  const handleChange = (value: string, key: keyof DBConfigInputForForm) => {
+    setDBConfig({ ...dbConfig, [key]: value })
   }
 
-  const handleSSHFieldChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-    key: keyof SSHFormState,
-  ) => {
+  const handleSSHFieldChange = (value: string, key: keyof SSHFormState) => {
     setDBConfig({
       ...dbConfig,
       ssh: {
         ...(dbConfig.ssh ?? createDefaultSSHConfig()),
-        [key]: e.target.value,
+        [key]: value,
       },
     })
   }
@@ -283,186 +299,183 @@ const ConnectionSetting: FC = () => {
       >
         <div className={stack({ gap: '6' })}>
           <div className={stack({ gap: '2' })}>
-            <div className={stack({ gap: '0' })}>
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: TODO */}
-              <label>Database Type</label>
-              <VSCodeDropdown
+            <VscodeFormGroup variant="vertical">
+              <VscodeLabel htmlFor="type">Database Type</VscodeLabel>
+              <VscodeSingleSelect
+                id="type"
                 value={dbConfig.type}
-                onChange={(e) =>
-                  handleChange(e as ChangeEvent<HTMLSelectElement>, 'type')
+                onChange={(event) =>
+                  handleChange(readEventTargetValue(event), 'type')
                 }
               >
-                <VSCodeOption value="mysql">MySQL</VSCodeOption>
-                <VSCodeOption value="sqlite">SQLite</VSCodeOption>
-              </VSCodeDropdown>
-            </div>
-            <VSCodeTextField
+                <VscodeOption value="mysql">MySQL</VscodeOption>
+                <VscodeOption value="sqlite">SQLite</VscodeOption>
+              </VscodeSingleSelect>
+            </VscodeFormGroup>
+            <LabeledTextField
+              id="connection-name"
+              label="Name"
               value={dbConfig.connectionName}
-              onInput={(e) =>
-                handleChange(
-                  e as ChangeEvent<HTMLInputElement>,
-                  'connectionName',
-                )
+              onInput={(event) =>
+                handleChange(readEventTargetValue(event), 'connectionName')
               }
-            >
-              Name
-            </VSCodeTextField>
-            <div className={stack({ gap: '0' })}>
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: TODO */}
-              <label>Write Mode</label>
-              <VSCodeDropdown
+            />
+            <VscodeFormGroup variant="vertical">
+              <VscodeLabel htmlFor="write-mode">Write Mode</VscodeLabel>
+              <VscodeSingleSelect
+                id="write-mode"
                 value={dbConfig.writeMode}
-                onChange={(e) =>
-                  handleChange(e as ChangeEvent<HTMLSelectElement>, 'writeMode')
+                onChange={(event) =>
+                  handleChange(readEventTargetValue(event), 'writeMode')
                 }
               >
-                <VSCodeOption value="allow">Allow writes</VSCodeOption>
-                <VSCodeOption value="warn">Warn before writes</VSCodeOption>
-                <VSCodeOption value="disable">Disable writes</VSCodeOption>
-              </VSCodeDropdown>
-            </div>
+                <VscodeOption value="allow">Allow writes</VscodeOption>
+                <VscodeOption value="warn">Warn before writes</VscodeOption>
+                <VscodeOption value="disable">Disable writes</VscodeOption>
+              </VscodeSingleSelect>
+            </VscodeFormGroup>
             {dbConfig.type === 'mysql' ? (
               <>
-                <VSCodeTextField
+                <LabeledTextField
+                  id="host"
+                  label="Host"
                   value={dbConfig.host}
-                  onInput={(e) =>
-                    handleChange(e as ChangeEvent<HTMLInputElement>, 'host')
+                  onInput={(event) =>
+                    handleChange(readEventTargetValue(event), 'host')
                   }
-                >
-                  Host
-                </VSCodeTextField>
-                <VSCodeTextField
+                />
+                <LabeledTextField
+                  id="port"
+                  label="Port"
                   value={dbConfig.port}
-                  onInput={(e) =>
-                    handleChange(e as ChangeEvent<HTMLInputElement>, 'port')
+                  onInput={(event) =>
+                    handleChange(readEventTargetValue(event), 'port')
                   }
-                >
-                  Port
-                </VSCodeTextField>
-                <VSCodeTextField
+                />
+                <LabeledTextField
+                  id="user"
+                  label="User"
                   value={dbConfig.user}
-                  onInput={(e) =>
-                    handleChange(e as ChangeEvent<HTMLInputElement>, 'user')
+                  onInput={(event) =>
+                    handleChange(readEventTargetValue(event), 'user')
                   }
-                >
-                  User
-                </VSCodeTextField>
-                <VSCodeTextField
+                />
+                <LabeledTextField
+                  id="password"
+                  label="Password"
                   value={dbConfig.password}
-                  onInput={(e) =>
-                    handleChange(e as ChangeEvent<HTMLInputElement>, 'password')
+                  onInput={(event) =>
+                    handleChange(readEventTargetValue(event), 'password')
                   }
-                >
-                  Password
-                </VSCodeTextField>
-                <VSCodeTextField
+                />
+                <LabeledTextField
+                  id="database"
+                  label="Database"
                   value={dbConfig.database}
-                  onInput={(e) =>
-                    handleChange(e as ChangeEvent<HTMLInputElement>, 'database')
+                  onInput={(event) =>
+                    handleChange(readEventTargetValue(event), 'database')
                   }
-                >
-                  Database
-                </VSCodeTextField>
+                />
                 <div className={stack({ gap: '1' })}>
-                  <VSCodeCheckbox
+                  <VscodeCheckbox
                     checked={sshConfig.enabled}
-                    onChange={(e) =>
-                      handleSSHEnabledChange(
-                        (e as ChangeEvent<HTMLInputElement>).target.checked,
-                      )
+                    onChange={(event) =>
+                      handleSSHEnabledChange(readEventTargetChecked(event))
                     }
                   >
                     Connect via SSH tunnel
-                  </VSCodeCheckbox>
+                  </VscodeCheckbox>
                   {sshConfig.enabled ? (
                     <div className={stack({ gap: '2' })}>
-                      <VSCodeTextField
+                      <LabeledTextField
+                        id="ssh-host"
+                        label="SSH Host"
                         value={sshConfig.host}
-                        onInput={(e) =>
+                        onInput={(event) =>
                           handleSSHFieldChange(
-                            e as ChangeEvent<HTMLInputElement>,
+                            readEventTargetValue(event),
                             'host',
                           )
                         }
-                      >
-                        SSH Host
-                      </VSCodeTextField>
-                      <VSCodeTextField
+                      />
+                      <LabeledTextField
+                        id="ssh-port"
+                        label="SSH Port"
                         value={sshConfig.port}
-                        onInput={(e) =>
+                        onInput={(event) =>
                           handleSSHFieldChange(
-                            e as ChangeEvent<HTMLInputElement>,
+                            readEventTargetValue(event),
                             'port',
                           )
                         }
-                      >
-                        SSH Port
-                      </VSCodeTextField>
-                      <VSCodeTextField
+                      />
+                      <LabeledTextField
+                        id="ssh-username"
+                        label="SSH Username"
                         value={sshConfig.username}
-                        onInput={(e) =>
+                        onInput={(event) =>
                           handleSSHFieldChange(
-                            e as ChangeEvent<HTMLInputElement>,
+                            readEventTargetValue(event),
                             'username',
                           )
                         }
-                      >
-                        SSH Username
-                      </VSCodeTextField>
-                      <div className={stack({ gap: '0' })}>
-                        {/* biome-ignore lint/a11y/noLabelWithoutControl: TODO */}
-                        <label>SSH Auth Method</label>
-                        <VSCodeDropdown
+                      />
+                      <VscodeFormGroup variant="vertical">
+                        <VscodeLabel htmlFor="ssh-auth-method">
+                          SSH Auth Method
+                        </VscodeLabel>
+                        <VscodeSingleSelect
+                          id="ssh-auth-method"
                           value={sshConfig.authMethod}
-                          onChange={(e) =>
+                          onChange={(event) =>
                             handleSSHFieldChange(
-                              e as ChangeEvent<HTMLSelectElement>,
+                              readEventTargetValue(event),
                               'authMethod',
                             )
                           }
                         >
-                          <VSCodeOption value="password">Password</VSCodeOption>
-                          <VSCodeOption value="privateKey">
+                          <VscodeOption value="password">Password</VscodeOption>
+                          <VscodeOption value="privateKey">
                             Private Key
-                          </VSCodeOption>
-                        </VSCodeDropdown>
-                      </div>
+                          </VscodeOption>
+                        </VscodeSingleSelect>
+                      </VscodeFormGroup>
                       {sshConfig.authMethod === 'password' ? (
-                        <VSCodeTextField
+                        <LabeledTextField
+                          id="ssh-password"
+                          label="SSH Password"
                           value={sshConfig.password}
-                          onInput={(e) =>
+                          onInput={(event) =>
                             handleSSHFieldChange(
-                              e as ChangeEvent<HTMLInputElement>,
+                              readEventTargetValue(event),
                               'password',
                             )
                           }
-                        >
-                          SSH Password
-                        </VSCodeTextField>
+                        />
                       ) : (
                         <>
-                          <VSCodeTextField
+                          <LabeledTextField
+                            id="private-key-path"
+                            label="Private Key Path"
                             value={sshConfig.privateKeyPath}
-                            onInput={(e) =>
+                            onInput={(event) =>
                               handleSSHFieldChange(
-                                e as ChangeEvent<HTMLInputElement>,
+                                readEventTargetValue(event),
                                 'privateKeyPath',
                               )
                             }
-                          >
-                            Private Key Path
-                          </VSCodeTextField>
-                          <VSCodeTextField
+                          />
+                          <LabeledTextField
+                            id="passphrase"
+                            label="Passphrase (optional)"
                             value={sshConfig.passphrase}
-                            onInput={(e) =>
+                            onInput={(event) =>
                               handleSSHFieldChange(
-                                e as ChangeEvent<HTMLInputElement>,
+                                readEventTargetValue(event),
                                 'passphrase',
                               )
                             }
-                          >
-                            Passphrase (optional)
-                          </VSCodeTextField>
+                          />
                         </>
                       )}
                     </div>
@@ -470,26 +483,26 @@ const ConnectionSetting: FC = () => {
                 </div>
               </>
             ) : (
-              <VSCodeTextField
+              <LabeledTextField
+                id="file-path"
+                label="File Path"
                 value={dbConfig.filePath}
-                onInput={(e) =>
-                  handleChange(e as ChangeEvent<HTMLInputElement>, 'filePath')
+                onInput={(event) =>
+                  handleChange(readEventTargetValue(event), 'filePath')
                 }
-              >
-                File Path
-              </VSCodeTextField>
+              />
             )}
           </div>
           <div className={grid({ columns: 2 })}>
-            <VSCodeButton
-              appearance="secondary"
+            <VscodeButton
+              secondary
               onClick={() => handleClickSaveOrTest('test')}
             >
               Test
-            </VSCodeButton>
-            <VSCodeButton onClick={() => handleClickSaveOrTest('save')}>
+            </VscodeButton>
+            <VscodeButton onClick={() => handleClickSaveOrTest('save')}>
               Save
-            </VSCodeButton>
+            </VscodeButton>
           </div>
         </div>
       </main>
