@@ -1,5 +1,6 @@
 ## 重要ルール
 - 最重要ルールです！コードの変更後は、必ず、絶対に、 `pnpm typecheck` と `pnpm format-and-lint:fix` と `pnpm test` を実行して、型チェックとフォーマット、リンティングのチェック、テストをしてください
+- webview側のコードの変更後は、 `pnpm build:webview` を実行してください
 - 実装する際は、既存の実装を参考にして、コードのスタイルや実装方法をできる限り同じにしてください
 - neverthrowを使う場合は、できるだけandThen, asyncAndThen, map, mapErr, matchといったメソッドを使ってメソッドチェーンをするようにしてください。必要な場合のみ、isErrなどで命令的に判定してください
 - 書かなくてもいい型ジェネリクスは書かないでください、特にあなたはneverthrowのokやerrなどの関数で、`ok<Foo>(foo)`のように書きがちなので、これはやめてください
