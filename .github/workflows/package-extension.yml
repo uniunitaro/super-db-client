@@ -60,6 +60,7 @@ jobs:
       - name: Commit and Tag
         env:
           VERSION: ${{ steps.version.outputs.value }}
+          HUSKY: 0
         run: |
           git add .
           git commit -m "release: v${VERSION}"
