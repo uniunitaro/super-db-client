@@ -152,6 +152,10 @@ const Table: FC = () => {
     resetMultiSelection,
   } = useSelectionHandler()
 
+  const focusSelectedCell = useCallback(() => {
+    cellRef.current?.focusSelectedCell()
+  }, [cellRef])
+
   const findBarRef = useRef<TableFindBarRef>(null)
 
   const {
@@ -193,6 +197,7 @@ const Table: FC = () => {
     rows: updatedRows,
     setSelectedCell,
     setShouldShowInput,
+    focusSelectedCell,
   })
 
   const hasSavedTableChanges = useRef(false)

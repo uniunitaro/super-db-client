@@ -32,12 +32,14 @@ export const useTableFind = ({
   rows,
   setSelectedCell,
   setShouldShowInput,
+  focusSelectedCell,
 }: {
   findBarRef: RefObject<TableFindBarRef | null>
   tableData: GetTableDataRequestResponse | undefined
   rows: TableRowWithType[]
   setSelectedCell: SetSelectedCell
   setShouldShowInput: (shouldShowInput: boolean) => void
+  focusSelectedCell: () => void
 }) => {
   const [isFindOpen, setIsFindOpen] = useState(false)
   const [findQuery, setFindQuery] = useState('')
@@ -106,8 +108,12 @@ export const useTableFind = ({
   }, [findMatches, focusFindInput, moveToFindMatch])
 
   const handleCloseFind = useCallback(() => {
-    setIsFindOpen(false)
-  }, [])
+    flushSync(() => {
+      setIsFindOpen(false)
+    })
+
+    focusSelectedCell()
+  }, [focusSelectedCell])
 
   const handleMoveFindPrevious = useCallback(() => {
     if (findMatches.length === 0) {
