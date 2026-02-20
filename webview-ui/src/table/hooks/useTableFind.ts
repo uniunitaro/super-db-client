@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react'
 import { flushSync } from 'react-dom'
-import type { TableFindBarRef } from '../components/TableFindBar'
+import type { TableFindWidgetRef } from '../components/TableFindWidget'
 import {
   type FindMatch,
   findTableMatches,
@@ -34,7 +34,7 @@ export const useTableFind = ({
   setShouldShowInput,
   focusSelectedCell,
 }: {
-  findBarRef: RefObject<TableFindBarRef | null>
+  findBarRef: RefObject<TableFindWidgetRef | null>
   tableData: GetTableDataRequestResponse | undefined
   rows: TableRowWithType[]
   setSelectedCell: SetSelectedCell

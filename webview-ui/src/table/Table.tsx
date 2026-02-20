@@ -1,4 +1,3 @@
-import LinearProgress from '@/components/LinearProgress'
 import { useVSCodeState } from '@/hooks/useVSCodeState'
 import { assertNever } from '@/utilities/assertNever'
 import { messenger } from '@/utilities/messenger'
@@ -23,7 +22,9 @@ import { createPortal } from 'react-dom'
 import { css } from 'styled-system/css'
 import { HOST_EXTENSION } from 'vscode-messenger-common'
 import TableFilterBar from './components/TableFilterBar'
-import TableFindBar, { type TableFindBarRef } from './components/TableFindBar'
+import TableFindWidget, {
+  type TableFindWidgetRef,
+} from './components/TableFindWidget'
 import TableFooter from './components/TableFooter'
 import VirtualizedTable from './components/VirtualizedTable'
 import {
@@ -156,7 +157,7 @@ const Table: FC = () => {
     cellRef.current?.focusSelectedCell()
   }, [cellRef])
 
-  const findBarRef = useRef<TableFindBarRef>(null)
+  const findBarRef = useRef<TableFindWidgetRef>(null)
 
   const {
     operations,
@@ -356,7 +357,7 @@ const Table: FC = () => {
           )}
         </div>
 
-        <TableFindBar
+        <TableFindWidget
           ref={findBarRef}
           isOpen={isFindOpen}
           findQuery={findQuery}

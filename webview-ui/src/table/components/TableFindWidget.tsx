@@ -13,12 +13,12 @@ import {
 import { css, cx } from 'styled-system/css'
 import { hstack } from 'styled-system/patterns/hstack'
 
-export type TableFindBarRef = {
+export type TableFindWidgetRef = {
   focusInput: () => void
 }
 
-const TableFindBar: FC<{
-  ref: RefObject<TableFindBarRef | null> | undefined
+const TableFindWidget: FC<{
+  ref: RefObject<TableFindWidgetRef | null> | undefined
   isOpen: boolean
   findQuery: string
   findMatchCountText: string
@@ -118,4 +118,4 @@ const TableFindBar: FC<{
   )
 }
 
-export default TableFindBar
+export default TableFindWidget
