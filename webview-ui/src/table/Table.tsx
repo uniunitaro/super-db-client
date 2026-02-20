@@ -26,7 +26,9 @@ import TableFindWidget, {
   type TableFindWidgetRef,
 } from './components/TableFindWidget'
 import TableFooter from './components/TableFooter'
-import VirtualizedTable from './components/VirtualizedTable'
+import VirtualizedTable, {
+  type VirtualizedTableRef,
+} from './components/VirtualizedTable'
 import {
   type EditableFilterCondition,
   createEmptyEditableFilterCondition,
@@ -158,6 +160,7 @@ const Table: FC = () => {
   }, [cellRef])
 
   const findBarRef = useRef<TableFindWidgetRef>(null)
+  const virtualizedTableRef = useRef<VirtualizedTableRef>(null)
 
   const {
     operations,
@@ -183,7 +186,6 @@ const Table: FC = () => {
   const {
     isFindOpen,
     findQuery,
-    findTarget,
     findMatchesCount,
     findMatchCountText,
     handleOpenFind,
@@ -199,6 +201,9 @@ const Table: FC = () => {
     setSelectedCell,
     setShouldShowInput,
     focusSelectedCell,
+    scrollToCell: ({ rowIndex, columnIndex }) => {
+      virtualizedTableRef.current?.scrollToCell({ rowIndex, columnIndex })
+    },
   })
 
   const hasSavedTableChanges = useRef(false)
@@ -336,6 +341,7 @@ const Table: FC = () => {
         <div className={css({ display: 'grid', minH: 0 })}>
           {tableData && config && (
             <VirtualizedTable
+              ref={virtualizedTableRef}
               tableRef={virtualizedTableTableRef}
               cellRef={cellRef}
               dbColumns={tableData.tableMetadata.columns}
@@ -347,7 +353,6 @@ const Table: FC = () => {
               selectedRowIndexes={selectedRowIndexes}
               sort={sort}
               shouldShowInput={shouldShowInput}
-              findTarget={findTarget}
               hotkeysRef={tableHotkeysRef}
               onCellSelect={setSelectedCell}
               onCellEdit={handleCellEdit}

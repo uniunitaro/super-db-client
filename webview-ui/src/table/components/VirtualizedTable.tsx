@@ -15,6 +15,7 @@ import {
   memo,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
 } from 'react'
@@ -34,7 +35,12 @@ import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
 import type { TableCellRef } from './TableCell'
 import TableRow from './TableRow'
 
+export type VirtualizedTableRef = {
+  scrollToCell: (target: { rowIndex: number; columnIndex: number }) => void
+}
+
 const VirtualizedTable: FC<{
+  ref: RefObject<VirtualizedTableRef | null> | undefined
   tableRef: RefObject<HTMLDivElement | null>
   cellRef: RefObject<TableCellRef | null>
   dbColumns: ColumnMetadata[]
@@ -46,11 +52,6 @@ const VirtualizedTable: FC<{
   selectedRowIndexes: number[]
   sort: Sort
   shouldShowInput: boolean
-  findTarget?: {
-    rowIndex: number
-    columnIndex: number
-    requestId: number
-  }
   hotkeysRef: RefCallback<HTMLDivElement>
   onCellSelect: SetSelectedCell
   onCellEdit: (newValue: string) => void
@@ -58,6 +59,7 @@ const VirtualizedTable: FC<{
   onShouldShowInputChange: (shouldShowInput: boolean) => void
 }> = memo(
   ({
+    ref,
     tableRef,
     cellRef,
     dbColumns,
@@ -69,7 +71,6 @@ const VirtualizedTable: FC<{
     selectedRowIndexes,
     sort,
     shouldShowInput,
-    findTarget,
     hotkeysRef,
     onCellSelect,
     onCellEdit,
@@ -209,59 +210,73 @@ const VirtualizedTable: FC<{
       overscan: 10,
     })
 
-    useEffect(() => {
-      if (!findTarget || !parentRef.current) {
-        return
-      }
-
-      const { scrollTop, scrollLeft, clientHeight, clientWidth } =
-        parentRef.current
-      const visibleTop = scrollTop + rowHeight
-      const visibleBottom = scrollTop + clientHeight
-      const targetTop = rowHeight + findTarget.rowIndex * rowHeight
-      const targetBottom = targetTop + rowHeight
-      const isTargetRowFullyVisible =
-        targetTop >= visibleTop && targetBottom <= visibleBottom
-
-      const targetColumnId = dbColumns[findTarget.columnIndex]?.name
-      if (!targetColumnId) {
-        return
-      }
-
-      let targetLeft = 0
-      for (let index = 0; index < findTarget.columnIndex; index++) {
-        const columnId = dbColumns[index]?.name
-        if (!columnId) {
-          continue
+    const scrollToCell = useCallback(
+      ({
+        rowIndex,
+        columnIndex,
+      }: { rowIndex: number; columnIndex: number }) => {
+        if (!parentRef.current) {
+          return
         }
 
-        targetLeft += columnWidths[columnId] ?? 0
-      }
+        const { scrollTop, scrollLeft, clientHeight, clientWidth } =
+          parentRef.current
+        const visibleTop = scrollTop + rowHeight
+        const visibleBottom = scrollTop + clientHeight
+        const targetTop = rowHeight + rowIndex * rowHeight
+        const targetBottom = targetTop + rowHeight
+        const isTargetRowFullyVisible =
+          targetTop >= visibleTop && targetBottom <= visibleBottom
 
-      const targetWidth = columnWidths[targetColumnId] ?? 0
-      const targetRight = targetLeft + targetWidth
-      const visibleLeft = scrollLeft
-      const visibleRight = scrollLeft + clientWidth
-      const isTargetColumnFullyVisible =
-        targetLeft >= visibleLeft && targetRight <= visibleRight
+        const targetColumnId = dbColumns[columnIndex]?.name
+        if (!targetColumnId) {
+          return
+        }
 
-      if (!isTargetRowFullyVisible) {
-        virtualizer.scrollToIndex(findTarget.rowIndex, {
-          align: 'center',
-        })
-      }
+        let targetLeft = 0
+        for (let index = 0; index < columnIndex; index++) {
+          const columnId = dbColumns[index]?.name
+          if (!columnId) {
+            continue
+          }
 
-      if (!isTargetColumnFullyVisible) {
-        const targetCenter = targetLeft + targetWidth / 2
-        const centeredScrollLeft = targetCenter - clientWidth / 2
-        const maxScrollLeft =
-          parentRef.current.scrollWidth - parentRef.current.clientWidth
+          targetLeft += columnWidths[columnId] ?? 0
+        }
 
-        parentRef.current.scrollTo({
-          left: Math.min(Math.max(centeredScrollLeft, 0), maxScrollLeft),
-        })
-      }
-    }, [columnWidths, dbColumns, findTarget, rowHeight, virtualizer])
+        const targetWidth = columnWidths[targetColumnId] ?? 0
+        const targetRight = targetLeft + targetWidth
+        const visibleLeft = scrollLeft
+        const visibleRight = scrollLeft + clientWidth
+        const isTargetColumnFullyVisible =
+          targetLeft >= visibleLeft && targetRight <= visibleRight
+
+        if (!isTargetRowFullyVisible) {
+          virtualizer.scrollToIndex(rowIndex, {
+            align: 'center',
+          })
+        }
+
+        if (!isTargetColumnFullyVisible) {
+          const targetCenter = targetLeft + targetWidth / 2
+          const centeredScrollLeft = targetCenter - clientWidth / 2
+          const maxScrollLeft =
+            parentRef.current.scrollWidth - parentRef.current.clientWidth
+
+          parentRef.current.scrollTo({
+            left: Math.min(Math.max(centeredScrollLeft, 0), maxScrollLeft),
+          })
+        }
+      },
+      [columnWidths, dbColumns, rowHeight, virtualizer],
+    )
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        scrollToCell,
+      }),
+      [scrollToCell],
+    )
 
     useEffect(() => {
       if (!parentRef.current) return

@@ -21,12 +21,6 @@ import { createSelectedCell } from '../domain/selection'
 import type { TableRowWithType } from '../domain/selection'
 import type { SetSelectedCell } from './useSelectionHandler'
 
-type FindTarget = {
-  rowIndex: number
-  columnIndex: number
-  requestId: number
-}
-
 export const useTableFind = ({
   findBarRef,
   tableData,
@@ -34,6 +28,7 @@ export const useTableFind = ({
   setSelectedCell,
   setShouldShowInput,
   focusSelectedCell,
+  scrollToCell,
 }: {
   findBarRef: RefObject<TableFindWidgetRef | null>
   tableData: GetTableDataRequestResponse | undefined
@@ -41,13 +36,11 @@ export const useTableFind = ({
   setSelectedCell: SetSelectedCell
   setShouldShowInput: (shouldShowInput: boolean) => void
   focusSelectedCell: () => void
+  scrollToCell: (target: { rowIndex: number; columnIndex: number }) => void
 }) => {
   const [isFindOpen, setIsFindOpen] = useState(false)
   const [findQuery, setFindQuery] = useState('')
   const [activeFindMatchIndex, setActiveFindMatchIndex] = useState(0)
-  const [findTarget, setFindTarget] = useState<FindTarget | undefined>(
-    undefined,
-  )
 
   const previousFindQueryRef = useRef(findQuery)
 
@@ -87,13 +80,12 @@ export const useTableFind = ({
         isCtrlPressed: false,
       })
 
-      setFindTarget((currentFindTarget) => ({
+      scrollToCell({
         rowIndex: match.rowIndex,
         columnIndex: match.columnIndex,
-        requestId: (currentFindTarget?.requestId ?? 0) + 1,
-      }))
+      })
     },
-    [rows, setSelectedCell, setShouldShowInput],
+    [rows, scrollToCell, setSelectedCell, setShouldShowInput],
   )
 
   const handleOpenFind = useCallback(() => {
@@ -218,7 +210,6 @@ export const useTableFind = ({
   return {
     isFindOpen,
     findQuery,
-    findTarget,
     findMatchesCount,
     findMatchCountText,
     handleOpenFind,
