@@ -32,6 +32,7 @@ export default defineConfig({
         },
         zIndex: {
           tableFilterBar: { value: 2 },
+          tableFindBar: { value: 10 },
         },
       },
       keyframes: {
@@ -63,6 +64,10 @@ export default defineConfig({
     '--vscode-descriptionForeground': {},
     '--vscode-editor-background': {},
     '--vscode-editor-foreground': {},
+    '--vscode-editorWidget-background': {},
+    '--vscode-editorWidget-foreground': {},
+    '--vscode-widget-border': {},
+    '--vscode-widget-shadow': {},
     '--vscode-editor-placeholder\\.foreground': {},
     '--vscode-editor-font-family': {},
     '--vscode-editor-font-size': {},

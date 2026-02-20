@@ -128,6 +128,15 @@ export function activate(context: ExtensionContext) {
   )
 
   context.subscriptions.push(
+    commands.registerCommand(COMMANDS.FIND_IN_TABLE, () => {
+      const activePanel = tablePanels.find((panel) => panel.isActive())
+      if (activePanel) {
+        activePanel.sendCommand('openFind')
+      }
+    }),
+  )
+
+  context.subscriptions.push(
     commands.registerCommand(COMMANDS.DUPLICATE_ROW, () => {
       const activePanel = tablePanels.find((panel) => panel.isActive())
       if (activePanel) {

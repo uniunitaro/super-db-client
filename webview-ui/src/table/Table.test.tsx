@@ -173,4 +173,65 @@ describe('Table', () => {
       })
       .toBe(true)
   })
+
+  test('コマンドで検索バーを開き、件数表示と前後移動ができる', async () => {
+    let commandHandler: ((command: string) => void) | undefined
+
+    mockedMessenger.onRequest.mockImplementation((...args: unknown[]) => {
+      const [request, handler] = args as [{ method?: string }, unknown]
+
+      if (request.method === 'command') {
+        commandHandler = handler as (command: string) => void
+      }
+
+      return messenger
+    })
+
+    mockedMessenger.sendRequest.mockImplementation(
+      mockSendRequest({
+        getTableData: {
+          rows: [
+            { id: 1, name: 'foo' },
+            { id: 2, name: 'bar foo' },
+            { id: 3, name: 'baz' },
+          ],
+          tableMetadata: {
+            columns: [
+              { ...defaultColumn, name: 'id' },
+              { ...defaultColumn, name: 'name', dataType: 'varchar' },
+            ],
+            columnKeys: [],
+            name: 'test',
+            primaryKeyColumns: ['id'],
+            totalRows: 3,
+          },
+        },
+      }),
+    )
+
+    renderTable()
+
+    await expect.element(page.getByText('bar foo')).toBeInTheDocument()
+    await expect.poll(() => typeof commandHandler).toBe('function')
+
+    commandHandler?.('openFind')
+
+    const findInput = page.getByPlaceholder('Find')
+    await expect.element(findInput).toBeInTheDocument()
+
+    await findInput.fill('foo')
+    await expect.element(page.getByText('1 / 2')).toBeInTheDocument()
+
+    await page.getByLabelText('Next match').click()
+    await expect.element(page.getByText('2 / 2')).toBeInTheDocument()
+
+    await page.getByLabelText('Next match').click()
+    await expect.element(page.getByText('1 / 2')).toBeInTheDocument()
+
+    await page.getByLabelText('Previous match').click()
+    await expect.element(page.getByText('2 / 2')).toBeInTheDocument()
+
+    await page.getByLabelText('Close find').click()
+    await expect.element(findInput).not.toBeInTheDocument()
+  })
 })

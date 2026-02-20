@@ -23,11 +23,13 @@ import { createPortal } from 'react-dom'
 import { css } from 'styled-system/css'
 import { HOST_EXTENSION } from 'vscode-messenger-common'
 import TableFilterBar from './components/TableFilterBar'
+import TableFindBar, { type TableFindBarRef } from './components/TableFindBar'
 import TableFooter from './components/TableFooter'
 import VirtualizedTable from './components/VirtualizedTable'
 import { useOperations } from './hooks/useOperations'
 import { useSelectionHandler } from './hooks/useSelectionHandler'
 import { useShortcutKeys } from './hooks/useShortcutKeys'
+import { useTableFind } from './hooks/useTableFind'
 import {
   type EditableFilterCondition,
   createEmptyEditableFilterCondition,
@@ -150,6 +152,8 @@ const Table: FC = () => {
     resetMultiSelection,
   } = useSelectionHandler()
 
+  const findBarRef = useRef<TableFindBarRef>(null)
+
   const {
     operations,
     updatedRows,
@@ -169,6 +173,26 @@ const Table: FC = () => {
     selectedRowIndexes,
     cellRef,
     shouldNotUpdateCellRef,
+  })
+
+  const {
+    isFindOpen,
+    findQuery,
+    findTarget,
+    findMatchesCount,
+    findMatchCountText,
+    handleOpenFind,
+    handleCloseFind,
+    handleMoveFindPrevious,
+    handleMoveFindNext,
+    handleFindInputKeyDown,
+    handleFindQueryInput,
+  } = useTableFind({
+    findBarRef,
+    tableData,
+    rows: updatedRows,
+    setSelectedCell,
+    setShouldShowInput,
   })
 
   const hasSavedTableChanges = useRef(false)
@@ -216,6 +240,9 @@ const Table: FC = () => {
         case 'refreshTable':
           refetchTableData()
           break
+        case 'openFind':
+          handleOpenFind()
+          break
         case 'duplicateRow':
           handleRowDuplicate()
           break
@@ -236,6 +263,7 @@ const Table: FC = () => {
   }, [
     handleSaveChanges,
     refetchTableData,
+    handleOpenFind,
     handleRowDuplicate,
     handleRowDelete,
     handleCellEdit,
@@ -289,6 +317,7 @@ const Table: FC = () => {
           display: 'grid',
           gridTemplateRows: 'auto 1fr auto',
           h: '100vh',
+          pos: 'relative',
         })}
       >
         <TableFilterBar
@@ -312,6 +341,7 @@ const Table: FC = () => {
               selectedRowIndexes={selectedRowIndexes}
               sort={sort}
               shouldShowInput={shouldShowInput}
+              findTarget={findTarget}
               hotkeysRef={tableHotkeysRef}
               onCellSelect={setSelectedCell}
               onCellEdit={handleCellEdit}
@@ -320,6 +350,19 @@ const Table: FC = () => {
             />
           )}
         </div>
+
+        <TableFindBar
+          ref={findBarRef}
+          isOpen={isFindOpen}
+          findQuery={findQuery}
+          findMatchCountText={findMatchCountText}
+          hasMatch={findMatchesCount > 0}
+          onFindInput={handleFindQueryInput}
+          onFindInputKeyDown={handleFindInputKeyDown}
+          onMoveFindPrevious={handleMoveFindPrevious}
+          onMoveFindNext={handleMoveFindNext}
+          onCloseFind={handleCloseFind}
+        />
 
         <TableFooter
           isLoading={!tableData || !config}

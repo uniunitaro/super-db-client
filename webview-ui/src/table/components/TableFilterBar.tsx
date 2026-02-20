@@ -78,7 +78,8 @@ const TableFilterBar: FC<Props> = ({
   return (
     <section
       className={css({
-        p: '2',
+        px: '4',
+        py: '2',
         pos: 'relative',
         zIndex: 'tableFilterBar',
         borderBottomWidth: '1px',

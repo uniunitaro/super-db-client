@@ -44,6 +44,10 @@ const VirtualizedTable: FC<{
   selectedRowIndexes: number[]
   sort: Sort
   shouldShowInput: boolean
+  findTarget?: {
+    rowIndex: number
+    requestId: number
+  }
   hotkeysRef: RefCallback<HTMLDivElement>
   onCellSelect: SetSelectedCell
   onCellEdit: (newValue: string) => void
@@ -62,6 +66,7 @@ const VirtualizedTable: FC<{
     selectedRowIndexes,
     sort,
     shouldShowInput,
+    findTarget,
     hotkeysRef,
     onCellSelect,
     onCellEdit,
@@ -200,6 +205,28 @@ const VirtualizedTable: FC<{
       estimateSize: () => rowHeight,
       overscan: 10,
     })
+
+    useEffect(() => {
+      if (!findTarget || !parentRef.current) {
+        return
+      }
+
+      const { scrollTop, clientHeight } = parentRef.current
+      const visibleTop = scrollTop + rowHeight
+      const visibleBottom = scrollTop + clientHeight
+      const targetTop = rowHeight + findTarget.rowIndex * rowHeight
+      const targetBottom = targetTop + rowHeight
+      const isTargetFullyVisible =
+        targetTop >= visibleTop && targetBottom <= visibleBottom
+
+      if (isTargetFullyVisible) {
+        return
+      }
+
+      virtualizer.scrollToIndex(findTarget.rowIndex, {
+        align: 'center',
+      })
+    }, [findTarget, rowHeight, virtualizer])
 
     useEffect(() => {
       if (!parentRef.current) return

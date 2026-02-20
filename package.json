@@ -49,6 +49,11 @@
         "category": "Super DB Client"
       },
       {
+        "command": "superDBClient.findInTable",
+        "title": "Find in Table",
+        "category": "Super DB Client"
+      },
+      {
         "command": "superDBClient.duplicateRow",
         "title": "Duplicate",
         "category": "Super DB Client"
@@ -82,6 +87,11 @@
       {
         "key": "ctrl+r",
         "command": "superDBClient.refreshTable",
+        "when": "activeWebviewPanelId =~ /superDBClient.table/"
+      },
+      {
+        "key": "ctrl+f",
+        "command": "superDBClient.findInTable",
         "when": "activeWebviewPanelId =~ /superDBClient.table/"
       },
       {
@@ -147,6 +157,10 @@
         },
         {
           "command": "superDBClient.refreshTable",
+          "when": "activeWebviewPanelId =~ /superDBClient.table/"
+        },
+        {
+          "command": "superDBClient.findInTable",
           "when": "activeWebviewPanelId =~ /superDBClient.table/"
         },
         {
