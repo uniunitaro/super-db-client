@@ -23,6 +23,7 @@ import type { SetSelectedCell } from './useSelectionHandler'
 
 type FindTarget = {
   rowIndex: number
+  columnIndex: number
   requestId: number
 }
 
@@ -88,6 +89,7 @@ export const useTableFind = ({
 
       setFindTarget((currentFindTarget) => ({
         rowIndex: match.rowIndex,
+        columnIndex: match.columnIndex,
         requestId: (currentFindTarget?.requestId ?? 0) + 1,
       }))
     },

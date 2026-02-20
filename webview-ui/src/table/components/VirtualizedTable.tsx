@@ -48,6 +48,7 @@ const VirtualizedTable: FC<{
   shouldShowInput: boolean
   findTarget?: {
     rowIndex: number
+    columnIndex: number
     requestId: number
   }
   hotkeysRef: RefCallback<HTMLDivElement>
@@ -213,22 +214,54 @@ const VirtualizedTable: FC<{
         return
       }
 
-      const { scrollTop, clientHeight } = parentRef.current
+      const { scrollTop, scrollLeft, clientHeight, clientWidth } =
+        parentRef.current
       const visibleTop = scrollTop + rowHeight
       const visibleBottom = scrollTop + clientHeight
       const targetTop = rowHeight + findTarget.rowIndex * rowHeight
       const targetBottom = targetTop + rowHeight
-      const isTargetFullyVisible =
+      const isTargetRowFullyVisible =
         targetTop >= visibleTop && targetBottom <= visibleBottom
 
-      if (isTargetFullyVisible) {
+      const targetColumnId = dbColumns[findTarget.columnIndex]?.name
+      if (!targetColumnId) {
         return
       }
 
-      virtualizer.scrollToIndex(findTarget.rowIndex, {
-        align: 'center',
-      })
-    }, [findTarget, rowHeight, virtualizer])
+      let targetLeft = 0
+      for (let index = 0; index < findTarget.columnIndex; index++) {
+        const columnId = dbColumns[index]?.name
+        if (!columnId) {
+          continue
+        }
+
+        targetLeft += columnWidths[columnId] ?? 0
+      }
+
+      const targetWidth = columnWidths[targetColumnId] ?? 0
+      const targetRight = targetLeft + targetWidth
+      const visibleLeft = scrollLeft
+      const visibleRight = scrollLeft + clientWidth
+      const isTargetColumnFullyVisible =
+        targetLeft >= visibleLeft && targetRight <= visibleRight
+
+      if (!isTargetRowFullyVisible) {
+        virtualizer.scrollToIndex(findTarget.rowIndex, {
+          align: 'center',
+        })
+      }
+
+      if (!isTargetColumnFullyVisible) {
+        const targetCenter = targetLeft + targetWidth / 2
+        const centeredScrollLeft = targetCenter - clientWidth / 2
+        const maxScrollLeft =
+          parentRef.current.scrollWidth - parentRef.current.clientWidth
+
+        parentRef.current.scrollTo({
+          left: Math.min(Math.max(centeredScrollLeft, 0), maxScrollLeft),
+        })
+      }
+    }, [columnWidths, dbColumns, findTarget, rowHeight, virtualizer])
 
     useEffect(() => {
       if (!parentRef.current) return
