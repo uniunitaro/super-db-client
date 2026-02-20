@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { flushSync } from 'react-dom'
 import type { TableFindBarRef } from '../components/TableFindBar'
 import {
   type FindMatch,
@@ -60,9 +61,7 @@ export const useTableFind = ({
   }, [findQuery, rows, tableData])
 
   const focusFindInput = useCallback(() => {
-    requestAnimationFrame(() => {
-      findBarRef.current?.focusInput()
-    })
+    findBarRef.current?.focusInput()
   }, [findBarRef])
 
   const moveToFindMatch = useCallback(
@@ -94,7 +93,9 @@ export const useTableFind = ({
   )
 
   const handleOpenFind = useCallback(() => {
-    setIsFindOpen(true)
+    flushSync(() => {
+      setIsFindOpen(true)
+    })
     focusFindInput()
 
     const firstMatch = findMatches[0]

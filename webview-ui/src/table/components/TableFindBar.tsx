@@ -46,7 +46,9 @@ const TableFindBar: FC<{
     ref,
     () => ({
       focusInput: () => {
-        inputRef.current?.focus()
+        inputRef.current?.updateComplete.then(() => {
+          inputRef.current?.focus()
+        })
       },
     }),
     [],

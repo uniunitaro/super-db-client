@@ -234,4 +234,65 @@ describe('Table', () => {
     await page.getByLabelText('Close find').click()
     await expect.element(findInput).not.toBeInTheDocument()
   })
+
+  test('コマンドで初回に検索バーを開いたときFind入力欄へフォーカスされる', async () => {
+    let commandHandler: ((command: string) => void) | undefined
+
+    mockedMessenger.onRequest.mockImplementation((...args: unknown[]) => {
+      const [request, handler] = args as [{ method?: string }, unknown]
+
+      if (request.method === 'command') {
+        commandHandler = handler as (command: string) => void
+      }
+
+      return messenger
+    })
+
+    mockedMessenger.sendRequest.mockImplementation(
+      mockSendRequest({
+        getTableData: {
+          rows: [
+            { id: 1, name: 'foo' },
+            { id: 2, name: 'bar foo' },
+            { id: 3, name: 'baz' },
+          ],
+          tableMetadata: {
+            columns: [
+              { ...defaultColumn, name: 'id' },
+              { ...defaultColumn, name: 'name', dataType: 'varchar' },
+            ],
+            columnKeys: [],
+            name: 'test',
+            primaryKeyColumns: ['id'],
+            totalRows: 3,
+          },
+        },
+      }),
+    )
+
+    renderTable()
+
+    await expect.element(page.getByText('bar foo')).toBeInTheDocument()
+    await expect.poll(() => typeof commandHandler).toBe('function')
+
+    commandHandler?.('openFind')
+
+    const findInput = page.getByPlaceholder('Find')
+    await expect.element(findInput).toBeInTheDocument()
+    const findInputElement = await findInput.element()
+
+    await expect
+      .poll(() => {
+        const activeElement = document.activeElement
+        if (!activeElement) {
+          return false
+        }
+
+        return (
+          activeElement === findInputElement ||
+          activeElement.tagName.toLowerCase() === 'vscode-textfield'
+        )
+      })
+      .toBe(true)
+  })
 })
