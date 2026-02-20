@@ -1,15 +1,19 @@
 import { useVSCodeState } from '@/hooks/useVSCodeState'
-import { assertNever } from '@/utilities/assertNever'
 import type { GetTableDataRequestResponse } from '@shared-types/message'
 import { type RefObject, useCallback, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import type { TableCellRef } from '../components/TableCell'
-import type {
-  Cell,
-  ClientOperation,
-  SelectedCell,
-  TableRowWithType,
-} from '../types/table'
+import {
+  type Cell,
+  type ClientOperation,
+  createDeleteOperations,
+  createDuplicateOperations,
+  createEditOperation,
+  getDeletedRowIndexesByOperations,
+  getEditedCellsByOperations,
+  getUpdatedRowsByOperations,
+} from '../domain/operations'
+import type { SelectedCell, TableRowWithType } from '../domain/selection'
 
 export const useOperations = ({
   tableData,
@@ -39,57 +43,11 @@ export const useOperations = ({
 
   // tableData.rowsとoperationsから、変更後のデータを作成する
   const updatedRows: TableRowWithType[] = useMemo(() => {
-    const newRows: TableRowWithType[] = tableData
-      ? structuredClone(tableData.rows).map((row) => ({
-          type: 'existing',
-          row,
-        }))
-      : []
-    for (const operation of operations) {
-      if (operation.type === 'insert') {
-        newRows.push({ type: 'inserted', uuid: operation.uuid, row: {} })
-      }
-      if (operation.type === 'duplicate') {
-        newRows.push({
-          type: 'inserted',
-          uuid: operation.uuid,
-          row: structuredClone(operation.values),
-        })
-      }
-      if (operation.type === 'edit') {
-        const targetRow = newRows.find(
-          (row) =>
-            row.type === 'existing' &&
-            operation.primaryKeyValues.every(
-              (primaryKey) =>
-                String(row.row[primaryKey.key]) === primaryKey.value,
-            ),
-        )
-        if (targetRow) {
-          targetRow.row[operation.columnName] = operation.newValue
-        }
-      }
-      if (operation.type === 'editInserted') {
-        const targetRow = newRows.find(
-          (row) =>
-            row.type === 'inserted' && operation.insertedRowUUID === row.uuid,
-        )
-        if (targetRow) {
-          targetRow.row[operation.columnName] = operation.newValue
-        }
-      }
-      if (operation.type === 'deleteInserted') {
-        const targetRowIndex = newRows.findIndex(
-          (row) =>
-            row.type === 'inserted' && operation.insertedRowUUID === row.uuid,
-        )
-        if (targetRowIndex !== -1) {
-          newRows.splice(targetRowIndex, 1)
-        }
-      }
-    }
-    return newRows
-  }, [operations, tableData])
+    return getUpdatedRowsByOperations({
+      tableDataRows: tableData?.rows,
+      operations,
+    })
+  }, [operations, tableData?.rows])
 
   const handleCellEdit = useCallback(
     (newValue: string | null) => {
@@ -106,38 +64,14 @@ export const useOperations = ({
         return
       }
 
-      const targetColumn = tableData.tableMetadata.columns.find(
-        (column) => column.name === selectedCell.columnId,
-      )
+      const operation = createEditOperation({
+        tableData,
+        selectedCell,
+        newValue,
+      })
 
-      const adjustedNewValue =
-        newValue === '' && !targetColumn?.isTextType ? null : newValue
-
-      if (selectedCell.type === 'existing') {
-        const targetRow = tableData.rows[selectedCell.rowIndex]
-        const primaryKeys = tableData.tableMetadata.primaryKeyColumns
-        const primaryKeyValues = primaryKeys.map((key) => ({
-          key,
-          value: String(targetRow[key]),
-        }))
-
-        addOperations([
-          {
-            type: 'edit',
-            primaryKeyValues,
-            columnName: selectedCell.columnId,
-            newValue: adjustedNewValue,
-          },
-        ])
-      } else if (selectedCell.type === 'inserted') {
-        addOperations([
-          {
-            type: 'editInserted',
-            insertedRowUUID: selectedCell.rowUUID,
-            columnName: selectedCell.columnId,
-            newValue: adjustedNewValue,
-          },
-        ])
+      if (operation) {
+        addOperations([operation])
       }
     },
     [tableData, selectedCell, addOperations, shouldNotUpdateCellRef, cellRef],
@@ -146,26 +80,10 @@ export const useOperations = ({
   const handleRowDelete = useCallback(() => {
     if (!tableData) return
 
-    const deleteOperations = selectedRowIndexes.map((rowIndex) => {
-      const selectedRow = updatedRows[rowIndex]
-
-      if (selectedRow.type === 'existing') {
-        const primaryKeys = tableData.tableMetadata.primaryKeyColumns
-        const primaryKeyValues = primaryKeys.map((key) => ({
-          key,
-          value: String(selectedRow.row[key]),
-        }))
-
-        return { type: 'delete', primaryKeyValues } as const
-      }
-      if (selectedRow.type === 'inserted') {
-        return {
-          type: 'deleteInserted',
-          insertedRowUUID: selectedRow.uuid,
-        } as const
-      }
-
-      return assertNever(selectedRow)
+    const deleteOperations = createDeleteOperations({
+      tableData,
+      selectedRowIndexes,
+      updatedRows,
     })
 
     // TODO: これだとundo時に一個ずつしか戻せない、、ぐええ
@@ -185,44 +103,10 @@ export const useOperations = ({
   const handleRowDuplicate = useCallback(() => {
     if (!tableData) return
 
-    const primaryKeyColumns = new Set(tableData.tableMetadata.primaryKeyColumns)
-    const columnsToCopy = tableData.tableMetadata.columns.filter(
-      (column) => !primaryKeyColumns.has(column.name),
-    )
-
-    const sortedRowIndexes = [...selectedRowIndexes].sort((a, b) => a - b)
-
-    const operationsToAdd = sortedRowIndexes.flatMap((rowIndex) => {
-      const rowToDuplicate = updatedRows[rowIndex]
-      if (!rowToDuplicate) return []
-
-      const uuid = crypto.randomUUID()
-
-      const values = columnsToCopy.reduce<Record<string, string | null>>(
-        (acc, column) => {
-          const value = rowToDuplicate.row[column.name]
-
-          if (value === undefined) return acc
-
-          acc[column.name] =
-            value === null
-              ? null
-              : typeof value === 'string'
-                ? value
-                : String(value)
-
-          return acc
-        },
-        {},
-      )
-
-      const operation: ClientOperation = {
-        type: 'duplicate',
-        uuid,
-        values,
-      }
-
-      return [operation]
+    const operationsToAdd = createDuplicateOperations({
+      tableData,
+      selectedRowIndexes,
+      updatedRows,
     })
 
     if (!operationsToAdd.length) return
@@ -235,61 +119,19 @@ export const useOperations = ({
   }, [tableData, selectedRowIndexes, updatedRows, addOperations])
 
   const editedCells: Cell[] = useMemo(() => {
-    if (!tableData) return []
-
-    return operations
-      .filter(
-        (operation) =>
-          operation.type === 'edit' || operation.type === 'editInserted',
-      )
-      .flatMap((operation) => {
-        if (operation.type === 'edit') {
-          const targetRowIndex = tableData.rows.findIndex((row) =>
-            operation.primaryKeyValues.every(
-              (primaryKey) => String(row[primaryKey.key]) === primaryKey.value,
-            ),
-          )
-          if (targetRowIndex === -1) return []
-
-          return {
-            type: 'existing',
-            rowIndex: targetRowIndex,
-            columnId: operation.columnName,
-          }
-        }
-        if (operation.type === 'editInserted') {
-          const targetRowIndex = updatedRows.findIndex(
-            (row) =>
-              row.type === 'inserted' && operation.insertedRowUUID === row.uuid,
-          )
-          if (targetRowIndex === -1) return []
-
-          return {
-            type: 'inserted',
-            rowIndex: targetRowIndex,
-            columnId: operation.columnName,
-            rowUUID: operation.insertedRowUUID,
-          }
-        }
-
-        return assertNever(operation)
-      })
-  }, [operations, tableData, updatedRows])
+    return getEditedCellsByOperations({
+      operations,
+      tableDataRows: tableData?.rows,
+      updatedRows,
+    })
+  }, [operations, tableData?.rows, updatedRows])
 
   const deletedRowIndexes: number[] = useMemo(() => {
-    if (!tableData) return []
-
-    return operations
-      .filter((operation) => operation.type === 'delete')
-      .map((operation) => {
-        const targetRowIndex = tableData.rows.findIndex((row) =>
-          operation.primaryKeyValues.every(
-            (primaryKey) => String(row[primaryKey.key]) === primaryKey.value,
-          ),
-        )
-        return targetRowIndex
-      })
-  }, [operations, tableData])
+    return getDeletedRowIndexesByOperations({
+      operations,
+      tableDataRows: tableData?.rows,
+    })
+  }, [operations, tableData?.rows])
 
   const resetOperations = useCallback(() => {
     setOperations([])

@@ -3,7 +3,12 @@ import type { ColumnMetadata } from '@shared-types/sharedTypes'
 import { useCallback, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import type { TableCellRef } from '../components/TableCell'
-import type { SelectedCell, TableRowWithType } from '../types/table'
+import {
+  createRowRangeSelection,
+  resolveNextSelectedCell,
+  toggleRowIndexSelection,
+} from '../domain/selection'
+import type { SelectedCell, TableRowWithType } from '../domain/selection'
 
 export type SetSelectedCell = (params: {
   cell: SelectedCell
@@ -44,23 +49,15 @@ export const useSelectionHandler = () => {
       isCtrlPressed: boolean
     }) => {
       if (isShiftPressed) {
-        // 基準となる行から現在の行までの行を選択する
-        const newSelectedRowIndexes = [
-          ...Array(Math.abs(nextRowIndex - originRowIndexRef.current) + 1),
-        ].map((_, i) => Math.min(originRowIndexRef.current, nextRowIndex) + i)
-
-        setSelectedRowIndexes(newSelectedRowIndexes)
+        setSelectedRowIndexes(
+          createRowRangeSelection(originRowIndexRef.current, nextRowIndex),
+        )
       } else if (isCtrlPressed) {
         // Ctrlが押されている場合は基準行を更新
         originRowIndexRef.current = nextRowIndex
 
         setSelectedRowIndexes((prev) => {
-          if (prev.includes(nextRowIndex)) {
-            // 既に選択されている行を選択解除
-            return prev.filter((index) => index !== nextRowIndex)
-          }
-
-          return [...prev, nextRowIndex]
+          return toggleRowIndexSelection(prev, nextRowIndex)
         })
       } else {
         // Shift, Ctrlが押されていない場合は基準行を更新
@@ -107,26 +104,13 @@ export const useSelectionHandler = () => {
     }) => {
       if (!selectedCell) return
 
-      const { rowIndex, columnIndex } = selectedCell
-
-      const nextRowIndex =
-        direction === 'up'
-          ? rowIndex - 1
-          : direction === 'down'
-            ? rowIndex + 1
-            : rowIndex
-      const nextColumnIndex =
-        direction === 'left'
-          ? columnIndex - 1
-          : direction === 'right'
-            ? columnIndex + 1
-            : columnIndex
-
-      if (nextRowIndex < 0 || nextRowIndex >= rows.length) return
-      if (nextColumnIndex < 0 || nextColumnIndex >= columns.length) return
-
-      const nextRow = rows[nextRowIndex]
-      const nextColumn = columns[nextColumnIndex]
+      const newCell = resolveNextSelectedCell({
+        selectedCell,
+        rows,
+        columns,
+        direction,
+      })
+      if (!newCell) return
 
       const isInputFocused = cellRef.current?.isInputFocused()
       if (isInputFocused) {
@@ -136,26 +120,10 @@ export const useSelectionHandler = () => {
       }
 
       flushSync(() => {
-        const newCell =
-          nextRow.type === 'inserted'
-            ? ({
-                type: 'inserted',
-                rowIndex: nextRowIndex,
-                rowUUID: nextRow.uuid,
-                columnId: nextColumn.name,
-                columnIndex: nextColumnIndex,
-              } as const)
-            : ({
-                type: 'existing',
-                rowIndex: nextRowIndex,
-                columnId: nextColumn.name,
-                columnIndex: nextColumnIndex,
-              } as const)
-
         setSelectedCell(newCell)
 
         handleMultiSelect({
-          nextRowIndex,
+          nextRowIndex: newCell.rowIndex,
           isShiftPressed,
           isCtrlPressed: false,
         })

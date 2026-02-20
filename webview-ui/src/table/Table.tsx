@@ -26,16 +26,16 @@ import TableFilterBar from './components/TableFilterBar'
 import TableFindBar, { type TableFindBarRef } from './components/TableFindBar'
 import TableFooter from './components/TableFooter'
 import VirtualizedTable from './components/VirtualizedTable'
-import { useOperations } from './hooks/useOperations'
-import { useSelectionHandler } from './hooks/useSelectionHandler'
-import { useShortcutKeys } from './hooks/useShortcutKeys'
-import { useTableFind } from './hooks/useTableFind'
 import {
   type EditableFilterCondition,
   createEmptyEditableFilterCondition,
   toFilterConditions,
-} from './model/filter'
-import { convertClientOperationToOperation } from './utils/convertClientOperationToOperations'
+} from './domain/filter'
+import { toOperations } from './domain/operations'
+import { useOperations } from './hooks/useOperations'
+import { useSelectionHandler } from './hooks/useSelectionHandler'
+import { useShortcutKeys } from './hooks/useShortcutKeys'
+import { useTableFind } from './hooks/useTableFind'
 
 const Table: FC = () => {
   const useTablePanelState = useVSCodeState('tablePanel')
@@ -201,7 +201,7 @@ const Table: FC = () => {
     mutationKey: ['saveTableChanges'],
     mutationFn: async () =>
       messenger.sendRequest(saveTableChangesRequest, HOST_EXTENSION, {
-        operations: convertClientOperationToOperation(operations),
+        operations: toOperations(operations),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getTableData'] })

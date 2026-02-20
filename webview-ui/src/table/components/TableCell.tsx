@@ -12,8 +12,9 @@ import {
 import { flushSync } from 'react-dom'
 import { css } from 'styled-system/css'
 import { EMPTY_TEXT, NULL_TEXT } from '../constants/constants'
+import type { Cell } from '../domain/operations'
+import type { SelectedCell, TableRowWithType } from '../domain/selection'
 import type { SetSelectedCell } from '../hooks/useSelectionHandler'
-import type { Cell, SelectedCell, TableRowWithType } from '../types/table'
 
 export type TableCellRef = {
   focusInput: () => void

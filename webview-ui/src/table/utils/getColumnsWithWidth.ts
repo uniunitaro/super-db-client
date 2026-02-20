@@ -1,6 +1,6 @@
 import type { ColumnMetadata } from '@shared-types/sharedTypes'
 import { EMPTY_TEXT, NULL_TEXT } from '../constants/constants'
-import type { TableRowWithType } from '../types/table'
+import type { TableRowWithType } from '../domain/selection'
 
 export const getColumnsWithWidth = ({
   rows,

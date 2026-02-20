@@ -10,37 +10,19 @@ import {
   useState,
 } from 'react'
 import type { TableFindBarRef } from '../components/TableFindBar'
-import { EMPTY_TEXT, NULL_TEXT } from '../constants/constants'
-import type { TableRowWithType } from '../types/table'
+import {
+  type FindMatch,
+  findTableMatches,
+  getFindMatchCountText,
+  getWrappedFindMatchIndex,
+} from '../domain/find'
+import { createSelectedCell } from '../domain/selection'
+import type { TableRowWithType } from '../domain/selection'
 import type { SetSelectedCell } from './useSelectionHandler'
-
-type FindMatch = {
-  rowIndex: number
-  columnId: string
-  columnIndex: number
-}
 
 type FindTarget = {
   rowIndex: number
   requestId: number
-}
-
-const getDisplayCellText = (value: unknown): string => {
-  if (value === undefined) {
-    return ''
-  }
-
-  if (value === null) {
-    return NULL_TEXT
-  }
-
-  if (value === '') {
-    return EMPTY_TEXT
-  }
-
-  const text = String(value)
-
-  return text.includes('\n') ? `${text.split('\n')[0]}...` : text
 }
 
 export const useTableFind = ({
@@ -66,21 +48,15 @@ export const useTableFind = ({
   const previousFindQueryRef = useRef(findQuery)
 
   const findMatches = useMemo<FindMatch[]>(() => {
-    if (!findQuery || !tableData) {
+    if (!tableData) {
       return []
     }
 
-    const normalizedQuery = findQuery.toLocaleLowerCase()
-
-    return rows.flatMap((row, rowIndex) =>
-      tableData.tableMetadata.columns.flatMap((column, columnIndex) => {
-        const displayCellText = getDisplayCellText(row.row[column.name])
-
-        return displayCellText.toLocaleLowerCase().includes(normalizedQuery)
-          ? [{ rowIndex, columnId: column.name, columnIndex }]
-          : []
-      }),
-    )
+    return findTableMatches({
+      findQuery,
+      rows,
+      columns: tableData.tableMetadata.columns,
+    })
   }, [findQuery, rows, tableData])
 
   const focusFindInput = useCallback(() => {
@@ -99,21 +75,12 @@ export const useTableFind = ({
       setShouldShowInput(false)
 
       setSelectedCell({
-        cell:
-          targetRow.type === 'existing'
-            ? {
-                type: 'existing',
-                rowIndex: match.rowIndex,
-                columnId: match.columnId,
-                columnIndex: match.columnIndex,
-              }
-            : {
-                type: 'inserted',
-                rowIndex: match.rowIndex,
-                rowUUID: targetRow.uuid,
-                columnId: match.columnId,
-                columnIndex: match.columnIndex,
-              },
+        cell: createSelectedCell({
+          row: targetRow,
+          rowIndex: match.rowIndex,
+          columnId: match.columnId,
+          columnIndex: match.columnIndex,
+        }),
         isShiftPressed: false,
         isCtrlPressed: false,
       })
@@ -146,8 +113,11 @@ export const useTableFind = ({
       return
     }
 
-    const nextMatchIndex =
-      (activeFindMatchIndex - 1 + findMatches.length) % findMatches.length
+    const nextMatchIndex = getWrappedFindMatchIndex({
+      currentIndex: activeFindMatchIndex,
+      matchesCount: findMatches.length,
+      direction: 'previous',
+    })
 
     setActiveFindMatchIndex(nextMatchIndex)
     moveToFindMatch(findMatches[nextMatchIndex])
@@ -158,7 +128,11 @@ export const useTableFind = ({
       return
     }
 
-    const nextMatchIndex = (activeFindMatchIndex + 1) % findMatches.length
+    const nextMatchIndex = getWrappedFindMatchIndex({
+      currentIndex: activeFindMatchIndex,
+      matchesCount: findMatches.length,
+      direction: 'next',
+    })
 
     setActiveFindMatchIndex(nextMatchIndex)
     moveToFindMatch(findMatches[nextMatchIndex])
@@ -227,10 +201,10 @@ export const useTableFind = ({
   }, [activeFindMatchIndex, findMatches, isFindOpen, moveToFindMatch])
 
   const findMatchesCount = findMatches.length
-  const findMatchCountText =
-    findMatchesCount === 0
-      ? '0 / 0'
-      : `${activeFindMatchIndex + 1} / ${findMatchesCount}`
+  const findMatchCountText = getFindMatchCountText({
+    activeFindMatchIndex,
+    findMatchesCount,
+  })
 
   return {
     isFindOpen,

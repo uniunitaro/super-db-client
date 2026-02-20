@@ -26,8 +26,10 @@ import {
   TABLE_ROW_PADDING_X_PX,
   TABLE_ROW_PADDING_Y_PX,
 } from '../constants/constants'
+import type { Cell } from '../domain/operations'
+import type { SelectedCell, TableRowWithType } from '../domain/selection'
+import type { Sort } from '../domain/sort'
 import type { SetSelectedCell } from '../hooks/useSelectionHandler'
-import type { Cell, SelectedCell, Sort, TableRowWithType } from '../types/table'
 import { getColumnsWithWidth } from '../utils/getColumnsWithWidth'
 import type { TableCellRef } from './TableCell'
 import TableRow from './TableRow'

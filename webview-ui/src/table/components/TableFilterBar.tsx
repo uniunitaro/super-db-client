@@ -14,7 +14,7 @@ import {
   createEmptyEditableFilterCondition,
   isBetweenOperator,
   isNoValueOperator,
-} from '../model/filter'
+} from '../domain/filter'
 
 type Props = {
   columns: ColumnMetadata[]
