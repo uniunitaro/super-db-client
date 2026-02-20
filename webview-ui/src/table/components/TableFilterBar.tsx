@@ -16,19 +16,12 @@ import {
   isNoValueOperator,
 } from '../domain/filter'
 
-type Props = {
+const TableFilterBar: FC<{
   columns: ColumnMetadata[]
   filters: EditableFilterCondition[]
   onFiltersChange: (filters: EditableFilterCondition[]) => void
   onApply: (nextFilters?: EditableFilterCondition[]) => void
-}
-
-const TableFilterBar: FC<Props> = ({
-  columns,
-  filters,
-  onFiltersChange,
-  onApply,
-}) => {
+}> = ({ columns, filters, onFiltersChange, onApply }) => {
   const updateFilters = (
     nextFilters: EditableFilterCondition[],
     shouldApply = false,
