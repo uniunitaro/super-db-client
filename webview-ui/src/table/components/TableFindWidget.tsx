@@ -2,6 +2,7 @@ import {
   VscodeTextfield,
   VscodeToolbarButton,
 } from '@vscode-elements/react-elements'
+import { AnimatePresence, motion } from 'motion/react'
 import {
   type ComponentRef,
   type FC,
@@ -54,67 +55,85 @@ const TableFindWidget: FC<{
     [],
   )
 
-  if (!isOpen) {
-    return null
-  }
-
   return (
-    <section
-      className={hstack({
-        pos: 'absolute',
-        top: '2',
-        right: '4',
-        zIndex: 'tableFindBar',
-        gap: '0.5',
-        px: '2',
-        py: '1',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: 'var(--vscode-widget-border)',
-        bgColor: 'var(--vscode-editorWidget-background)',
-        boxShadow: 'lg',
-        borderRadius: 'lg',
-      })}
-    >
-      <VscodeTextfield
-        ref={inputRef}
-        value={findQuery}
-        placeholder="Find"
-        className={css({ w: '48' })}
-        onInput={onFindInput}
-        onKeyDown={onFindInputKeyDown}
-      />
+    <AnimatePresence initial={false}>
+      {isOpen ? (
+        <motion.section
+          key="table-find-widget"
+          initial={{ y: '-100%' }}
+          animate={{
+            y: 0,
+            transition: {
+              duration: 0.2,
+              // ease: 'easeOut',
+            },
+          }}
+          exit={{
+            y: '-100%',
+            transition: {
+              duration: 0.2,
+              // ease: 'easeIn',
+            },
+          }}
+          className={hstack({
+            pos: 'absolute',
+            top: '2',
+            right: '4',
+            zIndex: 'tableFindBar',
+            gap: '0.5',
+            px: '2',
+            py: '1',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'var(--vscode-widget-border)',
+            bgColor: 'var(--vscode-editorWidget-background)',
+            boxShadow: 'lg',
+            borderRadius: 'lg',
+          })}
+        >
+          <VscodeTextfield
+            ref={inputRef}
+            value={findQuery}
+            placeholder="Find"
+            className={css({ w: '48' })}
+            onInput={onFindInput}
+            onKeyDown={onFindInputKeyDown}
+          />
 
-      <span
-        className={css({
-          color: 'var(--vscode-editor-foreground)',
-          minW: '14',
-          textAlign: 'center',
-        })}
-      >
-        {findMatchCountText}
-      </span>
+          <span
+            className={css({
+              color: 'var(--vscode-editor-foreground)',
+              minW: '14',
+              textAlign: 'center',
+            })}
+          >
+            {findMatchCountText}
+          </span>
 
-      <VscodeToolbarButton
-        aria-label="Previous match"
-        disabled={!hasMatch}
-        onClick={onMoveFindPrevious}
-      >
-        <div className={cx(css({ px: '0' }), 'codicon codicon-arrow-up')} />
-      </VscodeToolbarButton>
+          <VscodeToolbarButton
+            aria-label="Previous match"
+            disabled={!hasMatch}
+            onClick={onMoveFindPrevious}
+          >
+            <div className={cx(css({ px: '0' }), 'codicon codicon-arrow-up')} />
+          </VscodeToolbarButton>
 
-      <VscodeToolbarButton
-        aria-label="Next match"
-        disabled={!hasMatch}
-        onClick={onMoveFindNext}
-      >
-        <div className={cx(css({ px: '0' }), 'codicon codicon-arrow-down')} />
-      </VscodeToolbarButton>
+          <VscodeToolbarButton
+            aria-label="Next match"
+            disabled={!hasMatch}
+            onClick={onMoveFindNext}
+          >
+            <div
+              className={cx(css({ px: '0' }), 'codicon codicon-arrow-down')}
+            />
+          </VscodeToolbarButton>
 
-      <VscodeToolbarButton aria-label="Close find" onClick={onCloseFind}>
-        <div className={cx(css({ px: '0' }), 'codicon codicon-close')} />
-      </VscodeToolbarButton>
-    </section>
+          <VscodeToolbarButton aria-label="Close find" onClick={onCloseFind}>
+            <div className={cx(css({ px: '0' }), 'codicon codicon-close')} />
+          </VscodeToolbarButton>
+        </motion.section>
+      ) : null}
+    </AnimatePresence>
   )
 }
 
