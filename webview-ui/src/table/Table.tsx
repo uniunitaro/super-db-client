@@ -351,6 +351,7 @@ const Table: FC = () => {
               editedCells={editedCells}
               deletedRowIndexes={deletedRowIndexes}
               selectedRowIndexes={selectedRowIndexes}
+              findQuery={isFindOpen ? findQuery : ''}
               sort={sort}
               shouldShowInput={shouldShowInput}
               hotkeysRef={tableHotkeysRef}

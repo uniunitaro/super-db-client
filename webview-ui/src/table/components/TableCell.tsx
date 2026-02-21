@@ -12,6 +12,7 @@ import {
 import { flushSync } from 'react-dom'
 import { css } from 'styled-system/css'
 import { EMPTY_TEXT, NULL_TEXT } from '../constants/constants'
+import { getDisplayCellText, getFindMatchRanges } from '../domain/find'
 import type { Cell } from '../domain/operations'
 import type { SelectedCell, TableRowWithType } from '../domain/selection'
 import type { SetSelectedCell } from '../hooks/useSelectionHandler'
@@ -32,6 +33,7 @@ const TableCell: FC<
     deletedRowIndexes: number[]
     shouldShowInput: boolean
     isMultiSelected: boolean
+    findQuery: string
     cellWidth: number
     isResizing: boolean
     onCellSelect: SetSelectedCell
@@ -49,6 +51,7 @@ const TableCell: FC<
     deletedRowIndexes,
     shouldShowInput,
     isMultiSelected,
+    findQuery,
     cellWidth,
     onCellSelect,
     onCellEdit,
@@ -63,11 +66,11 @@ const TableCell: FC<
 
     const initialValue =
       value === null || value === undefined ? '' : String(value)
-
-    // 改行が存在する場合は一行目の内容+「...」を表示
-    const displayValue = initialValue.includes('\n')
-      ? `${initialValue.split('\n')[0]}...`
-      : initialValue
+    const displayValue = getDisplayCellText(value)
+    const findMatchRanges = getFindMatchRanges({
+      text: displayValue,
+      query: findQuery,
+    })
 
     const isSelected =
       selectedCell?.rowIndex === index && selectedCell?.columnId === id
@@ -155,6 +158,59 @@ const TableCell: FC<
 
     const nullAndEmptyColor =
       'color-mix(in srgb, transparent, currentColor 60%)'
+
+    const renderCellDisplayValue = () => {
+      if (isNull || isEmpty) {
+        return (
+          <span
+            className={css({
+              color: nullAndEmptyColor,
+            })}
+          >
+            {isNull ? NULL_TEXT : EMPTY_TEXT}
+          </span>
+        )
+      }
+
+      if (findMatchRanges.length === 0) {
+        return <span>{displayValue}</span>
+      }
+
+      const segments: React.ReactNode[] = []
+      let currentIndex = 0
+
+      for (const [rangeIndex, range] of findMatchRanges.entries()) {
+        if (currentIndex < range.start) {
+          segments.push(
+            <span key={`plain-${rangeIndex}`}>
+              {displayValue.slice(currentIndex, range.start)}
+            </span>,
+          )
+        }
+
+        segments.push(
+          <span
+            key={`highlight-${rangeIndex}`}
+            className={css({
+              bgColor: 'var(--vscode-editor-findMatchHighlightBackground)',
+            })}
+            data-find-highlight
+          >
+            {displayValue.slice(range.start, range.end)}
+          </span>,
+        )
+
+        currentIndex = range.end
+      }
+
+      if (currentIndex < displayValue.length) {
+        segments.push(
+          <span key="plain-tail">{displayValue.slice(currentIndex)}</span>,
+        )
+      }
+
+      return segments
+    }
 
     return (
       // biome-ignore lint/a11y/useKeyWithClickEvents: テーブル側でキーボード操作を実装しているため
@@ -262,17 +318,7 @@ const TableCell: FC<
             data-selected={isSelected}
             data-changed={isEdited || isDeleted || isInserted}
           >
-            {isNull || isEmpty ? (
-              <span
-                className={css({
-                  color: nullAndEmptyColor,
-                })}
-              >
-                {isNull ? NULL_TEXT : EMPTY_TEXT}
-              </span>
-            ) : (
-              <span>{displayValue}</span>
-            )}
+            {renderCellDisplayValue()}
           </div>
         )}
       </div>

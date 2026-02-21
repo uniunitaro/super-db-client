@@ -20,6 +20,7 @@ const TableRow: FC<{
   deletedRowIndexes: number[]
   isRowSelected: boolean
   isMultiSelected: boolean
+  findQuery: string
   shouldShowInput: boolean
   isResizing: boolean
   onCellSelect: SetSelectedCell
@@ -37,6 +38,7 @@ const TableRow: FC<{
     deletedRowIndexes,
     isRowSelected,
     isMultiSelected,
+    findQuery,
     shouldShowInput,
     isResizing,
     onCellSelect,
@@ -85,6 +87,7 @@ const TableRow: FC<{
               deletedRowIndexes={deletedRowIndexes}
               shouldShowInput={shouldShowInput}
               isMultiSelected={isMultiSelected}
+              findQuery={findQuery}
               cellWidth={cellWidth}
               isResizing={isResizing}
               onCellSelect={onCellSelect}

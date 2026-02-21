@@ -8,6 +8,11 @@ export type FindMatch = {
   columnIndex: number
 }
 
+export type FindMatchRange = {
+  start: number
+  end: number
+}
+
 export const getDisplayCellText = (value: unknown): string => {
   if (value === undefined) {
     return ''
@@ -24,6 +29,38 @@ export const getDisplayCellText = (value: unknown): string => {
   const text = String(value)
 
   return text.includes('\n') ? `${text.split('\n')[0]}...` : text
+}
+
+export const getFindMatchRanges = ({
+  text,
+  query,
+}: {
+  text: string
+  query: string
+}): FindMatchRange[] => {
+  if (!text || !query) {
+    return []
+  }
+
+  const normalizedText = text.toLocaleLowerCase()
+  const normalizedQuery = query.toLocaleLowerCase()
+  const ranges: FindMatchRange[] = []
+  let fromIndex = 0
+
+  while (fromIndex < normalizedText.length) {
+    const matchIndex = normalizedText.indexOf(normalizedQuery, fromIndex)
+    if (matchIndex === -1) {
+      break
+    }
+
+    ranges.push({
+      start: matchIndex,
+      end: matchIndex + normalizedQuery.length,
+    })
+    fromIndex = matchIndex + normalizedQuery.length
+  }
+
+  return ranges
 }
 
 export const findTableMatches = ({
@@ -43,7 +80,14 @@ export const findTableMatches = ({
 
   return rows.flatMap((row, rowIndex) =>
     columns.flatMap((column, columnIndex) => {
-      const displayCellText = getDisplayCellText(row.row[column.name])
+      const value = row.row[column.name]
+
+      // NULL/EMPTYは表示上のプレースホルダーであり、検索対象には含めない
+      if (value === null || value === '') {
+        return []
+      }
+
+      const displayCellText = getDisplayCellText(value)
 
       return displayCellText.toLocaleLowerCase().includes(normalizedQuery)
         ? [{ rowIndex, columnId: column.name, columnIndex }]

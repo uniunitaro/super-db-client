@@ -4,6 +4,7 @@ import {
   findTableMatches,
   getDisplayCellText,
   getFindMatchCountText,
+  getFindMatchRanges,
   getWrappedFindMatchIndex,
 } from './find'
 
@@ -55,6 +56,45 @@ describe('table domain: find', () => {
         columnIndex: 1,
       },
     ])
+  })
+
+  test('NULLとEMPTYは検索対象に含めない', () => {
+    const matches = findTableMatches({
+      findQuery: 'null',
+      rows: [
+        { type: 'existing', row: { id: 1, name: null } },
+        { type: 'existing', row: { id: 2, name: '' } },
+      ],
+      columns,
+    })
+
+    expect(matches).toEqual([])
+  })
+
+  test('表示文字列内の一致レンジを抽出できる', () => {
+    expect(
+      getFindMatchRanges({
+        text: 'foo bar foo',
+        query: 'foo',
+      }),
+    ).toEqual([
+      { start: 0, end: 3 },
+      { start: 8, end: 11 },
+    ])
+
+    expect(
+      getFindMatchRanges({
+        text: 'FoO',
+        query: 'foo',
+      }),
+    ).toEqual([{ start: 0, end: 3 }])
+
+    expect(
+      getFindMatchRanges({
+        text: 'foo',
+        query: '',
+      }),
+    ).toEqual([])
   })
 
   test('検索インデックスと件数表示を計算できる', () => {

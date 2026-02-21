@@ -1,6 +1,6 @@
 import { type MockResponses, mockSendRequest } from '@/mocks/messenger'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { describe, expect, test, vi } from 'vitest'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { render } from 'vitest-browser-react'
 import { page } from 'vitest/browser'
 import { messenger } from '../utilities/messenger'
@@ -39,7 +39,31 @@ const defaultColumn = {
   extra: '',
 }
 
+type CommandHandler = (command: string) => void
+
 describe('Table', () => {
+  let commandHandler: CommandHandler | undefined
+
+  const getCommandHandler = async (): Promise<CommandHandler> => {
+    await expect.poll(() => typeof commandHandler).toBe('function')
+
+    return commandHandler as CommandHandler
+  }
+
+  beforeEach(() => {
+    commandHandler = undefined
+
+    mockedMessenger.onRequest.mockImplementation((...args: unknown[]) => {
+      const [request, handler] = args as [{ method?: string }, unknown]
+
+      if (request.method === 'command') {
+        commandHandler = handler as CommandHandler
+      }
+
+      return messenger
+    })
+  })
+
   test('条件を追加するとフィルター行が増える', async () => {
     mockedMessenger.sendRequest.mockImplementation(
       mockSendRequest({
@@ -175,18 +199,6 @@ describe('Table', () => {
   })
 
   test('コマンドで検索バーを開き、件数表示と前後移動ができる', async () => {
-    let commandHandler: ((command: string) => void) | undefined
-
-    mockedMessenger.onRequest.mockImplementation((...args: unknown[]) => {
-      const [request, handler] = args as [{ method?: string }, unknown]
-
-      if (request.method === 'command') {
-        commandHandler = handler as (command: string) => void
-      }
-
-      return messenger
-    })
-
     mockedMessenger.sendRequest.mockImplementation(
       mockSendRequest({
         getTableData: {
@@ -212,9 +224,9 @@ describe('Table', () => {
     renderTable()
 
     await expect.element(page.getByText('bar foo')).toBeInTheDocument()
-    await expect.poll(() => typeof commandHandler).toBe('function')
+    const handleCommand = await getCommandHandler()
 
-    commandHandler?.('openFind')
+    handleCommand('openFind')
 
     const findInput = page.getByPlaceholder('Find')
     await expect.element(findInput).toBeInTheDocument()
@@ -235,19 +247,7 @@ describe('Table', () => {
     await expect.element(findInput).not.toBeInTheDocument()
   })
 
-  test('コマンドで初回に検索バーを開いたときFind入力欄へフォーカスされる', async () => {
-    let commandHandler: ((command: string) => void) | undefined
-
-    mockedMessenger.onRequest.mockImplementation((...args: unknown[]) => {
-      const [request, handler] = args as [{ method?: string }, unknown]
-
-      if (request.method === 'command') {
-        commandHandler = handler as (command: string) => void
-      }
-
-      return messenger
-    })
-
+  test('検索語に一致するセル内文字列をハイライトできる', async () => {
     mockedMessenger.sendRequest.mockImplementation(
       mockSendRequest({
         getTableData: {
@@ -273,9 +273,110 @@ describe('Table', () => {
     renderTable()
 
     await expect.element(page.getByText('bar foo')).toBeInTheDocument()
-    await expect.poll(() => typeof commandHandler).toBe('function')
+    const handleCommand = await getCommandHandler()
 
-    commandHandler?.('openFind')
+    handleCommand('openFind')
+
+    const findInput = page.getByPlaceholder('Find')
+    await findInput.fill('foo')
+
+    await expect
+      .poll(() => document.querySelectorAll('[data-find-highlight]').length)
+      .toBe(2)
+
+    await page.getByLabelText('Close find').click()
+
+    await expect
+      .poll(() => document.querySelectorAll('[data-find-highlight]').length)
+      .toBe(0)
+  })
+
+  test('セル編集中はハイライトを表示しない', async () => {
+    mockedMessenger.sendRequest.mockImplementation(
+      mockSendRequest({
+        getTableData: {
+          rows: [{ id: 1, name: 'foo' }],
+          tableMetadata: {
+            columns: [
+              { ...defaultColumn, name: 'id' },
+              { ...defaultColumn, name: 'name', dataType: 'varchar' },
+            ],
+            columnKeys: [],
+            name: 'test',
+            primaryKeyColumns: ['id'],
+            totalRows: 1,
+          },
+        },
+      }),
+    )
+
+    renderTable()
+
+    await expect.element(page.getByText('foo')).toBeInTheDocument()
+    const handleCommand = await getCommandHandler()
+
+    handleCommand('openFind')
+
+    const findInput = page.getByPlaceholder('Find')
+    await findInput.fill('foo')
+
+    await expect
+      .poll(() => document.querySelectorAll('[data-find-highlight]').length)
+      .toBe(1)
+
+    await expect
+      .poll(
+        () =>
+          document.querySelector<HTMLDivElement>(
+            '[role="gridcell"][tabindex="0"]',
+          ) !== null,
+      )
+      .toBe(true)
+
+    document
+      .querySelector<HTMLDivElement>('[role="gridcell"][tabindex="0"]')
+      ?.click()
+    document
+      .querySelector<HTMLDivElement>('[role="gridcell"][tabindex="0"]')
+      ?.click()
+
+    await expect
+      .poll(() => document.querySelector('textarea') !== null)
+      .toBe(true)
+    await expect
+      .poll(() => document.querySelectorAll('[data-find-highlight]').length)
+      .toBe(0)
+  })
+
+  test('コマンドで初回に検索バーを開いたときFind入力欄へフォーカスされる', async () => {
+    mockedMessenger.sendRequest.mockImplementation(
+      mockSendRequest({
+        getTableData: {
+          rows: [
+            { id: 1, name: 'foo' },
+            { id: 2, name: 'bar foo' },
+            { id: 3, name: 'baz' },
+          ],
+          tableMetadata: {
+            columns: [
+              { ...defaultColumn, name: 'id' },
+              { ...defaultColumn, name: 'name', dataType: 'varchar' },
+            ],
+            columnKeys: [],
+            name: 'test',
+            primaryKeyColumns: ['id'],
+            totalRows: 3,
+          },
+        },
+      }),
+    )
+
+    renderTable()
+
+    await expect.element(page.getByText('bar foo')).toBeInTheDocument()
+    const handleCommand = await getCommandHandler()
+
+    handleCommand('openFind')
 
     const findInput = page.getByPlaceholder('Find')
     await expect.element(findInput).toBeInTheDocument()

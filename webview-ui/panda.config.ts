@@ -90,5 +90,7 @@ export default defineConfig({
     '--vscode-gitDecoration-deletedResourceForeground': {},
     '--vscode-progressBar-background': {},
     '--vscode-sash-hoverBorder': {},
+    '--vscode-editor-findMatchBackground': {},
+    '--vscode-editor-findMatchHighlightBackground': {},
   },
 })

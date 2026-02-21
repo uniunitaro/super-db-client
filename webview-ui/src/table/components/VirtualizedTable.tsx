@@ -50,6 +50,7 @@ const VirtualizedTable: FC<{
   editedCells: Cell[]
   deletedRowIndexes: number[]
   selectedRowIndexes: number[]
+  findQuery: string
   sort: Sort
   shouldShowInput: boolean
   hotkeysRef: RefCallback<HTMLDivElement>
@@ -69,6 +70,7 @@ const VirtualizedTable: FC<{
     editedCells,
     deletedRowIndexes,
     selectedRowIndexes,
+    findQuery,
     sort,
     shouldShowInput,
     hotkeysRef,
@@ -457,6 +459,7 @@ const VirtualizedTable: FC<{
                   deletedRowIndexes={deletedRowIndexes}
                   isRowSelected={isRowSelected}
                   isMultiSelected={isMultiSelected}
+                  findQuery={findQuery}
                   shouldShowInput={isCellSelected ? shouldShowInput : false}
                   isResizing={isResizing}
                   onCellSelect={onCellSelect}
