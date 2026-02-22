@@ -5,6 +5,7 @@ dist-ssr
 build
 build-ssr
 *.local
+webview-ui/perf-results
 
 /out
 /out-old

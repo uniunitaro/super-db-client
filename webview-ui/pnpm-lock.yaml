@@ -65,28 +65,31 @@ importers:
         version: 7.0.0-dev.20260217.1
       '@vitejs/plugin-react':
         specifier: ^5.1.4
-        version: 5.1.4(vite@7.3.1(lightningcss@1.23.0))
+        version: 5.1.4(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))
       '@vitest/browser-playwright':
         specifier: ^4.0.18
-        version: 4.0.18(playwright@1.58.2)(vite@7.3.1(lightningcss@1.23.0))(vitest@4.0.18)
+        version: 4.0.18(playwright@1.58.2)(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))(vitest@4.0.18)
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
       playwright:
         specifier: ^1.55.1
         version: 1.58.2
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
       vite:
         specifier: ^7.3.1
-        version: 7.3.1(lightningcss@1.23.0)
+        version: 7.3.1(lightningcss@1.23.0)(tsx@4.21.0)
       vite-plugin-static-copy:
         specifier: ^3.2.0
-        version: 3.2.0(vite@7.3.1(lightningcss@1.23.0))
+        version: 3.2.0(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(typescript@5.8.2)(vite@7.3.1(lightningcss@1.23.0))
+        version: 6.1.1(typescript@5.8.2)(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))
       vitest:
         specifier: ^4.0.18
-        version: 4.0.18(@vitest/browser-playwright@4.0.18)(jsdom@25.0.1)(lightningcss@1.23.0)
+        version: 4.0.18(@vitest/browser-playwright@4.0.18)(jsdom@25.0.1)(lightningcss@1.23.0)(tsx@4.21.0)
       vitest-browser-react:
         specifier: ^2.0.5
         version: 2.0.5(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(vitest@4.0.18)
@@ -1307,6 +1310,9 @@ packages:
     resolution: {integrity: sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==}
     engines: {node: '>= 0.4'}
 
+  get-tsconfig@4.13.6:
+    resolution: {integrity: sha512-shZT/QMiSHc/YBLxxOkMtgSid5HFoauqCE3/exfsEcwg1WkeqjG+V40yBbBrsD+jW2HDXcs28xOfcbm2jI8Ddw==}
+
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
@@ -1818,6 +1824,9 @@ packages:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
 
+  resolve-pkg-maps@1.0.0:
+    resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
+
   reusify@1.1.0:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
@@ -1959,6 +1968,11 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
+  tsx@4.21.0:
+    resolution: {integrity: sha512-5C1sg4USs1lfG0GFb2RLXsdpXqBSEhAaA/0kPL01wxzpMqLILNxIxIOKiILz+cdg/pLnOUxFYOR5yhHU666wbw==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
 
   typescript@5.3.3:
     resolution: {integrity: sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==}
@@ -2934,7 +2948,7 @@ snapshots:
       '@typescript/native-preview-win32-arm64': 7.0.0-dev.20260217.1
       '@typescript/native-preview-win32-x64': 7.0.0-dev.20260217.1
 
-  '@vitejs/plugin-react@5.1.4(vite@7.3.1(lightningcss@1.23.0))':
+  '@vitejs/plugin-react@5.1.4(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.29.0)
@@ -2942,33 +2956,33 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-rc.3
       '@types/babel__core': 7.20.5
       react-refresh: 0.18.0
-      vite: 7.3.1(lightningcss@1.23.0)
+      vite: 7.3.1(lightningcss@1.23.0)(tsx@4.21.0)
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/browser-playwright@4.0.18(playwright@1.58.2)(vite@7.3.1(lightningcss@1.23.0))(vitest@4.0.18)':
+  '@vitest/browser-playwright@4.0.18(playwright@1.58.2)(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))(vitest@4.0.18)':
     dependencies:
-      '@vitest/browser': 4.0.18(vite@7.3.1(lightningcss@1.23.0))(vitest@4.0.18)
-      '@vitest/mocker': 4.0.18(vite@7.3.1(lightningcss@1.23.0))
+      '@vitest/browser': 4.0.18(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))(vitest@4.0.18)
+      '@vitest/mocker': 4.0.18(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))
       playwright: 1.58.2
       tinyrainbow: 3.0.3
-      vitest: 4.0.18(@vitest/browser-playwright@4.0.18)(jsdom@25.0.1)(lightningcss@1.23.0)
+      vitest: 4.0.18(@vitest/browser-playwright@4.0.18)(jsdom@25.0.1)(lightningcss@1.23.0)(tsx@4.21.0)
     transitivePeerDependencies:
       - bufferutil
       - msw
       - utf-8-validate
       - vite
 
-  '@vitest/browser@4.0.18(vite@7.3.1(lightningcss@1.23.0))(vitest@4.0.18)':
+  '@vitest/browser@4.0.18(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))(vitest@4.0.18)':
     dependencies:
-      '@vitest/mocker': 4.0.18(vite@7.3.1(lightningcss@1.23.0))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))
       '@vitest/utils': 4.0.18
       magic-string: 0.30.21
       pixelmatch: 7.1.0
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.0.3
-      vitest: 4.0.18(@vitest/browser-playwright@4.0.18)(jsdom@25.0.1)(lightningcss@1.23.0)
+      vitest: 4.0.18(@vitest/browser-playwright@4.0.18)(jsdom@25.0.1)(lightningcss@1.23.0)(tsx@4.21.0)
       ws: 8.19.0
     transitivePeerDependencies:
       - bufferutil
@@ -2985,13 +2999,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.0.3
 
-  '@vitest/mocker@4.0.18(vite@7.3.1(lightningcss@1.23.0))':
+  '@vitest/mocker@4.0.18(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))':
     dependencies:
       '@vitest/spy': 4.0.18
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.3.1(lightningcss@1.23.0)
+      vite: 7.3.1(lightningcss@1.23.0)(tsx@4.21.0)
 
   '@vitest/pretty-format@4.0.18':
     dependencies:
@@ -3371,6 +3385,10 @@ snapshots:
     dependencies:
       dunder-proto: 1.0.1
       es-object-atoms: 1.1.1
+
+  get-tsconfig@4.13.6:
+    dependencies:
+      resolve-pkg-maps: 1.0.0
 
   glob-parent@5.1.2:
     dependencies:
@@ -3822,6 +3840,8 @@ snapshots:
     dependencies:
       picomatch: 2.3.1
 
+  resolve-pkg-maps@1.0.0: {}
+
   reusify@1.1.0: {}
 
   rollup@4.57.1:
@@ -3954,6 +3974,13 @@ snapshots:
 
   tslib@2.8.1: {}
 
+  tsx@4.21.0:
+    dependencies:
+      esbuild: 0.27.3
+      get-tsconfig: 4.13.6
+    optionalDependencies:
+      fsevents: 2.3.3
+
   typescript@5.3.3: {}
 
   typescript@5.8.2: {}
@@ -3976,25 +4003,25 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite-plugin-static-copy@3.2.0(vite@7.3.1(lightningcss@1.23.0)):
+  vite-plugin-static-copy@3.2.0(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0)):
     dependencies:
       chokidar: 3.6.0
       p-map: 7.0.4
       picocolors: 1.1.1
       tinyglobby: 0.2.15
-      vite: 7.3.1(lightningcss@1.23.0)
+      vite: 7.3.1(lightningcss@1.23.0)(tsx@4.21.0)
 
-  vite-tsconfig-paths@6.1.1(typescript@5.8.2)(vite@7.3.1(lightningcss@1.23.0)):
+  vite-tsconfig-paths@6.1.1(typescript@5.8.2)(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0)):
     dependencies:
       debug: 4.4.0
       globrex: 0.1.2
       tsconfck: 3.1.5(typescript@5.8.2)
-      vite: 7.3.1(lightningcss@1.23.0)
+      vite: 7.3.1(lightningcss@1.23.0)(tsx@4.21.0)
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-  vite@7.3.1(lightningcss@1.23.0):
+  vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0):
     dependencies:
       esbuild: 0.27.3
       fdir: 6.5.0(picomatch@4.0.3)
@@ -4005,20 +4032,21 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
       lightningcss: 1.23.0
+      tsx: 4.21.0
 
   vitest-browser-react@2.0.5(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(vitest@4.0.18):
     dependencies:
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
-      vitest: 4.0.18(@vitest/browser-playwright@4.0.18)(jsdom@25.0.1)(lightningcss@1.23.0)
+      vitest: 4.0.18(@vitest/browser-playwright@4.0.18)(jsdom@25.0.1)(lightningcss@1.23.0)(tsx@4.21.0)
     optionalDependencies:
       '@types/react': 19.0.10
       '@types/react-dom': 19.0.4(@types/react@19.0.10)
 
-  vitest@4.0.18(@vitest/browser-playwright@4.0.18)(jsdom@25.0.1)(lightningcss@1.23.0):
+  vitest@4.0.18(@vitest/browser-playwright@4.0.18)(jsdom@25.0.1)(lightningcss@1.23.0)(tsx@4.21.0):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(lightningcss@1.23.0))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -4035,10 +4063,10 @@ snapshots:
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vite: 7.3.1(lightningcss@1.23.0)
+      vite: 7.3.1(lightningcss@1.23.0)(tsx@4.21.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@vitest/browser-playwright': 4.0.18(playwright@1.58.2)(vite@7.3.1(lightningcss@1.23.0))(vitest@4.0.18)
+      '@vitest/browser-playwright': 4.0.18(playwright@1.58.2)(vite@7.3.1(lightningcss@1.23.0)(tsx@4.21.0))(vitest@4.0.18)
       jsdom: 25.0.1
     transitivePeerDependencies:
       - jiti

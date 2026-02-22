@@ -215,6 +215,7 @@
     "install:all": "pnpm install && cd webview-ui && pnpm install",
     "start:webview": "cd webview-ui && pnpm start",
     "build:webview": "cd webview-ui && pnpm build",
+    "perf:webview": "cd webview-ui && pnpm perf:table",
     "test": "cd webview-ui && pnpm test",
     "typecheck": "tsgo --noEmit && cd webview-ui && tsgo --noEmit",
     "format-and-lint": "biome check .",

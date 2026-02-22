@@ -12,6 +12,9 @@ import { createVSCodePersister } from './utilities/queryPersister'
 const rootElement = document.getElementById('root')!
 const root = createRoot(rootElement)
 
+const routeQuery = new URLSearchParams(window.location.search).get('route')
+const initialRoute = rootElement.dataset.route ?? routeQuery ?? '/'
+
 const router = createMemoryRouter(
   [
     {
@@ -28,8 +31,7 @@ const router = createMemoryRouter(
     },
   ],
   {
-    // @ts-expect-error It exists
-    initialEntries: [rootElement.dataset.route],
+    initialEntries: [initialRoute],
     initialIndex: 0,
   },
 )
