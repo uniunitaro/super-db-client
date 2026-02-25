@@ -103,6 +103,10 @@ const TableCell: FC<
         focusSelectedCell: () => {
           selectedCellRef.current?.focus({ preventScroll: true })
           selectedCellRef.current?.scrollIntoView({ block: 'nearest' })
+          // textfield/textareaフォーカス後にCaret selectionが残ると、
+          // 次のArrow移動でブラウザのcaret処理コストが増えてINPが悪化するため明示的に解除する
+          // セル内のcaretに限らずブラウザ全体のCaret selectionが影響するため、ここで解除している
+          window.getSelection()?.removeAllRanges()
         },
       }),
       [],
