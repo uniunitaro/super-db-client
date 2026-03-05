@@ -4,12 +4,15 @@ import {
   type StatusBarItem,
   window,
 } from 'vscode'
+import { COMMANDS } from '../../constants/commands'
 import { getCurrentConnection } from '../../features/connections/services/dbConfig'
 
 let _statusBarItem: StatusBarItem
 
 export const createCurrentConnectionStatus = (context: ExtensionContext) => {
   const statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 10)
+  statusBarItem.command = COMMANDS.SWITCH_CONNECTION
+  statusBarItem.tooltip = 'Switch database connection'
   _statusBarItem = statusBarItem
 
   updateCurrentConnectionStatus(context)
@@ -27,10 +30,11 @@ export const updateCurrentConnectionStatus = async (
   const currentConnection = currentConnectionResult.value
 
   if (currentConnection) {
-    // const { connectionName, host, database } = currentConnection
     _statusBarItem.text = `$(database) ${currentConnection.connectionName}`
-    // _statusBarItem.tooltip = `${connectionName} ${host} : ${database}`
+    _statusBarItem.show()
+    return
   }
 
+  _statusBarItem.text = '$(database) No connection'
   _statusBarItem.show()
 }

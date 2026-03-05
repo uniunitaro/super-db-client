@@ -10,6 +10,7 @@ import {
   ExplorerViewProvider,
 } from './ui/sideBars/ExplorerViewProvider'
 import { showGoToTableQuickPick } from './ui/sideBars/showGoToTableQuickPick'
+import { showSwitchConnectionQuickPick } from './ui/sideBars/showSwitchConnectionQuickPick'
 import { createCurrentConnectionStatus } from './ui/statusBars/currentConnectionStatus'
 
 export function activate(context: ExtensionContext) {
@@ -106,6 +107,18 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(
     commands.registerCommand(COMMANDS.GO_TO_TABLE, () => {
       showGoToTableQuickPick(context)
+    }),
+  )
+
+  context.subscriptions.push(
+    commands.registerCommand(COMMANDS.SWITCH_CONNECTION, async () => {
+      const switched = await showSwitchConnectionQuickPick(context)
+      if (!switched) return
+
+      // dispose時にtablePanelsが更新されるため、走査用に先にコピーを作る。
+      for (const tablePanel of [...tablePanels]) {
+        tablePanel.dispose()
+      }
     }),
   )
 

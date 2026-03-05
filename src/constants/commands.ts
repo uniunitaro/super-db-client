@@ -5,6 +5,7 @@ export const COMMANDS = {
   REFRESH_DATABASES: 'superDBClient.refreshDatabases',
   OPEN_TABLE: 'superDBClient.openTable',
   GO_TO_TABLE: 'superDBClient.goToTable',
+  SWITCH_CONNECTION: 'superDBClient.switchConnection',
   SAVE_TABLE_CHANGES: 'superDBClient.saveTableChanges',
   REFRESH_TABLE: 'superDBClient.refreshTable',
   FIND_IN_TABLE: 'superDBClient.findInTable',

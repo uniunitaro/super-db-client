@@ -39,6 +39,11 @@
         "category": "Super DB Client"
       },
       {
+        "command": "superDBClient.switchConnection",
+        "title": "Switch Connection",
+        "category": "Super DB Client"
+      },
+      {
         "command": "superDBClient.saveTableChanges",
         "title": "Save Table Changes",
         "category": "Super DB Client"
@@ -78,6 +83,10 @@
       {
         "key": "ctrl+alt+p",
         "command": "superDBClient.goToTable"
+      },
+      {
+        "key": "ctrl+alt+d",
+        "command": "superDBClient.switchConnection"
       },
       {
         "key": "ctrl+s",
