@@ -198,6 +198,154 @@ describe('Table', () => {
       .toBe(true)
   })
 
+  test('ページ移動時に選択セルが先頭セルへ戻る', async () => {
+    mockedMessenger.sendRequest.mockImplementation(
+      mockSendRequest({
+        getTableData: (params) => {
+          const isSecondPage = params.offset >= 300
+
+          return isSecondPage
+            ? {
+                rows: [
+                  { id: 301, name: 'next-1' },
+                  { id: 302, name: 'next-2' },
+                ],
+                tableMetadata: {
+                  columns: [
+                    { ...defaultColumn, name: 'id' },
+                    { ...defaultColumn, name: 'name', dataType: 'varchar' },
+                  ],
+                  columnKeys: [],
+                  name: 'test',
+                  primaryKeyColumns: ['id'],
+                  totalRows: 600,
+                },
+              }
+            : {
+                rows: [
+                  { id: 1, name: 'first-1' },
+                  { id: 2, name: 'first-2' },
+                ],
+                tableMetadata: {
+                  columns: [
+                    { ...defaultColumn, name: 'id' },
+                    { ...defaultColumn, name: 'name', dataType: 'varchar' },
+                  ],
+                  columnKeys: [],
+                  name: 'test',
+                  primaryKeyColumns: ['id'],
+                  totalRows: 600,
+                },
+              }
+        },
+      }),
+    )
+
+    renderTable()
+
+    await expect.element(page.getByText('first-2')).toBeInTheDocument()
+
+    await page.getByText('first-2').click()
+
+    await expect
+      .poll(
+        () =>
+          document
+            .querySelector<HTMLDivElement>('[role="gridcell"][tabindex="0"]')
+            ?.textContent?.trim() ?? '',
+      )
+      .toBe('first-2')
+
+    await page.getByLabelText('Next page').click()
+
+    await expect.element(page.getByText('next-2')).toBeInTheDocument()
+    await expect
+      .poll(
+        () =>
+          document
+            .querySelector<HTMLDivElement>('[role="gridcell"][tabindex="0"]')
+            ?.textContent?.trim() ?? '',
+      )
+      .toBe('301')
+  })
+
+  test('ページ移動時はデータ取得後にスクロール位置が先頭へ戻る', async () => {
+    const getPagedData = (offset: number): MockResponses['getTableData'] => {
+      const startId = offset + 1
+      const rows = [...Array(300)].map((_, index) => ({
+        id: startId + index,
+        name: `row-${startId + index}`,
+      }))
+
+      return {
+        rows,
+        tableMetadata: {
+          columns: [
+            { ...defaultColumn, name: 'id' },
+            { ...defaultColumn, name: 'name', dataType: 'varchar' },
+          ],
+          columnKeys: [],
+          name: 'test',
+          primaryKeyColumns: ['id'],
+          totalRows: 600,
+        },
+      }
+    }
+
+    let resolveSecondPageRequest:
+      | ((response: MockResponses['getTableData']) => void)
+      | undefined
+
+    mockedMessenger.sendRequest.mockImplementation(
+      mockSendRequest({
+        getTableData: (params) => {
+          const response = getPagedData(params.offset)
+
+          if (params.offset >= 300) {
+            return new Promise<MockResponses['getTableData']>((resolve) => {
+              resolveSecondPageRequest = resolve
+            })
+          }
+
+          return response
+        },
+      }),
+    )
+
+    renderTable()
+
+    const scrollContainer =
+      document.querySelector('[role="grid"]')?.parentElement
+    expect(scrollContainer).not.toBeNull()
+
+    if (!scrollContainer) {
+      return
+    }
+
+    await expect
+      .poll(() => scrollContainer.scrollHeight > scrollContainer.clientHeight, {
+        timeout: 10_000,
+      })
+      .toBe(true)
+
+    scrollContainer.scrollTop = 500
+    scrollContainer.dispatchEvent(new Event('scroll'))
+
+    await expect.poll(() => scrollContainer.scrollTop > 0).toBe(true)
+
+    await page.getByLabelText('Next page').click()
+
+    await expect
+      .poll(() => typeof resolveSecondPageRequest === 'function')
+      .toBe(true)
+
+    // 次ページの取得完了までは現ページのスクロール位置を維持する
+    await expect.poll(() => scrollContainer.scrollTop > 0).toBe(true)
+
+    resolveSecondPageRequest?.(getPagedData(300))
+    await expect.poll(() => scrollContainer.scrollTop).toBe(0)
+  })
+
   test('コマンドで検索バーを開き、件数表示と前後移動ができる', async () => {
     mockedMessenger.sendRequest.mockImplementation(
       mockSendRequest({

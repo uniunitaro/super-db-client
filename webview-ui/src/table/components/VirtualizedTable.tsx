@@ -37,6 +37,7 @@ import TableRow from './TableRow'
 
 export type VirtualizedTableRef = {
   scrollToCell: (target: { rowIndex: number; columnIndex: number }) => void
+  scrollToTop: () => void
 }
 
 const VirtualizedTable: FC<{
@@ -272,12 +273,21 @@ const VirtualizedTable: FC<{
       [columnWidths, dbColumns, rowHeight, virtualizer],
     )
 
+    const scrollToTop = useCallback(() => {
+      if (!parentRef.current) {
+        return
+      }
+
+      parentRef.current.scrollTop = 0
+    }, [])
+
     useImperativeHandle(
       ref,
       () => ({
         scrollToCell,
+        scrollToTop,
       }),
-      [scrollToCell],
+      [scrollToCell, scrollToTop],
     )
 
     useEffect(() => {

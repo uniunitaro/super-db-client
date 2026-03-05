@@ -35,6 +35,7 @@ import {
   toFilterConditions,
 } from './domain/filter'
 import { toOperations } from './domain/operations'
+import { createSelectedCell } from './domain/selection'
 import { useOperations } from './hooks/useOperations'
 import { useSelectionHandler } from './hooks/useSelectionHandler'
 import { useShortcutKeys } from './hooks/useShortcutKeys'
@@ -88,6 +89,7 @@ const Table: FC = () => {
     // placeholderDataが使われているときもロードインジケータを表示したいためisPendingではなくisFetchingを使う
     isFetching: isFetchingTableData,
     isRefetching: isRefetchingTableData,
+    isPlaceholderData: isPlaceholderTableData,
     error: tableDataError,
     refetch: refetchTableData,
   } = useQuery({
@@ -130,16 +132,6 @@ const Table: FC = () => {
     }
   }, [initialData, refetchTableData])
 
-  const handlePageChange = useCallback(
-    (page: number) => {
-      if (page < 1) {
-        return
-      }
-      setOffset((page - 1) * limit)
-    },
-    [limit, setOffset],
-  )
-
   const {
     selectedCell,
     cellRef,
@@ -154,13 +146,57 @@ const Table: FC = () => {
     setShouldShowInput,
     resetMultiSelection,
   } = useSelectionHandler()
+  const findBarRef = useRef<TableFindWidgetRef>(null)
+  const virtualizedTableRef = useRef<VirtualizedTableRef>(null)
+  const pendingScrollTopOffsetRef = useRef<number | null>(null)
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page < 1) {
+        return
+      }
+      const nextOffset = (page - 1) * limit
+      pendingScrollTopOffsetRef.current = nextOffset
+
+      const firstRow = tableData?.rows[0]
+      const firstColumn = tableData?.tableMetadata.columns[0]
+
+      // placeholderDataで旧ページの描画が一時的に残っても、選択セルは毎回先頭に戻す
+      if (firstRow && firstColumn) {
+        setSelectedCell({
+          cell: createSelectedCell({
+            row: { type: 'existing', row: firstRow },
+            rowIndex: 0,
+            columnId: firstColumn.name,
+            columnIndex: 0,
+          }),
+          isShiftPressed: false,
+          isCtrlPressed: false,
+        })
+      }
+
+      setOffset(nextOffset)
+    },
+    [limit, setOffset, setSelectedCell, tableData],
+  )
+
+  useEffect(() => {
+    if (pendingScrollTopOffsetRef.current !== offset) {
+      return
+    }
+
+    if (isPlaceholderTableData || !tableData || tableDataError) {
+      return
+    }
+
+    // ページ移動時のみ、新しいページデータの反映後に先頭へ戻す
+    virtualizedTableRef.current?.scrollToTop()
+    pendingScrollTopOffsetRef.current = null
+  }, [isPlaceholderTableData, offset, tableData, tableDataError])
 
   const focusSelectedCell = useCallback(() => {
     cellRef.current?.focusSelectedCell()
   }, [cellRef])
-
-  const findBarRef = useRef<TableFindWidgetRef>(null)
-  const virtualizedTableRef = useRef<VirtualizedTableRef>(null)
 
   const {
     operations,
